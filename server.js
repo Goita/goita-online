@@ -11,7 +11,8 @@
 //6:金
 //7:角
 //8:飛
-//9:王(玉)
+//a:王
+//b:玉
 
 var io = require('socket.io').listen(8080);
 
