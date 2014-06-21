@@ -2,15 +2,20 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8">
-    <title>simple chat client powered by socket.io</title>
-    <script src="http://localhost:8080/socket.io/socket.io.js"></script>
+    <title>goita client</title>
+    <script src="http://localhost:5110/socket.io/socket.io.js"></script>
     <script src="http://code.jquery.com/jquery-2.1.1.js"></script>
+    <!-- <script src="http://code.jquery.com/jquery-latest.min.js"></script> -->
     <script src="client.js"></script>
   </head>
   <body>
-    <input id="user">
-    <input id="css">
+    <h3>ユーザ一覧</h3>
+    <div id="robby_list"></div>
+    <h3>メッセージ入力</h3>
     <input id="text">
-    <div id="typing"></div>
+    <button id="sendmsg">send</button>
+    <h3>チャット</h3>
+    <div id="msg_list" style="height:300px; overflow:auto;"></div>
+    
   </body>
 </html>

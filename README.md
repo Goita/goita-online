@@ -59,7 +59,8 @@ req robby info　ロビー情報要求
 ◆To クライアント
 robby enterd　ロビー参加完了通知
 robby info  ロビー情報通知
-user disconnected　誰かが切断
+user joined robby   誰かがロビーに参加
+user left robby　誰かが切断
 
 〈ロビーチャット〉
 ◆To サーバー
@@ -79,13 +80,14 @@ received invitation
 〈ルーム基本〉
 ◆To サーバー
 enter room　部屋参加
-leave room　部屋から抜ける(＝切断)
+leave room　部屋から抜ける
 req room info　部屋情報要求
 
 ◆To クライアント
 room entered　部屋参加完了通知
 room info  部屋情報通知
-user disconnected　誰かが切断
+user joined room    誰かが部屋に参加した
+user left room　誰かが切断
 
 〈ルームチャット〉
 ◆To サーバー
