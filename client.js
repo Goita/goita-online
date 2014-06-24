@@ -1,26 +1,28 @@
-var server = 'http://localhost:5110';
-var timer;
-var nickname; 
+var server = 'https://goita-online-c9-pandalabo.c9.io:5110';
+var nickname;
+var robby;
 
 $(document).ready(function() {
 
-  var robby = enterRobby();
+  enterRobby();
   
   $('#text').keydown(function(event) {
     // エンターキーで発言をサーバに送信する
     if (event.keyCode === 13) {
-      sendRobbyMessage(robby);
+      sendRobbyMessage($('#text').val());
+      $('#text').val('');
     }
   });
   
   $('#sendmsg').click(function(){
-    sendRobbyMessage(robby);
+    sendRobbyMessage($('#text').val());
+    $('#text').val('');
   });
 });
 
 //ロビーチャットで発言
-function sendRobbyMessage(robby){
-  robby.emit('send msg', $('#text').val());
+function sendRobbyMessage(msg){
+  robby.emit('send msg', msg);
 }
 
 //jqueryでメッセージを追加
@@ -31,7 +33,7 @@ function addMessage(value){
 
 // ロビーに接続する関数
 function enterRobby(){
-  var robby = io.connect(server);
+  robby = io.connect(server);
   
   // 接続できたというメッセージを受け取ったら
   robby.on('connect', function() {

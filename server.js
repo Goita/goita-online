@@ -1,12 +1,23 @@
+//ゲームルームの情報
+function RoomInfo(roomId){
+    this.roomId = roomId;
+    this.playerList = [];
+}
+
+RoomInfo.prototype.addPlayer = function(id, nickname){
+    this.playerList[id] = nickname;
+};
+
 var io = require('socket.io').listen(5110);
+io.set('transports', [ 'websocket' ]);
 
 // ロビーに居るユーザの配列 (id : nickname)
 var robbyUserList = {};
 //ルームに居るユーザの情報 {no : room No. , 'user' : { id : nickname } 
 var roomInfoList = {};
-for(i =0;i<10;i++)
+for(var i=0;i<10;i++)
 {
-  roomInfoList[i] = {};
+  roomInfoList[i] = new RoomInfo(i.toString());
 }
 
 io.sockets.on('connection', function(socket) {
@@ -58,6 +69,7 @@ io.sockets.on('connection', function(socket) {
   socket.on('send msg', function(msg) {
     // 自分以外の全クライアントにブロードキャストする
     socket.broadcast.emit('push msg', msg);
+    socket.emit('push msg', msg);
   });
 
   // クライアントからのイベント''の処理
@@ -67,3 +79,5 @@ io.sockets.on('connection', function(socket) {
   });
 
 });
+
+console.log("server started");
