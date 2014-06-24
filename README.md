@@ -16,6 +16,9 @@ http://hrsh7th.hatenablog.com/entry/20120810/1344630748
 ゲームサンプル
 http://wise9.jp/archives/3930
 
+HTML5 Canvasの入力処理
+http://www.ibm.com/developerworks/jp/web/library/wa-games/
+
 【仕様】
 4人分の駒状態を各プレイヤーに送信する
 1プレイヤーから4プレイヤーまで。1プレイヤーと3プレイヤーが味方。2プレイヤーと4プレイヤーが味方。
