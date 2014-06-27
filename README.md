@@ -13,6 +13,9 @@ http://jxck.hatenablog.com/entry/20110730/1312042603
 ルームの作成機能（動的追加）
 http://hrsh7th.hatenablog.com/entry/20120810/1344630748
 
+チャットルームサンプル
+http://www.sitepoint.com/chat-application-using-socket-io/
+
 ゲームサンプル
 http://wise9.jp/archives/3930
 
@@ -23,21 +26,21 @@ http://www.ibm.com/developerworks/jp/web/library/wa-games/
 4人分の駒状態を各プレイヤーに送信する
 1プレイヤーから4プレイヤーまで。1プレイヤーと3プレイヤーが味方。2プレイヤーと4プレイヤーが味方。
 駒の割り当て
-0:空
-1:不明
-2:し
-3:香
-4:馬
-5:銀
-6:金
-7:角
-8:飛
-a:王
-b:玉
+-:空
+0:不明
+1:し
+2:香
+3:馬
+4:銀
+5:金
+6:角
+7:飛
+8:王
+9:玉
 
 サーバーがすべての戦局判断をする。
 各プレイヤーへの送信データは、1プレイヤーから4プレイヤーまでの全ての情報を羅列して、
-00000000120000002313133500000000
+--------12------23131335--------
 といった32ケタの文字列を送信する。1プレイヤーごとに8ケタで、駒情報を持つ。ただし、裏向きで置いた駒は1:不明として情報を配る。
 （※以降サーバー側からは、裏向きで出したプレイヤーに対しても、1:不明として情報を渡すので、裏向き駒を覗き見る機能がほしければクライアント側で記憶して実装する必要がある）
 
@@ -51,6 +54,7 @@ disconnect　 切断処理
 
 ◆To クライアント
 connect 接続完了処理
+error 何らかのエラー発生
 
 ≪ロビー関連≫　ネームスペース なし ----------------------------------------
 〈ロビー基本〉
@@ -61,16 +65,17 @@ req robby info　ロビー情報要求
 
 ◆To クライアント
 robby enterd　ロビー参加完了通知
+robby entering failed ロビー参加失敗
 robby info  ロビー情報通知
 user joined robby   誰かがロビーに参加
 user left robby　誰かが切断
 
 〈ロビーチャット〉
 ◆To サーバー
-send msg
+send robby msg
 
 ◆To クライアント
-push msg
+push robby msg
 
 〈招待機能〉
 ◆To サーバー
@@ -88,16 +93,17 @@ req room info　部屋情報要求
 
 ◆To クライアント
 room entered　部屋参加完了通知
+room entering failed  部屋参加失敗
 room info  部屋情報通知
 user joined room    誰かが部屋に参加した
 user left room　誰かが切断
 
 〈ルームチャット〉
 ◆To サーバー
-send msg
+send room msg
 
 ◆To クライアント
-push msg
+push room msg
 
 〈ゲーム設定〉
 ◆To サーバー

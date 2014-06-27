@@ -1,75 +1,110 @@
-var server = 'https://goita-online-c9-pandalabo.c9.io:5110';
-var nickname;
-var robby;
+/* Goita Client Class
+   Implements all WebSocket messages */
+var GoitaClient = function(serverURI){
+  //private field
+  this._eventDefined = false;
 
-$(document).ready(function() {
+  //member field
+  this.socket = null;  //socket.io
+  this.serverURI = serverURI;
+  this.connected = false;
+  this.roomId = "";
+  this.userName = "";
+  this.userId = "";
+  this.robbyUserList = [];
 
-  enterRobby();
-  
-  $('#text').keydown(function(event) {
-    // エンターキーで発言をサーバに送信する
-    if (event.keyCode === 13) {
-      sendRobbyMessage($('#text').val());
-      $('#text').val('');
-    }
-  });
-  
-  $('#sendmsg').click(function(){
-    sendRobbyMessage($('#text').val());
-    $('#text').val('');
-  });
-});
+  //
+  // this.robbyMessageQueue = []; // new Array(); enqueue => push(), dequeue => shift()
+  // this.roomMessageQueue = [];  // use as queue
 
-//ロビーチャットで発言
-function sendRobbyMessage(msg){
-  robby.emit('send msg', msg);
-}
+  //event //inject event handler
+  this.robbyUserChanged = undefined;  //function(robbyUserList)
+  this.robbyMessageAdded = undefined; //function(msg [, style])
 
-//jqueryでメッセージを追加
-function addMessage(value){
-  var msg = value.replace( /[<>;]/g, '' ); //タグ記号<>と;削除
-  $("#msg_list").append("<div class='msg'>" + msg + "</div>");
-}
+};
 
-// ロビーに接続する関数
-function enterRobby(){
-  robby = io.connect(server);
-  
-  // 接続できたというメッセージを受け取ったら
-  robby.on('connect', function() {
-    nickname = prompt("enter your nickname");
-    robby.emit('enter robby',{'nickname': nickname});
-  });
+//class method
+GoitaClient.prototype = {
 
-  // ロビーに入ったというメッセージを受け取ったら
-  robby.on('robby entered', function(data){
-    robby.id = data.id;
-  })
+  //connect to server
+  connect : function(callback){
+    //already connected
+    if(this.connected) return this.socket;
 
-  // 他のユーザが接続を解除したら
-  robby.on('user left robby', function(data) {
-    console.log('user disconnected:', data.id);
-    addMessage('user left:' + data.nickname);
-  });
-  
-  // 他のユーザが接続を解除したら
-  robby.on('user joined robby', function(data) {
-    console.log('user joined:', data.id);
-    addMessage('user joined:' + data.nickname);
-  });
+    var self = this;  //capture a client instance
 
-  // ロビーのユーザ一覧を受け取ったら
-  robby.on('robby info', function(robbyUserList) {
-    console.log('robby info', robbyUserList);
-    $("#robby_list").empty();
-    for(var id in robbyUserList){
-      $("#robby_list").append("<div class='username'>" + robbyUserList[id] + "</div>");
-    }
-  });
-  
-  robby.on('push msg', function(msg) {
-    addMessage(msg);
-  });
-  
-  return robby;
+    var socket = io.connect(this.serverURI);
+    this.socket = socket;
+
+    //for reconnecting, it doesn't need to define event again
+    if(this._eventDefined) return socket;
+
+    //以下、メッセージの実装
+    // 接続できたというメッセージを受け取ったら
+    socket.on('connect', function() {
+      self.connected = true;
+      console.log("client connected!");
+    });
+
+    // ロビーに入ったというメッセージを受け取ったら
+    socket.on('robby entered', function(data){
+      console.log("entered in robby");
+      socket.id = data.id;
+    });
+
+    // 他のユーザが接続を解除したら
+    socket.on('user left robby', function(data) {
+      console.log('user left:' + data.id);
+      self.robbyMessageAdded('user left:' + data.username);
+    });
+
+    // 他のユーザが接続したら
+    socket.on('user joined robby', function(data) {
+      console.log('user joined:' + data.id);
+      self.robbyMessageAdded('user joined:' + data.username);
+    });
+
+    // ロビーのユーザ一覧を受け取ったら
+    socket.on('robby info', function(robbyUserList) {
+      console.log('received robby info');
+      self.robbyUserList = robbyUserList;
+      self.robbyUserChanged(self.robbyUserList);
+    });
+
+    socket.on('push robby msg', function(msg) {
+      console.log("received robby msg:" + msg)
+      self.robbyMessageAdded(msg);
+    });
+
+    this._eventDefined = true;
+    return socket;
+  },
+
+  //close connection
+  disconnect : function(){
+    this.socket.close();
+    this.connected = false;
+    console.log("client disconnected...");
+  },
+
+  enterRobby : function(name){
+    this.socket.emit('enter robby',{username: name});
+  },
+
+  //ロビーチャットで発言
+  sendRobbyMessage : function(msg){
+    this.socket.emit('send robby msg', {id:this.socket.id, msg: msg});
+  }
+};
+
+// The .bind method from Prototype.js
+if (!Function.prototype.bind) { // check if native implementation available
+  Function.prototype.bind = function(){
+    var fn = this, args = Array.prototype.slice.call(arguments),
+        object = args.shift();
+    return function(){
+      return fn.apply(object,
+        args.concat(Array.prototype.slice.call(arguments)));
+    };
+  };
 }
