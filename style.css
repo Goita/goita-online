@@ -1,0 +1,16 @@
+@charset "utf-8";
+
+#robby-panel {
+ width:20%;
+ float:left;
+}
+
+#room-panel {
+ width:20%;
+ float:left;
+}
+
+#game-panel {
+  width:59%;
+  float:left;
+}
