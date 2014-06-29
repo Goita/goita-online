@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>goita client</title>
+    <link rel="stylesheet" href="style.css">
     <script src="//goita-online-c9-pandalabo.c9.io/socket.io/socket.io.js"></script>
     <script src="//code.jquery.com/jquery-2.1.1.js"></script>
     <!-- <script src="http://code.jquery.com/jquery-latest.min.js"></script> -->
@@ -10,13 +11,63 @@
     <script src="client.js"></script>
   </head>
   <body>
-    <h3>ロビーユーザ一覧</h3>
-    <div id="robby-user-list"></div>
-    <h3>ロビーメッセージ入力</h3>
-    <input id="input-robby-msg">
-    <button id="btn-send-robby-msg">send</button>
-    <h3>ロビーチャット</h3>
-    <div id="robby-msg-list" style="height:300px; overflow:auto;"></div>
+    <div id="robby-panel">
+      <h3>ロビーユーザ一覧</h3>
+      <div id="robby-user-list"></div>
+      <h3>ロビーメッセージ入力</h3>
+      <input id="input-robby-msg">
+      <button id="btn-send-robby-msg">send</button>
+      <h3>ロビーチャット</h3>
+      <div id="robby-msg-list" style="height:300px; overflow:auto;"></div>
+    </div>
+    <div id="room-panel">
+      <h3>ルーム選択</h3>
+      <div id="room-list"></div>
+      <input id="input-room-selection">
+      <button id="btn-join-room">join room</button>
+      <h3>ルーム操作</h3>
+      <button id="btn-leave-room">leave room</button>
+      <h3>ルーム名</h3>
+      <div id="room-name"></div>
+      <h3>ルームユーザ一覧</h3>
+      <div id="room-user-list"></div>
+      <h3>ルームメッセージ入力</h3>
+      <input id="input-room-msg">
+      <button id="btn-send-room-msg">send</button>
+      <h3>ルームチャット</h3>
+      <div id="room-msg-list" style="height:300px; overflow:auto;"></div>
 
+    </div>
+    <div id="game-panel">
+      <h3>ゲーム状態</h3>
+      <div id="player1-panel">
+        <button id="btn-siton-player1-seat">sit on player1 seat</button>
+        <div id="player1-name"></div>
+        <div id="player1-ready"></div>
+        <div id="player1-has-turn"></div>
+      </div>
+      <div id="player2-panel">
+        <button id="btn-siton-player2-seat">sit on player2 seat</button>
+        <div id="player2-name"></div>
+        <div id="player2-ready"></div>
+        <div id="player2-has-turn"></div>
+      </div>
+      <div id="player3-panel">
+        <button id="btn-siton-player3-seat">sit on player3 seat</button>
+        <div id="player3-name"></div>
+        <div id="player3-ready"></div>
+        <div id="player3-has-turn"></div>
+      </div>
+      <div id="player4-panel">
+        <button id="btn-siton-player4-seat">sit on player4 seat</button>
+        <div id="player4-name"></div>
+        <div id="player4-ready"></div>
+        <div id="player4-has-turn"></div>
+      </div>
+      <button id="btn-start-game">start game</button>
+      <canvas id="canvas-game-state"></canvas>
+      <canvas id="canvas-game-input"></canvas>
+      <button id="btn-game-pass">pass</button>
+    </div>
   </body>
 </html>

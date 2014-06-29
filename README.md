@@ -47,7 +47,7 @@ http://www.ibm.com/developerworks/jp/web/library/wa-games/
 ゲームルームはとりあえず固定で#01～#10 まで作ることにする。
 
 メッセージ一覧
-≪各ネームスペース共通≫    ---------------------------------------------
+<<各ネームスペース共通>>    ---------------------------------------------
 ◆To サーバー
 connection  接続完了処理
 disconnect　 切断処理
@@ -56,16 +56,17 @@ disconnect　 切断処理
 connect 接続完了処理
 error 何らかのエラー発生
 
-≪ロビー関連≫　ネームスペース なし ----------------------------------------
+<<ロビー関連>>　ネームスペース なし ----------------------------------------
 〈ロビー基本〉
 ◆To サーバー
-enter robby　ロビー参加
+join robby　ロビー参加
 leave robby　ロビーから抜ける(＝切断)
 req robby info　ロビー情報要求
 
 ◆To クライアント
-robby enterd　ロビー参加完了通知
-robby entering failed ロビー参加失敗
+robby joined　ロビー参加完了通知
+robby joining failed ロビー参加失敗
+robby left  ロビーから抜けた
 robby info  ロビー情報通知
 user joined robby   誰かがロビーに参加
 user left robby　誰かが切断
@@ -84,16 +85,16 @@ send invitation
 ◆To クライアント
 received invitation
 
-≪ゲームルーム関連≫　ネームスペース room + No.  -----------------------------
+<<ゲームルーム関連>> ネームスペース No -----------------------------------
 〈ルーム基本〉
 ◆To サーバー
-enter room　部屋参加
+join room　部屋参加 function(roomId)
 leave room　部屋から抜ける
 req room info　部屋情報要求
 
 ◆To クライアント
-room entered　部屋参加完了通知
-room entering failed  部屋参加失敗
+room joined　部屋参加完了通知
+room joining failed  部屋参加失敗
 room info  部屋情報通知
 user joined room    誰かが部屋に参加した
 user left room　誰かが切断
@@ -118,6 +119,7 @@ set game config
 player sat
 player stood
 player ready
+player cancel ready
 
 〈ゲーム進行〉
 ◆To サーバー
@@ -125,11 +127,13 @@ req game info   ゲーム状態情報を要求　※必要ないかもしれな�
 attack  '攻めゴマを出す ※あがりも兼ねる
 pass    'なし
 block   '受けゴマを出す　※伏せ出しも兼ねる
+goshi proceed 'ごしのまま続行
+goshi deal again '配りなおし
 next round  次ラウンドに進行
 
 ◆To クライアント
 game started    全員がreadyするとゲーム開始したことが通知される
-game info   ゲーム状態情報通知
+game info   ゲーム状態情報通知（各プレイヤーの秘匿情報を渡す。公開情報はRoomInfoで渡す）
 error command   '無効なプレイを受け取ったときの通知
 game finish     規定点数に達した時に終了を通知
 game abort      途中でだれかが抜けた場合（※回線切断の場合などの復帰処理は今は考えない）
@@ -138,7 +142,9 @@ req play    手番プレイヤーへの通知（処理しなくてもいい）
 time up     手番プレイヤーが時間切れ（ランダムで処理される）
 round started   次ラウンド開始の通知（一定時間で次ラウンド強制開始もありかも）
 round finished  場の非公開情報もついでに送る。
-goshi   五しの処理を求める（その他のプレイヤーには
+goshi ごしの決断を求める（その他のプレイヤーにはgoshi waitを送る)
+goshi wait ごしの決断をしないその他のプレイヤーは判断を待つ
+
 
 
 

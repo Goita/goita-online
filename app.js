@@ -1,7 +1,7 @@
 /*
 Goita Client controller
 */
-var server = 'https://goita-online-c9-pandalabo.c9.io';
+var server = "https://goita-online-c9-pandalabo.c9.io";
 var client;
 
 $(document).ready(function() {
@@ -13,26 +13,26 @@ $(document).ready(function() {
   client.robbyMessageAdded = addRobbyMessage;
   client.robbyUserChanged = updateRobbyUser;
 
-  $('#input-robby-msg').keydown(function(event) {
+  $("#input-robby-msg").keydown(function(event) {
     // エンターキーで発言をサーバに送信する
     if (event.keyCode === 13) {
-      client.sendRobbyMessage($('#input-robby-msg').val());
-      $('#input-robby-msg').val('');
+      client.sendRobbyMessage($("#input-robby-msg").val());
+      $("#input-robby-msg").val("");
     }
   });
 
-  $('#btn-send-robby-msg').click(function(){
-    client.sendRobbyMessage($('#input-robby-msg').val());
-    $('#input-robby-msg').val('');
+  $("#btn-send-robby-msg").click(function(){
+    client.sendRobbyMessage($("#input-robby-msg").val());
+    $("#input-robby-msg").val("");
   });
 
-  client.enterRobby(prompt("enter your name")); //@TODO: create input function
+  client.joinRobby(prompt("enter your name")); //@TODO: create input function
 });
 
 //ロビーメッセージを追加
 var addRobbyMessage = function(value){
-  console.log("addRobbyMessage " + value )
-  var msg = value.replace( /[<>;]/g, '' ); //タグ記号<>と;削除
+  console.log("addRobbyMessage " + value );
+  var msg = value.replace( /[<>;]/g, "" ); //タグ記号<>と;削除
   $("#robby-msg-list").append("<div class='robby-msg'>" + msg + "</div>");
 };
 
