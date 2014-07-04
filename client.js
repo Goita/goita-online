@@ -12,22 +12,24 @@ var GoitaClient = function(serverURI){
   this.roomId = "";
   this.userName = "";
   this.userId = "";
-  this.userList = [];
+  this.userList = {}; // {userid : UserInfo}
   this.roomInfo = null;
-  this.tegoma = "";
+  this.playerNo = 0;
+  this.tegoma = [];
 
   // ネットワーク負荷軽減が必要なら、逐次送信をやめてキューを使う
   // this.robbyMessageQueue = []; // new Array(); enqueue => push(), dequeue => shift()
   // this.roomMessageQueue = [];  // use as queue
 
   //event - inject event handler
-  this.robbyUserChanged = undefined;  //function(robbyUserList)
-  this.robbyMessageAdded = undefined; //function(msg [, style])
-  this.robbyJoiningFailed = undefined; //function(errorcode)
+  this.robbyUserChanged = fnEmpty;  //function(userList)
+  this.robbyMessageAdded = fnEmpty; //function(msg [, style])
+  this.robbyJoiningFailed = fnEmpty; //function(errorcode)
 
-  this.roomInfoChanged = undefined;  //function(RoomInfo)
-  this.roomMessageAdded = undefined; //function(msg [, style])
-  this.roomJoiningFailed = undefined; //function(errorcode)
+  this.roomListReceived = fnEmpty; //function(roomlist)
+  this.roomInfoChanged = fnEmpty;  //function(RoomInfo)
+  this.roomMessageAdded = fnEmpty; //function(msg [, style])
+  this.roomJoiningFailed = fnEmpty; //function(errorcode)
 
 };
 
@@ -90,10 +92,10 @@ GoitaClient.prototype = {
     });
 
     // ロビーのユーザ一覧を受け取ったら
-    socket.on("robby info", function(robbyUserList) {
+    socket.on("robby info", function(userList) {
       console.log("received robby info");
-      self.robbyUserList = robbyUserList;
-      self.robbyUserChanged(self.robbyUserList);
+      self.userList = userList;
+      self.robbyUserChanged(self.userList);
     });
 
     socket.on("push robby msg", function(msg) {
@@ -154,8 +156,8 @@ GoitaClient.prototype = {
     console.log("client disconnected...");
   },
 
-  joinRobby : function(name){
-    this.socket.emit("join robby",{username: name});
+  joinRobby : function(username){
+    this.socket.emit("join robby",username);
   },
 
   //ロビーチャットで発言
@@ -193,6 +195,9 @@ GoitaClient.prototype = {
   },
 
 };
+
+//empty method
+var fnEmpty = function(){};
 
 // The .bind method from Prototype.js
 if (!Function.prototype.bind) { // check if native implementation available

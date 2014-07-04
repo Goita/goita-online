@@ -26,7 +26,7 @@ $(document).ready(function() {
     $("#input-robby-msg").val("");
   });
 
-  client.joinRobby(prompt("enter your name")); //@TODO: create input function
+  client.joinRobby(prompt("enter your name")); //@TODO: create input function or something
 });
 
 //ロビーメッセージを追加
@@ -37,10 +37,11 @@ var addRobbyMessage = function(value){
 };
 
 //ロビーユーザ一覧を更新
-var updateRobbyUser = function(robbyUserList){
+var updateRobbyUser = function(userList){
   var list = $("#robby-user-list");
+  console.log(userList);
   list.empty();
-  for(var id in robbyUserList){
-    list.append("<div class='username'>" + robbyUserList[id] + "</div>");
+  for(var id in userList){
+    list.append("<div class='username'>" + userList[id].name + "</div>");
   }
 };
