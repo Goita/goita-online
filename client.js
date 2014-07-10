@@ -1,21 +1,21 @@
 /* Goita Client Class
    Implements all WebSocket messages */
-var GoitaClient = function(serverURI){
+var GoitaClient = function(server){
   //private field
   this._eventDefined = false;
 
   //member field
   this.socket = null;  //socket.io
-  this.serverURI = serverURI;
+  this.serverURI = server;
   this.connected = false;
   this.isInRobby = false;
   this.roomId = "";
   this.userName = "";
   this.userId = "";
-  this.userList = {}; // {userid : UserInfo}
-  this.roomInfo = null;
-  this.playerNo = 0;
-  this.tegoma = [];
+  this.playerNo = null;
+  this.userList = []; // {userid : UserInfo}
+  this.roomInfo = null; //RoomInfo
+  this.tegoma = null; //KomaInfo
 
   // ネットワーク負荷軽減が必要なら、逐次送信をやめてキューを使う
   // this.robbyMessageQueue = []; // new Array(); enqueue => push(), dequeue => shift()
@@ -25,11 +25,23 @@ var GoitaClient = function(serverURI){
   this.robbyUserChanged = fnEmpty;  //function(userList)
   this.robbyMessageAdded = fnEmpty; //function(msg [, style])
   this.robbyJoiningFailed = fnEmpty; //function(errorcode)
+  this.gotError = fnEmpty;
 
   this.roomListReceived = fnEmpty; //function(roomlist)
   this.roomInfoChanged = fnEmpty;  //function(RoomInfo)
   this.roomMessageAdded = fnEmpty; //function(msg [, style])
   this.roomJoiningFailed = fnEmpty; //function(errorcode)
+  this.gotPrivateGameInfo = fnEmpty; //function(KomaInfo)
+  this.readyRequested = fnEmpty;  //function()
+  this.playRequested = fnEmpty; //function()
+  this.gameStarted = fnEmpty; //function()
+  this.gameFinished = fnEmpty; //function()
+  this.roundStarted = fnEmpty; //function()
+  this.roundFinished = fnEmpty; //function()
+  this.komaDealedAgain = fnEmpty; //function(RoomInfo)
+  this.gotCommandError = fnEmpty; //function(error)
+  this.goshiDecisionRequested = fnEmpty; //function()
+  this.goshiShown = fnEmpty; //function()
 
 };
 
@@ -59,12 +71,14 @@ GoitaClient.prototype = {
     //予定外のエラー
     socket.on("error", function(error){
       console.log("happend error: " + error);
+      self.gotError(error);
     });
 
     // ロビーに入ったというメッセージを受け取ったら
     socket.on("robby joined", function(data){
       console.log("joined in robby");
       socket.id = data.id; //特に使う場面がないが一応
+      self.userId = data.id;
       self.isInRobby = true;
     });
 
@@ -103,6 +117,11 @@ GoitaClient.prototype = {
       self.robbyMessageAdded(msg);
     });
 
+    socket.on("room list", function(roomList){
+      console.log("received room list");
+      self.roomListReceived(roomList);
+    });
+
     //ルーム関連-----------------------------------------------
     // ルームに入ったというメッセージを受け取ったら
     socket.on("room joined", function(data){
@@ -119,6 +138,7 @@ GoitaClient.prototype = {
     socket.on("room left", function(){
       console.log("left room");
       self.roomInfo = null;
+      self.playerNo = null;
     });
 
     // ルームの他のユーザが接続を解除したら
@@ -135,9 +155,16 @@ GoitaClient.prototype = {
 
     // ルームのユーザ一覧を受け取ったら
     socket.on("room info", function(roomInfo) {
-      console.log("received room info");
       self.roomInfo = roomInfo;
-      self.roomUserChanged(self.roomInfo);
+      self.roomInfoChanged(self.roomInfo);
+      if(roomInfo !== null){
+        self.playerNo = null;
+        for(var i=0;i<4;i++){
+          if(roomInfo.player[i] !== null && roomInfo.player[i].id == self.userId){
+            self.playerNo = i;
+          }
+        }
+      }
     });
 
     //ルームメッセージを受け取ったら
@@ -145,6 +172,87 @@ GoitaClient.prototype = {
       console.log("received room msg:" + msg);
       self.roomMessageAdded(msg);
     });
+
+    // game started    全員がreadyするとゲーム開始したことが通知される
+    socket.on("game started",function(){
+      console.log("game started");
+      self.gameStarted();
+    });
+    // public game info
+    socket.on("public game info",function(){
+      //this infomation is included in room info
+    });
+
+    // private game info ゲーム状態情報通知（各プレイヤーの秘匿情報を渡す。公開情報はとりあえずRoomInfoで渡す）
+    socket.on("private game info",function(tegoma){
+      self.tegoma = tegoma;
+      self.gotPrivateGameInfo(tegoma);
+    });
+
+    // error command   '無効なプレイを受け取ったときの通知
+    socket.on("error command",function(error){
+      self.gotCommandError(error);
+    });
+
+    // game finished     規定点数に達した時に終了を通知
+    socket.on("game finished",function(){
+      self.gameFinished();
+    });
+
+    // game aborted      途中でだれかが抜けた場合（※回線切断の場合などの復帰処理は認証機能がないと無理なので、今は考えない）
+    socket.on("game aborted",function(){
+    });
+
+    // played          プレイヤーの手を通知
+    socket.on("played",function(koma){
+      self.roomInfoChanged(self.roomInfo);
+    });
+
+    // passed      パス
+    socket.on("passed",function(turn){
+      self.roomInfoChanged(self.roomInfo);
+    });
+
+    // req play    手番プレイヤーへの通知（処理しなくてもいい）
+    socket.on("req play",function(){
+      self.playRequested();
+    });
+
+    // round started   次ラウンド開始の通知（一定時間で次ラウンド強制開始もありかも）
+    socket.on("round started",function(){
+      self.roundStarted();
+    });
+
+    // round finished  場の非公開情報もついでに送る。//ろくし、ななし、はちし、相ごし、対ごしを含む
+    socket.on("round finished",function(){
+      self.roundFinished();
+    });
+
+    // deal again 配りなおし
+    socket.on("deal again",function(){
+      self.komaDealedAgain();
+    });
+
+    // goshi ごしの決断を求める（その他のプレイヤーにはgoshi waitを送る)
+    socket.on("goshi",function(){
+      self.goshiDecisionRequested();
+    });
+
+    // goshi wait ごしの決断をしないその他のプレイヤーは判断を待つ
+    socket.on("goshi wait",function(){
+      self.goshiShown();
+    });
+
+    // time up     手番プレイヤーが時間切れ（ランダムで処理される）
+    socket.on("time up",function(){
+      //not implemented
+    });
+    // kifu  ラウンド終了ごとに対戦の棋譜を通知
+    socket.on("kifu",function(){
+      //not implemented
+    });
+
+    //to avoid overloading event
     this._eventDefined = true;
     return socket;
   },
@@ -181,7 +289,7 @@ GoitaClient.prototype = {
 
   //ルームチャットで発言
   sendRoomMessage : function(msg){
-    this.socket.emit("send robby msg", { msg: msg});
+    this.socket.emit("send room msg", { msg: msg});
   },
 
   //ルーム情報の再要求
@@ -192,12 +300,53 @@ GoitaClient.prototype = {
   //ルームから抜ける
   leaveRoom : function(){
     this.socket.emit("leave room");
+    this.roomInfo = null;
   },
 
+  sitOn : function(n){
+    this.socket.emit("sit on", n);
+  },
+
+  standUp : function(){
+    this.socket.emit("stand up");
+  },
+
+  setReady : function(){
+    this.socket.emit("set ready");
+  },
+
+  cancelReady : function(){
+    this.socket.emit("cancel ready");
+  },
+
+  // req game info   ゲーム状態情報を要求
+  requestGameInfo : function(){
+    this.socket.emit("req game info");
+  },
+
+  // play  駒を出す。ゲーム状況で自動的に出し方を判断させる。ゲーム終了処理まで行って結果を返す。
+  play : function(koma){
+    this.socket.emit("play", koma);
+  },
+
+  // pass    'なし
+  pass : function(){
+    this.socket.emit("pass");
+  },
+
+  // goshi proceed 'ごしのまま続行
+  goshiProceed : function(){
+    this.socket.emit("goshi proceed");
+  },
+
+  // goshi deal again '配りなおし
+  goshiDealAgain : function(){
+    this.socket.emit("goshi deal again");
+  }
 };
 
 //empty method
-var fnEmpty = function(){};
+var fnEmpty = function(){ console.log("unhandled event raised"); };
 
 // The .bind method from Prototype.js
 if (!Function.prototype.bind) { // check if native implementation available

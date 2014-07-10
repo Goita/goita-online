@@ -1,6 +1,14 @@
 goita-online
 ============
 
+1. you need to install some node modules
+
+npm install socket.io
+npm install validator
+
+2. change server application port in "server.js"
+3. change server URI in "app.js"
+
 ごいたゲームのnode.js+HTMLクライアントのオンライン対戦
 
 【参考にしたいリンク】
@@ -28,6 +36,8 @@ http://jxck.hatenablog.com/entry/20110809/1312847290
 書籍「サーバサイドJavaScript　Node.js入門」
 http://creator.cotapon.org/articles/node-js/node_js-oauth-twitter
 
+HTMLタグ サニタイズ用
+https://github.com/chriso/validator.js
 
 【仕様】
 4人分の駒状態を各プレイヤーに送信する
@@ -151,8 +161,6 @@ pass    'なし
 
 goshi proceed 'ごしのまま続行
 goshi deal again '配りなおし
-shi answer
-next round  次ラウンドに進行
 
 ◆To クライアント
 game started    全員がreadyするとゲーム開始したことが通知される
@@ -160,8 +168,7 @@ public game info
 private game info ゲーム状態情報通知（各プレイヤーの秘匿情報を渡す。公開情報はとりあえずRoomInfoで渡す）
 error command   '無効なプレイを受け取ったときの通知
 game finished     規定点数に達した時に終了を通知
-game aborted      途中でだれかが抜けた場合（※回線切断の場合などの復帰処理は今は考えない）
-tegoma  手駒の通知(個人宛て）
+game aborted      途中でだれかが抜けた場合（※回線切断の場合などの復帰処理は認証機能がないと無理なので、今は考えない）
 played          プレイヤーの手を通知
 passed      パス
 req play    手番プレイヤーへの通知（処理しなくてもいい）

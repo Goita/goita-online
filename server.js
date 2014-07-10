@@ -1,6 +1,7 @@
 //必要データの読み込み。
-var datatype = require("./server.datatype");
-var validator = require("./validator");
+var goita = require("./goita");
+//var validator = require("./validator");
+var validator= require('validator');
 
 //固定値の定義
 var ROOM_COUNT = 10;
@@ -18,7 +19,7 @@ var userList = {}; //{id : UserInfo}
 var roomList = {}; //{id : RoomInfo. , userList : { id : UserInfo }}
 for(var i=0;i<ROOM_COUNT;i++)
 {
-  roomList[i.toString()] = new datatype.RoomInfo(i.toString());
+  roomList[i.toString()] = new goita.RoomInfo(i.toString());
 }
 
 io.sockets.on("connection", function(socket) {
@@ -27,8 +28,27 @@ io.sockets.on("connection", function(socket) {
   console.log("connected:" + socket.id);
 
   var callback_disconnected = function () {
+
+    if(!(socket.id in userList)){
+      console.log("user already disconnected:" + socket.id);
+      // クライアントにロビーにいるユーザを通知
+      socket.broadcast.emit("robby info", userList);
+      return;
+    }
+
+    var user = userList[socket.id];
+    if(user.roomId !== null){
+      var roomId = user.roomId;
+      roomList[roomId].removeUser(user);
+      console.log("notify user left on disconnection");
+      socket.broadcast.to(roomId).emit("user left room", { username: user.name});
+      socket.broadcast.to(roomId).emit("room info", roomList[roomId].toClient());
+    }
+
     // 接続が途切れたことを通知
     socket.broadcast.emit("user left robby", {id: socket.id, username: userList[socket.id].name});
+    // クライアントにロビーにいるユーザを通知
+    socket.broadcast.emit("robby info", userList);
     // ロビーの配列から削除
     delete userList[socket.id];
     console.log("disconnected:", socket.id);
@@ -45,7 +65,7 @@ io.sockets.on("connection", function(socket) {
   socket.on("join robby", function (username){
     if(username || username !== ""){
       // ロビーのユーザ情報配列にデータを追加
-      userList[socket.id] = new datatype.UserInfo(socket.id,username);
+      userList[socket.id] = new goita.UserInfo(socket.id,username);
 
       // クライアントにロビーに接続できたことと、クライアントのidを通知
       socket.emit("robby joined", {id: socket.id, username: username });
@@ -56,16 +76,14 @@ io.sockets.on("connection", function(socket) {
       // 他のユーザに通知
       socket.broadcast.emit("user joined robby", {id: socket.id, username: username });
 
-
       // テスト
       //結果 他人のsocket.id を指定して個別メッセージを送れるが、
       //socketの接続先クライアントにはto(id)で個別メッセージを送れない。
       //したがって、  user.id == socket.id のときは, to(user.id)emit ではなく、socket.emitに切り替えが必要
       //もしくは io.to(id).emit を使用する。
-      for(var k in userList){
-        console.log("tried to push private msg to " + k);
-        io.to(k).emit("push robby msg", "PM:this is private message test from " + userList[socket.id].name);
-      }
+      // for(var k in userList){
+      //   io.to(k).emit("push robby msg", "PM:this is private message test from " + userList[socket.id].name);
+      // }
     }else{
       socket.emit("robby joining failed", 1000);  //reason: username is empty
       return;
@@ -81,7 +99,7 @@ io.sockets.on("connection", function(socket) {
 
   // クライアントからのメッセージ送信を受け取ったとき
   socket.on("send robby msg", function(data) {
-    io.emit("push robby msg", data.msg); //to everyone
+    io.emit("push robby msg", validator.escape(data.msg)); //to everyone
     console.log("push message to " + socket.id);
   });
 
@@ -89,36 +107,52 @@ io.sockets.on("connection", function(socket) {
   // クライアントがルームから出たとき
   socket.on("leave room", function(){
     var user = userList[socket.id];
-    user.roomId; //var roomId = findRoomId(user);
-    roomList[user.roomId].removeUser(user);
-    socket.leave(user.roomId);
+    var roomId = user.roomId; //var roomId = findRoomId(user);
+    roomList[roomId].removeUser(user);
+    socket.leave(roomId);
     socket.emit("room left");
+    socket.emit("room info", null);
     console.log("user left room:" + socket.id);
 
     //他ユーザに通知
-    socket.broadcast.to(user.roomId).emit("user left room", { username: user.name});
-    socket.broadcast.to(user.roomId).emit("room info", roomList[user.roomId].toClient());
+    console.log("notify room:" + roomId + " user left");
+    socket.broadcast.to(roomId).emit("user left room", { username: user.name});
+    socket.broadcast.to(roomId).emit("room info", roomList[roomId].toClient());
   });
 
   // ルームへ入るとき
   socket.on("join room", function (roomId){
-    if(roomId || roomId !== ""){
-      // ロビーのユーザ情報配列にデータを追加
-      roomList[roomId].addUser( userList[socket.id]);
-      socket.join(roomId);
-      // クライアントにルームに接続できたことと、ルームIDを通知
-      socket.emit("room joined", {id: roomId});
-
-      // クライアントにルーム情報を渡す
-      io.to(roomId).emit("room info", roomList[roomId].toClient());
-
-      // 他のユーザに、接続があったことを通知
-      socket.broadcast.to(roomId).emit("user joined room", {id: socket.id, username: userList[socket.id].name });
-
-    }else{
+    if(!(roomId || roomId !== "")){
       socket.emit("room joining failed", 2000);  //reason: roomid is empty
       return;
     }
+    var user = userList[socket.id];
+    if(user === undefined){
+      socket.emit("room joining failed", 2001); //reason: not logged in a robby with proper way
+      return;
+    }
+    if(user.roomId !== null){
+      socket.emit("room joining failed", 2002); //reason: already joined in a room
+      return;
+    }
+
+    if(!(roomId in roomList)){
+      socket.emit("room joining failed", 2003); //reason: roomId doesn't exist
+      return;
+    }
+
+    // ロビーのユーザ情報配列にデータを追加
+    roomList[roomId].addUser(user);
+    socket.join(roomId);
+    // クライアントにルームに接続できたことと、ルームIDを通知
+    socket.emit("room joined", {id: roomId});
+
+    // クライアントにルーム情報を渡す
+    io.to(roomId).emit("room info", roomList[roomId].toClient());
+
+    // 他のユーザに、接続があったことを通知
+    socket.broadcast.to(roomId).emit("user joined room", {id: socket.id, username: userList[socket.id].name });
+
   });
 
   // クライアントがルーム情報の再送を要求したとき
@@ -129,7 +163,7 @@ io.sockets.on("connection", function(socket) {
 
   // クライアントからのメッセージ送信を受け取ったとき
   socket.on("send room msg", function(data) {
-    io.to(userList[socket.id].roomId).emit("push room msg", data.msg); //everyone in the same room
+    io.to(userList[socket.id].roomId).emit("push room msg", validator.escape(data.msg)); //everyone in the same room
     console.log("push message to room:" + userList[socket.id].roomId);
   });
 
@@ -137,18 +171,22 @@ io.sockets.on("connection", function(socket) {
   // sit on
   socket.on("sit on", function(n){
     var user = userList[socket.id];
+    var room = roomList[user.roomId];
     if(roomList[user.roomId].sitUser(n, user)){
       //success sitting
       io.to(user.roomId).emit("player sat", {no: user.playerNo, username: user.name});
+      io.to(room.id).emit("room info", room.toClient());
     }
   });
 
   // stand up
   socket.on("stand up", function(){
     var user = userList[socket.id];
+    var room = roomList[user.roomId];
     if(roomList[user.roomId].standUser(user)){
       //success standing
       io.to(user.roomId).emit("player stood", {no: user.playerNo, username: user.name});
+      io.to(room.id).emit("room info", room.toClient());
     }
   });
 
@@ -159,6 +197,7 @@ io.sockets.on("connection", function(socket) {
     if(room.setUserReady(user)){
       //success to set ready
       io.to(room.id).emit("player ready", {no: user.playerNo, username: user.name});
+      io.to(room.id).emit("room info", room.toClient());
 
       //if all players set ready, start game/round
       if(room.isAllUserReady()){
@@ -186,7 +225,7 @@ io.sockets.on("connection", function(socket) {
           var type = room.Goshi();
           var checkFinished = false;
           switch(type){
-            case datatype.Goita.GoshiType.GOSHI:
+            case goita.Util.GoshiType.GOSHI:
               var p = room.findGoshiPlayer();
               for(i=0;i<4;i++){
                 if(p[0].no == i){
@@ -196,19 +235,19 @@ io.sockets.on("connection", function(socket) {
                 }
               }
               break;
-            case datatype.Goita.GoshiType.ROKUSHI:
+            case goita.Util.GoshiType.ROKUSHI:
               checkFinished = true;
               break;
-            case datatype.Goita.GoshiType.NANASHI:
+            case goita.Util.GoshiType.NANASHI:
               checkFinished = true;
               break;
-            case datatype.Goita.GoshiType.HACHISHI:
+            case goita.Util.GoshiType.HACHISHI:
               checkFinished = true;
               break;
-            case datatype.Goita.GoshiType.AIGOSHI:
+            case goita.Util.GoshiType.AIGOSHI:
               checkFinished = true;
               break;
-            case datatype.Goita.GoshiType.TSUIGOSHI:
+            case goita.Util.GoshiType.TSUIGOSHI:
               io.to(room.id).emit("deal again", room); //include private info
               room.dealAgain();
               io.to(room.id).emit("room info", room.toClient());
@@ -231,9 +270,11 @@ io.sockets.on("connection", function(socket) {
   // cancel ready
   socket.on("cancel ready", function(){
     var user = userList[socket.id];
+    var room = roomList[user.roomId];
     if(roomList[user.roomId].setUserUnready(user)){
       //success to set unready
       io.to(user.roomId).emit("player cancel ready", user.name);
+      io.to(room.id).emit("room info", room.toClient());
     }
   });
 
@@ -259,7 +300,7 @@ io.sockets.on("connection", function(socket) {
 
     io.to(room.id).emit("room info", room.toClient());
     socket.emit("private game info", room.tegoma[user.playerNo]);
-
+    io.to(room.id).emit("palyed", koma);
     if(room.isRoundFinished()){
       io.to(room.id).emit("round finished", room); //include private info
     }else{
@@ -284,9 +325,18 @@ io.sockets.on("connection", function(socket) {
   });
 
 // goshi proceed 'ごしのまま続行
+  socket.on("goshi proceed", function(){
+    var room = roomList[userList[socket.id].roomId];
+    room.goshi = false;
+  });
 // goshi deal again '配りなおし
-// shi answer
-// next round  次ラウンドに進行
+  socket.on("goshi deal again", function(){
+    var room = roomList[userList[socket.id].roomId];
+    io.to(room.id).emit("deal again", room); //include private info
+    room.dealAgain();
+    io.to(room.id).emit("room info", room.toClient());
+  });
+
 });
 
 //ユーザが所属する部屋番号を見つける
@@ -306,7 +356,7 @@ var findRoomId = function(user){
 //クライアントからUserInfoを受け取った場合に使用？
 var validateRoomId = function(user){
   //first, trust the given info
-  if(validator.isNumber(user.roomId)){
+  if(validator.isNumeric(user.roomId)){
     var room = roomList[user.roomId];
     //if the roomId doesn't exist
     if(room === undefined){
