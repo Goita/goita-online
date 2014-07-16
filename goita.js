@@ -29,7 +29,9 @@ KomaInfo.prototype = {
 
   //出し駒用メソッド
   putKoma : function(koma){
-    var index = this.koma.indexOf(Util.EMPTY);
+    //var index = this.koma.indexOf(Util.EMPTY);
+    var index = this.koma.length;
+    if(index >= 8){return;}
     this.koma[index] = koma;
   },
   //手駒用メソッド
@@ -62,7 +64,7 @@ KomaInfo.prototype = {
     var max = 0;
     var temp = 0;
     var koma = Util.EMPTY;
-    for(var i=0;i<this.koma.length();i++){
+    for(var i=0;i<this.koma.length;i++){
       //ソート済みの前提なら、一番最後の駒を見ればいいだけ。
       temp = Util.getPoint(this.koma[i]);
       if(temp > max){
@@ -77,44 +79,57 @@ KomaInfo.prototype = {
 
 //ゲームルームの情報
 var RoomInfo = function(roomId){
-    this.id = roomId;
-    this.userList = []; //{userid: UserInfo}
-    this.game = false; //playing game
-    this.round = false; //started round
-    this.roundCount = 0;
-    this.turn = 0;
-    this.from = 0;  //attack from
-    this.attack = false;  //next play is attack or block
-    this.attackCount = 0;
-    this.attackKoma = "";
-    this.lastWonPlayer = null;
-    this.ouUsed = false;
-    this.goshi = false;
+  this.id = roomId;
+  this.userList = {}; //{userid: UserInfo}
+  this.game = false; //playing game
+  this.round = false; //started round
+  this.roundCount = 0;
+  this.turn = 0;
+  this.from = 0;  //attack from
+  this.attack = false;  //next play is attack or block
+  this.attackCount = 0;
+  this.attackKoma = "";
+  this.lastWonPlayer = null;
+  this.ouUsed = false;
+  this.goshi = false; //ごし発生中
+  this.rokushi = false; //ろくし以上で終了
 
-    //game option
-    this.winningPoint = 150;
-    this.defaultStartPlayer = null;
+  //game option
+  this.winningPoint = 150;
+  this.defaultStartPlayer = null;
 
-    //point[0] + point[2] = team1's total points.
-    //point[1] + point[3] = team2's total points.
-    //0-3 index array.
-    this.player = []; //{index: UserInfo}
-    this.point = [];  //{index: int}
-    this.field = [];  //{index: KomaInfo }
-    this.tegoma = []; //{index: KomaInfo }
+  //point[0] + point[2] = team1's total points.
+  //point[1] + point[3] = team2's total points.
+  //0-3 index array.
+  this.player = []; //{index: UserInfo}
+  this.point = [];  //{index: int}
+  this.field = [];  //{index: KomaInfo }
+  this.tegoma = []; //{index: KomaInfo }
 
-    //initialize room
-    for(var i=0;i<4;i++){
-      this.player[i] = null;
-    }
+  //initialize room
+  for(var i=0;i<4;i++){
+    this.player[i] = null;
+    this.point[i] = 0;
+    this.field[i] = new KomaInfo();
+    this.tegoma[i] = new KomaInfo();
+  }
+  
+  //RNG
+  this.rng = Math;
 };
 RoomInfo.prototype = {
   //clone object
   clone : function(obj){
     if(obj === undefined){ obj = this; }
-    var c = {};
+    var c = null; //Object.create(obj) //__proto__ に余計な情報が付随してくる。
+    if(Array.isArray(obj)){
+      c = [];
+    }else{
+      c = {};
+    }
+    
     for(var i in obj) {
-      //if(typeof(i) == "function"){ continue;} //this doesn't work
+      if(typeof obj[i] == "function"){ continue;}
 
       if(typeof(obj[i])=="object" && obj[i] !== null && obj.hasOwnProperty(i))
           c[i] = this.clone(obj[i]);
@@ -158,10 +173,17 @@ RoomInfo.prototype = {
 
   sitUser : function(n, user){
     if(n < 0 || n>3 || arguments.length < 2){ return false;}
+    if(user.playerNo !== null){ return false; }
     if(this.player[n] === null){
       this.player[n] = user;
       user.sitting = true;
       user.playerNo = n;
+      if(n==this.turn){
+        user.hasTurn = true;
+      }
+      if(this.round){
+        user.isPlaying = true;
+      }
       return true;
     }
     return false;
@@ -169,7 +191,7 @@ RoomInfo.prototype = {
 
   standUser : function(user){
     for(var i=0;i<4;i++){
-      if(this.player[i].id == user.id){
+      if(this.player[i] !== null && this.player[i].id == user.id){
         this.player[i] = null;
         user.sitting = false;
         user.ready = false;
@@ -182,9 +204,10 @@ RoomInfo.prototype = {
     return false;
   },
 
-  getUserReady : function(user){
+  setUserReady : function(user){
+    if(this.round){ return false;}
     for(var i=0;i<4;i++){
-      if(this.player[i].id == user.id){
+      if(this.player[i] !== null && this.player[i].id == user.id){
         this.player[i].ready = true;
         return true;
       }
@@ -192,9 +215,9 @@ RoomInfo.prototype = {
     return false;
   },
 
-  getUserUnready : function(user){
+  setUserUnready : function(user){
     for(var i=0;i<4;i++){
-      if(this.player[i].id == user.id){
+      if(this.player[i] !== null && this.player[i].id == user.id){
         this.player[i].ready = false;
         this.player[i].hasTurn = false;
         return true;
@@ -211,20 +234,25 @@ RoomInfo.prototype = {
       this.turn = this.defaultStartPlayer;
     }else{
       this.turn = Math.floor(Math.random() * 4); //0-3 random value
+      this.lastWonPlayer = this.turn; //一度ランダムで決まったら、そこからスタート
     }
-
-    this.player[this.turn].hasTurn = true;
 
     this.from = this.turn;
     this.attack = false;
     this.ouUsed = false;
     this.goshi = false;
+    this.rokushi = false;
     this.attackCount = 0;
+    this.attackKoma = null;
     var komaRing = this.createKomaRing();
-    for(var i = 0; i<4;i++){
-      this.field[i] = new KomaInfo(Util.EMPTY.repeat(8));
-      this.tegoma[i] = new KomaInfo(komaRing.substring(i*8,8));
+    for(var i=0; i<4;i++){
+      this.field[i] = new KomaInfo(); //new KomaInfo(Util.repeatStr(Util.EMPTY, 8));
+      this.tegoma[i] = new KomaInfo(komaRing.substring(i*8,(i+1)*8));
+      this.player[i].ready = false;
+      this.player[i].hasTurn = false;
     }
+    
+    this.player[this.turn].hasTurn = true;
   },
 
   initGame : function(){
@@ -238,9 +266,11 @@ RoomInfo.prototype = {
 
   isAllUserReady : function(){
     for(var i=0;i<4;i++){
-      if(!this.player[i].ready){return false;}
-      return true;
+      if(this.player[i] === null || !this.player[i].ready){
+        return false;
+      }
     }
+    return true;
   },
 
   startGame : function(){
@@ -275,10 +305,6 @@ RoomInfo.prototype = {
   dealAgain : function(){
     if(!this.round){return false;}
     this.initRound();
-    //get players unready
-    for(var i=0;i<4;i++){
-      this.player[i].ready = false;
-    }
     return true;
   },
 
@@ -309,22 +335,24 @@ RoomInfo.prototype = {
   finishRoundByShi : function(type, gp){
     switch(type){
       case Util.GoshiType.ROKUSHI:
-        this.point[gp[0].no] = Util.getPoint(this.tegoma[gp[0].no].findMaxPointKoma());
+        this.point[gp[0].no] += Util.getPoint(this.tegoma[gp[0].no].findMaxPointKoma());
         break;
       case Util.GoshiType.NANASHI:
-        this.point[gp[0].no] = Util.getPoint(this.tegoma[gp[0].no].findMaxPointKoma()) * 2;
+        this.point[gp[0].no] += Util.getPoint(this.tegoma[gp[0].no].findMaxPointKoma()) * 2;
         break;
       case Util.GoshiType.HACHISHI:
-        this.point[gp[0].no] = 100;
+        this.point[gp[0].no] += 100;
         break;
       case Util.GoshiType.AIGOSHI:
-        this.point[gp[0].no] = this.winningPoint;
-        this.point[gp[1].no] = this.winningPoint;
+        this.point[gp[0].no] += Math.ceil(this.winningPoint/2);
+        this.point[gp[1].no] += Math.ceil(this.winningPoint/2);
         break;
       default:
         return false;
     }
     this.round = false;
+    this.rokushi = true;
+    this.lastWonPlayer = gp[0].no;
     for(var i=0;i<4;i++){
       this.player[i].ready = false;
     }
@@ -338,7 +366,7 @@ RoomInfo.prototype = {
     for(var i=0;i<4;i++){
       var count = this.tegoma[i].countShi();
       if(count >= 5){
-        ret[ret.length()] = {no:i, count:count};
+        ret[ret.length] = {no:i, count:count};
       }
     }
     return ret;
@@ -347,13 +375,13 @@ RoomInfo.prototype = {
   //ごしの確認と処理
   Goshi : function(){
     var p = this.findGoshiPlayer();
-    if(p.length() > 0){
+    if(p.length > 0){
       this.goshi = true; //ごし状態
 
       //@TODO: 勝敗処理
-      if(p.length() >= 2){
+      if(p.length >= 2){
         if((p[0].no + p[1].no) % 2 === 0){ //味方同士なら偶数になる
-          this.finishRoundByShi(Util.GoshiType.AIGOSHI);
+          this.finishRoundByShi(Util.GoshiType.AIGOSHI, p);
           return Util.GoshiType.AIGOSHI;
         }else{
           //doesn't call dealAgain here.
@@ -384,8 +412,9 @@ RoomInfo.prototype = {
   },
 
   isRoundFinished : function(){
-    for(var a in this.tegoma){
-      if(a.count() === 0){
+    if(this.rokushi){return true;} //ろくし以上で終了した
+    for(var i=0;i<4;i++){
+      if(this.tegoma[i].count() === 0){
         return true;
       }
     }
@@ -399,6 +428,7 @@ RoomInfo.prototype = {
     if(this.player[this.turn].id != user.id){ return 3003;}
     //validate that player has the koma
     if(!this.tegoma[this.turn].hasKoma(koma)){ return 3004;}
+    if(this.goshi){return 3006;}
 
     if(this.attack)
     { //atack
@@ -406,13 +436,14 @@ RoomInfo.prototype = {
       // exception: if the player has both OU & GYOKU, can play OU/GYOKU as attack
       if(koma == Util.OU || koma == Util.GYOKU){
         if(!this.ouUsed && !this.tegoma[this.turn].isDamaDama()){ return 3100;}
+        this.ouUsed = true;
       }
       this.playAttack(koma);
       this.from = this.turn;
-      if(this.tegoma[this.turn].count() === 0){
-        this.finishRound();
-        return 0;
-      }
+      // if(this.tegoma[this.turn].count() === 0){
+      //   this.finishRound();
+      //   return 0;
+      // }
       this.attackCount++;
       this.attackKoma = koma;
       this.forwardTurn();
@@ -433,6 +464,7 @@ RoomInfo.prototype = {
       }
       this.attack = true;
     }
+    return 0;
   },
   //private method, call from play()
   playBlock : function(koma){
@@ -458,21 +490,33 @@ RoomInfo.prototype = {
     //手番を持っているプレイヤーからの要求か確認
     if(this.player[this.turn].id != user.id){ return 3003;}
     if(this.from == this.turn){return 3005;}
+    if(this.goshi){return 3006;}
     this.forwardTurn();
+    if(this.from == this.turn){this.attackKoma = null;} //暫定的にここで攻め駒をリセット
     return 0;
   },
 
   createKomaRing : function(){
     //1:し*10, 2:香*4, 3:馬*4, 4:銀*4, 5:金*4, 6:角*2, 7:飛*2, 8:王*1, 9:玉*1
-    return "11123456111234561123457811234579"; //ごしのテストとか済むまでとりあえず固定で
+    var src = Util.komaStrToArray("11111111112222333344445555667789");
+    var dest = [];
+    
+    for(var i=0;i<32;i++){
+      var index = Math.floor(this.rng.random()*src.length);
+      var temp = src.splice(index, 1);
+      for(var j=0;j<temp.length;j++){
+        dest.push(temp[j]);
+      }
+    }
+    return dest.join("");
+    //return "11112222623234561579111421523411"; //ごしのテストとか済むまでとりあえず固定で
     //xor-shift, mersenne twister 等の乱数生成アルゴリズムを使いたいところ。
   },
 
   //手番を次のプレイヤーに渡す(反時計回り)
   forwardTurn : function(){
     this.player[this.turn].hasTurn = false;
-    this.turn++;
-    if(this.turn >3){ this.turn = 0; }
+    this.turn = (this.turn+1)%4;
     this.player[this.turn].hasTurn = true;
   },
 
@@ -583,6 +627,8 @@ var Util = {
   },
 
   canBlock : function(attack, block){
+    if(attack === null) { return true;} //最初の1手
+    //if(this.from == this.turn) { return true;} //from, turnを参照できれば伏せ出しOK判定可能
     if(block == this.OU || block == this.GYOKU){
       if(attack == this.SHI || attack == this.GON){
         return false;
@@ -595,6 +641,15 @@ var Util = {
     }
     return false;
   },
+  
+  repeatStr : function(str, n){
+    if(arguments.length < 2){ n = 1}
+    var ret = "";
+    for(var i=0;i<n;i++){
+      ret += str;
+    }
+    return ret;
+  },
 
   sortKoma : function(tegomaStr){
     var str = this.komaStrToArray(tegomaStr);
@@ -604,12 +659,12 @@ var Util = {
     return temp;
   },
 
-  komaStrToArray : function(komastr){
-    var str = [];
-    for(var i=0;i<komastr.length && i<8;i++){
-      str[i] = komastr.charAt(i);
+  komaStrToArray : function(str){
+    var a = [];
+    for(var i=0;i<str.length;i++){
+      a[i] = str.charAt(i);
     }
-    return str;
+    return a;
   },
 };
 

@@ -15,7 +15,7 @@ var GoitaClient = function(server){
   this.playerNo = null;
   this.userList = []; // {userid : UserInfo}
   this.roomInfo = null; //RoomInfo
-  this.tegoma = null; //KomaInfo
+  this.tegoma = {koma:[]}; //KomaInfo
 
   // ネットワーク負荷軽減が必要なら、逐次送信をやめてキューを使う
   // this.robbyMessageQueue = []; // new Array(); enqueue => push(), dequeue => shift()
@@ -37,8 +37,8 @@ var GoitaClient = function(server){
   this.gameStarted = fnEmpty; //function()
   this.gameFinished = fnEmpty; //function()
   this.roundStarted = fnEmpty; //function()
-  this.roundFinished = fnEmpty; //function()
-  this.komaDealedAgain = fnEmpty; //function(RoomInfo)
+  this.roundFinished = fnEmpty; //function(RoomInfo) //非公開情報含む
+  this.komaDealedAgain = fnEmpty; //function(RoomInfo) //非公開情報含む
   this.gotCommandError = fnEmpty; //function(error)
   this.goshiDecisionRequested = fnEmpty; //function()
   this.goshiShown = fnEmpty; //function()
@@ -79,6 +79,7 @@ GoitaClient.prototype = {
       console.log("joined in robby");
       socket.id = data.id; //特に使う場面がないが一応
       self.userId = data.id;
+      self.userName = data.username;
       self.isInRobby = true;
     });
 
@@ -108,6 +109,7 @@ GoitaClient.prototype = {
     // ロビーのユーザ一覧を受け取ったら
     socket.on("robby info", function(userList) {
       console.log("received robby info");
+      self.playerNo = userList[self.userId].playerNo;
       self.userList = userList;
       self.robbyUserChanged(self.userList);
     });
@@ -155,16 +157,18 @@ GoitaClient.prototype = {
 
     // ルームのユーザ一覧を受け取ったら
     socket.on("room info", function(roomInfo) {
+      //clientのプロパティを更新
       self.roomInfo = roomInfo;
-      self.roomInfoChanged(self.roomInfo);
+      self.playerNo = null;
       if(roomInfo !== null){
-        self.playerNo = null;
         for(var i=0;i<4;i++){
           if(roomInfo.player[i] !== null && roomInfo.player[i].id == self.userId){
             self.playerNo = i;
           }
         }
       }
+      //画面にルーム情報変化を通知
+      self.roomInfoChanged(self.roomInfo);
     });
 
     //ルームメッセージを受け取ったら
@@ -185,6 +189,7 @@ GoitaClient.prototype = {
 
     // private game info ゲーム状態情報通知（各プレイヤーの秘匿情報を渡す。公開情報はとりあえずRoomInfoで渡す）
     socket.on("private game info",function(tegoma){
+      console.log("received private game info");
       self.tegoma = tegoma;
       self.gotPrivateGameInfo(tegoma);
     });
@@ -224,13 +229,13 @@ GoitaClient.prototype = {
     });
 
     // round finished  場の非公開情報もついでに送る。//ろくし、ななし、はちし、相ごし、対ごしを含む
-    socket.on("round finished",function(){
-      self.roundFinished();
+    socket.on("round finished",function(room){
+      self.roundFinished(room);
     });
 
     // deal again 配りなおし
-    socket.on("deal again",function(){
-      self.komaDealedAgain();
+    socket.on("deal again",function(room){
+      self.komaDealedAgain(room);
     });
 
     // goshi ごしの決断を求める（その他のプレイヤーにはgoshi waitを送る)
