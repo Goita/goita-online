@@ -1,2 +1,3 @@
 node_modules/
-*.cheatsheet
+.c9
+.c9/
