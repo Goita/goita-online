@@ -1,16 +1,27 @@
 //必要データの読み込み。
-var goita = require("./goita");
+var goita = require("./public/goita");
 //var validator = require("./validator");
 var validator= require('validator');
 var mt = require("./mt"); //MersenneTwister
-
 //固定値の定義
 var ROOM_COUNT = 10;
 
+// Setup basic express server
+var express = require('express');
+var app = express();
+var server = require('http').createServer(app);
+var io = require('socket.io')(server);
+var port = process.env.PORT || 8080;
+
+server.listen(port, function () {
+  console.log('Server listening at port %d', port);
+});
+
+// Routing
+app.use(express.static(__dirname + '/public'));
+
+
 //WebSocketサーバーの定義
-var port = process.env.PORT || 5110;
-console.log("default port: " + port);
-var io = require("socket.io").listen(port);
 //io.set("transports", [ "websocket" ]); //websocketsに限定する場合に指定。
 //io.set("log level", 1);
 
@@ -444,5 +455,4 @@ var getArrayKeys = function(a){
   return list;
 };
 
-
-console.log("server started");
+console.log('server started');
