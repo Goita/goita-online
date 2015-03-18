@@ -1,0 +1,29 @@
+{
+  "name": "goita-online",
+  "version": "0.0.0",
+  "description": "goita-online server & web client",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^3.20.2",
+    "socket.io": "^1.3.5",
+    "validator": "^3.16.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/pandalabo/goita-online.git"
+  },
+  "keywords": [
+    "goita"
+  ],
+  "author": "fuyu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pandalabo/goita-online/issues"
+  },
+  "homepage": "https://github.com/pandalabo/goita-online"
+}
