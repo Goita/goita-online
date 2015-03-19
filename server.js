@@ -13,6 +13,11 @@ var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 8080;
 
+//WebSocketサーバーの定義
+//io.set('transports', ['websocket']); //websocketsに限定する場合に指定。c9.ioではコメントアウト
+io.set('match origin protocol', true);
+//io.set("log level", 1);
+
 server.listen(port, function () {
   console.log('Server listening at port %d', port);
 });
@@ -20,10 +25,6 @@ server.listen(port, function () {
 // Routing
 app.use(express.static(__dirname + '/public'));
 
-
-//WebSocketサーバーの定義
-//io.set("transports", [ "websocket" ]); //websocketsに限定する場合に指定。
-//io.set("log level", 1);
 
 // ロビーに居るユーザの配列
 var userList = {}; //{id : UserInfo}

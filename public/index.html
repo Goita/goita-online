@@ -5,69 +5,125 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1" />
     <title>goita client</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
     <script src="/socket.io/socket.io.js"></script>
     <script src="//code.jquery.com/jquery-2.1.1.js"></script>
     <!-- <script src="//code.jquery.com/jquery-latest.min.js"></script> -->
+    <script src="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
     <script src="appmain.js"></script>
     <script src="client.js"></script>
     <script src="goita.js"></script>
   </head>
   <body>
-    <div id="login-page">
-      ログイン名
-      <input id="input-login-name">
-      <button id="btn-login">log in</button>
-      
-    </div>
-    <div id="main-page">
-      <div id="robby-panel">
-        <h3>ロビーユーザ一覧</h3>
-        <div id="robby-user-list"></div>
-        <h3>ルーム選択</h3>
-        <div id="room-list">
-          <select id="select-room-list" name="roomlist"></select>
-          <button id="btn-join-room">join room</button>
-        </div>
-        <h3>ロビーメッセージ入力</h3>
-        <input id="input-robby-msg">
-        <button id="btn-send-robby-msg">send</button>
-        <h3>ロビーチャット</h3>
-        <div id="robby-msg-list"></div>
-      </div>
-      <div id="room-panel">
-        <h3>ルーム操作</h3>
-        <button id="btn-leave-room">leave room</button>
-        <h3>ルーム名</h3>
-        <div id="room-name">---</div>
-        <h3>ルームユーザ一覧</h3>
-        <div id="room-user-list"></div>
-        <h3>ルームメッセージ入力</h3>
-        <input id="input-room-msg">
-        <button id="btn-send-room-msg">send</button>
-        <h3>ルームチャット</h3>
-        <div id="room-msg-list"></div>
+    <div data-role="page" id="main-page">
+      <div data-role="header" data-position="fixed">
+        <h1>ごいた</h1>
+        <a href="#robby-panel" data-icon="bars" data-iconpos="notext">Menu</a>
+        <!--<a id="btn-login" href="#login-page" data-icon="gear" data-iconpos="notext" data-rel="popup" data-position-to="window" data-transition="pop" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-delete ui-btn-icon-left ui-btn-b">LogIn</a>-->
+      </div><!-- /header -->
 
-      </div>
-      <div id="game-panel">
-        <h3>ゲーム状態</h3>
-        <div id="player1-panel">
-          <button id="btn-siton-player1-seat">sit on player1 seat</button>
-        </div>
-        <div id="player2-panel">
-          <button id="btn-siton-player2-seat">sit on player2 seat</button>
-        </div>
-        <div id="player3-panel">
-          <button id="btn-siton-player3-seat">sit on player3 seat</button>
-        </div>
-        <div id="player4-panel">
-          <button id="btn-siton-player4-seat">sit on player4 seat</button>
-        </div>
-        <button id="btn-standup-seat">stand up</button>
-        <button id="btn-ready-game">ready</button>
-        <canvas id="canvas-game-field" width="440" height="440"></canvas>
-        <canvas id="canvas-game-input" width="400" height="50"></canvas>
-        <button id="btn-game-pass">pass</button>
-      </div>
+      <div role="main" class="ui-content">
+        <div data-role="tabs" id="main-tabs">
+          <div data-role="navbar">
+            <ul>
+              <li><a href="#robby-panel" data-ajax="false">ロビー</a></li>
+              <li><a href="#room-panel" data-ajax="false">ルーム</a></li>
+              <li><a href="#game-panel" data-ajax="false">ゲーム</a></li>
+            </ul>
+          </div>
+          <div id="robby-panel" data-position-fixed="true" data-display="reveal">
+            <h3>ロビーユーザ一覧</h3>
+            <div id="robby-user-list"></div>
+            <h3>ルーム選択</h3>
+            <div id="room-list">
+              <select id="select-room-list" name="roomlist"></select>
+              <button id="btn-join-room">join room</button>
+            </div>
+            <h3>ロビーメッセージ入力</h3>
+            <input id="input-robby-msg">
+            <button id="btn-send-robby-msg">send</button>
+            <h3>ロビーチャット</h3>
+            <div id="robby-msg-list"></div>
+          </div><!--/robby-panel-->
+          <div id="room-panel">
+            <h3>ルーム操作</h3>
+            <button id="btn-leave-room">leave room</button>
+            <h3>ルーム名</h3>
+            <div id="room-name">---</div>
+            <h3>ルームユーザ一覧</h3>
+            <div id="room-user-list"></div>
+            <h3>ルームメッセージ入力</h3>
+            <input id="input-room-msg">
+            <button id="btn-send-room-msg">send</button>
+            <h3>ルームチャット</h3>
+            <div id="room-msg-list"></div>
+          </div>
+          <div id="game-panel">
+            <h3>ゲーム状態</h3>
+            <fieldset class="ui-grid-b">
+              <div id="player1-panel" class="ui-block-a">
+                <button id="btn-siton-player1-seat">player1</button>
+              </div>
+              <div id="player2-panel" class="ui-block-b">
+                <button id="btn-siton-player2-seat">player2</button>
+              </div>
+            </fieldset>
+            <fieldset class="ui-grid-b">
+              <div id="player3-panel" class="ui-block-a">
+                <button id="btn-siton-player3-seat">player3</button>
+              </div>
+              <div id="player4-panel" class="ui-block-b">
+                <button id="btn-siton-player4-seat">player4</button>
+              </div>
+            </fieldset>
+            <fieldset class="ui-grid-b">
+              <div class="ui-block-a"><button id="btn-standup-seat">stand up</button></div>
+              <div class="ui-block-b"><button id="btn-ready-game">ready</button></div>
+            </fieldset>
+            <canvas id="canvas-game-field" width="440" height="440"></canvas>
+            <canvas id="canvas-game-input" width="400" height="50"></canvas>
+            <button id="btn-game-pass">pass</button>
+          </div>
+        </div><!--/tabs-->
+      </div><!--/main-->
+      
+      <div data-role="footer">
+    		<h3 id="new-msg"></h3>
+    	</div><!-- /footer -->
     </div>
+    
+    <!--ログイン-->
+    <div data-role="page" id="login-page" data-theme="b">
+      <div data-role="header" data-position="fixed">
+        <h3>Enter your nickname</h3>
+      </div>
+      <div role="main" class="ui-content">
+        <input id="input-login-name">
+        <button class="ui-btn" id="btn-login">log in</button>
+        <div id="login-error-msg"></div>
+      </div><!-- /content -->
+    </div><!-- /login-page -->
+    
+    <script>
+      $(function() {
+        var $test = $("<div style='position:absolute; top:0'>").appendTo("body");
+        $test.width("35em");
+    
+        var $panels = $("body > [data-role='panel']");
+                    
+        $panels.panel().enhanceWithin();
+    
+        function handler() { 
+            var key = ($test.width() <= $(window).width()) ? "open" : "close" ;
+            $panels.panel(key);
+            $panels.height($(window).height());
+                        
+        }
+    
+        $(window).on("throttledresize", handler);
+        $(document).on("pageshow", handler);
+        //handler();
+      });
+    </script>
   </body>
 </html>

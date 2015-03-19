@@ -1,13 +1,13 @@
 /* Goita Client Class
    Implements all WebSocket messages */
-var GoitaClient = function(server){
+var GoitaClient = function(){
   //private field
   this._eventDefined = false;
 
   //member field
   this.socket = null;  //socket.io
-  this.serverURI = server;
-  this.connected = false;
+  //this.serverURI = server;
+  this.isConnected = false;
   this.isInRobby = false;
   this.roomId = "";
   this.userName = "";
@@ -22,8 +22,11 @@ var GoitaClient = function(server){
   // this.roomMessageQueue = [];  // use as queue
 
   //event - inject event handler
+  this.connected = fnEmpty; //function()
+  this.disconnected = fnEmpty; //function()
   this.robbyUserChanged = fnEmpty;  //function(userList)
   this.robbyMessageAdded = fnEmpty; //function(msg [, style])
+  this.robbyJoined = fnEmpty; //function()
   this.robbyJoiningFailed = fnEmpty; //function(errorcode)
   this.gotError = fnEmpty;
 
@@ -50,12 +53,12 @@ GoitaClient.prototype = {
 
   //connect to server
   connect : function(callback){
-    //already connected
-    if(this.connected) return this.socket;
+    //already isConnected
+    if(this.isConnected) return this.socket;
 
     var self = this;  //capture a client instance
 
-    var socket = io.connect(this.serverURI);
+    var socket = io.connect(); //.connect(this.serverURI);
     this.socket = socket;
 
     //for reconnecting, no need to define events again
@@ -65,8 +68,16 @@ GoitaClient.prototype = {
     
     // 接続できたというメッセージを受け取ったら
     socket.on("connect", function() {
-      self.connected = true;
+      self.isConnected = true;
       console.log("client connected!");
+      self.connected();
+    });
+    
+    //切断した場合
+    socket.on('disconnect', function(){
+      self.isConnected = false;
+      console.log("client disconnected");
+      self.disconnected();
     });
 
     //unhandled error
@@ -82,6 +93,7 @@ GoitaClient.prototype = {
       self.userId = data.id;
       self.userName = data.username;
       self.isInRobby = true;
+      self.robbyJoined();
     });
 
     //ロビーに入れなかった場合
@@ -205,7 +217,8 @@ GoitaClient.prototype = {
       self.gameFinished();
     });
 
-    // game aborted      途中でだれかが抜けた場合（※回線切断の場合などの復帰処理は認証機能がないと無理なので、今は考えない）
+    // game aborted      途中でだれかが抜けた場合
+    //（※回線切断の場合などの復帰処理は認証機能がないと無理なので、今は考えない）
     socket.on("game aborted",function(){
     });
 
@@ -266,7 +279,7 @@ GoitaClient.prototype = {
   //close connection
   disconnect : function(){
     this.socket.close();
-    this.connected = false;
+    //this.isConnected = false;
     console.log("client disconnected...");
   },
 

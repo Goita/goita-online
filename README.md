@@ -1,13 +1,11 @@
 goita-online
 ============
 
-1. you need to install some node modules
+1. install some node modules.
+cd goita-online
+npm install
 
-npm install socket.io
-npm install validator
-
-2. change server application port in "server.js"
-3. change server URI in "appmain.js"
+2. if you need, change server application port in "server.js"
 
 ごいたゲームのnode.js+HTMLクライアントのオンライン対戦
 

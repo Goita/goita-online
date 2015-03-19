@@ -1,7 +1,6 @@
 /*
 Goita Client controller
 */
-var server = "https://goita-online-c9-pandalabo.c9.io";
 var client;
 
 //test
@@ -25,7 +24,7 @@ onload = function(){
 var bindGoitaClientEvents = function(client){
   client.robbyMessageAdded = addRobbyMessage; //function(msg [, style])
   client.robbyUserChanged = updateRobbyUser;
-
+  client.robbyJoined = notifyRobbyJoined;
   client.robbyJoiningFailed = notifyRobbyJoinedError; //function(errorcode)
   client.gotError = notifyError;
 
@@ -48,6 +47,14 @@ var bindGoitaClientEvents = function(client){
 };
 
 var bindScreenEvents = function(client){
+  
+  //ログインボタン
+  $('#btn-login').click(function(){
+    var loginName = $('#input-login-name').val();
+    console.log("login name: ", loginName);
+    client.joinRobby(loginName);
+  });
+  
   //ロビーチャット送信ボタン
   $("#input-robby-msg").keydown(function(event) {
     // エンターキーで発言をサーバに送信する
@@ -76,7 +83,7 @@ var bindScreenEvents = function(client){
     $("#input-room-msg").val("");
   });
 
-　//ルーム参加ボタン
+  //ルーム参加ボタン
   $("#btn-join-room").click(function(){
     var roomid = $('#select-room-list').val();
     client.joinRoom(roomid);
@@ -168,7 +175,9 @@ var bindScreenEvents = function(client){
 };
 
 $(document).ready(function() {
-  client = new GoitaClient(server);
+  //$.mobile.navigate("#"); //Reset Navigation
+  
+  client = new GoitaClient(); //server);
 
   //set event handler
   bindGoitaClientEvents(client);
@@ -183,8 +192,14 @@ $(document).ready(function() {
   {
     //サーバーに接続できませんでした。とメッセージを出す。
   }
-  client.joinRobby(prompt("enter your name")); //@TODO: create input function or something
+  
+  //まずはログインページへ
+  showLoginPage();
 });
+
+var showLoginPage = function(){
+  $("body").pagecontainer("change", "#login-page");
+};
 
 //モバイル機器のウィンドウに対してジェスチャーを使ったすべての操作を無効にする
 var cancelUserGesture = function(e) {
@@ -200,10 +215,19 @@ $('#canvas-game-input').bind('touchmove', cancelUserGesture);
 
 
 //ごいたクライアントのイベントに登録するイベントハンドラ
-
+//最新メッセージを表示
+var addNewMessage = function(msg){
+  $("#new-msg").text(msg);
+};
+//ログインメッセージを追加
+var addLoginMessage = function(msg){
+  console.log("addLoginMessage " + msg );
+  $("#login-error-msg").text(msg);
+};
 //ロビーメッセージを追加
 var addRobbyMessage = function(msg){
   console.log("addRobbyMessage " + msg );
+  addNewMessage(msg);
   var list = $("#robby-msg-list");
   list.append("<div class='robby-msg'>" + msg + "</div>");
   list.scrollTop(list.height());
@@ -222,16 +246,25 @@ var notifyError = function(error){
   addRobbyMessage(error);
 };
 
+var notifyRobbyJoined = function()
+{
+  $.mobile.navigate("#main-page"); //メインページへ
+  //$.mobile.navigate("#robby-panel"); //ロビーパネル表示状態
+};
+
 var notifyRobbyJoinedError = function(error){
-  addRobbyMessage("failed to join robby");
+  addLoginMessage("failed to join robby");
+  if(error == 1000){
+    addLoginMessage("ユーザ名が入力されていません。");
+  }
   if(error == 1005){
-    addRobbyMessage("ユーザ名は12文字までです。");
+    addLoginMessage("ユーザ名は12文字までです。");
   }
   if(error == 1006){
-    addRobbyMessage("ユーザ名に使用できない記号が含まれています。");
+    addLoginMessage("ユーザ名に使用できない記号が含まれています。");
   }
   if(error == 1007){
-    addRobbyMessage("入力したユーザ名は既に使用されています。");
+    addLoginMessage("入力したユーザ名は既に使用されています。");
   }
 };
 
@@ -282,6 +315,7 @@ var updateRoomInfo = function(room){
 
 var addRoomMessage = function(msg){
   console.log("addRoomMessage " + msg );
+  addNewMessage(msg);
   var list = $("#room-msg-list");
   list.append("<div class='room-msg'>" + msg + "</div>");
   list.scrollTop(list.height());

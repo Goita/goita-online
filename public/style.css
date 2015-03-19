@@ -1,18 +1,20 @@
 @charset "utf-8";
 
-#robby-panel {
+/*#robby-panel {
  width:20%;
  float:left;
-}
+}*/
 
-#room-panel {
+/*#room-panel {
  width:20%;
  float:left;
-}
-
-#game-panel {
+}*/
+/*#game-panel {
   width:59%;
   float:left;
+}*/
+#login-error-msg {
+    color:#f55;
 }
 
 /* 選択動作を防止するために推奨されるスタイル */
@@ -28,6 +30,6 @@ image, canvas {
 
 /* temp */
 #robby-msg-list, #room-msg-list {
-  height:300px;
+  height:100px;
   overflow:auto;
 }
