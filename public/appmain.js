@@ -175,7 +175,7 @@ var bindScreenEvents = function(client){
 };
 
 $(document).ready(function() {
-  //$.mobile.navigate("#"); //Reset Navigation
+  showDefaultPage(); //Reset Navigation
   
   client = new GoitaClient(); //server);
 
@@ -191,14 +191,23 @@ $(document).ready(function() {
   if (!client.connected) 
   {
     //サーバーに接続できませんでした。とメッセージを出す。
+    addLoginMessage("サーバーに接続できませんでした。");
   }
   
   //まずはログインページへ
   showLoginPage();
 });
 
+var showDefaultPage = function(){
+  $("body").pagecontainer("change", "#", {allowSamePageTransition:true, reload:true});
+};
+
 var showLoginPage = function(){
   $("body").pagecontainer("change", "#login-page");
+};
+
+var showMainPage = function(){
+  $("body").pagecontainer("change", "#main-page");
 };
 
 //モバイル機器のウィンドウに対してジェスチャーを使ったすべての操作を無効にする
@@ -248,8 +257,7 @@ var notifyError = function(error){
 
 var notifyRobbyJoined = function()
 {
-  $.mobile.navigate("#main-page"); //メインページへ
-  //$.mobile.navigate("#robby-panel"); //ロビーパネル表示状態
+  showMainPage(); //メインページへ
 };
 
 var notifyRobbyJoinedError = function(error){

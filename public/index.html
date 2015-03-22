@@ -15,7 +15,7 @@
     <script src="goita.js"></script>
   </head>
   <body>
-    <div data-role="page" id="main-page">
+    <div data-role="page" id="main-page" data-title="Goita Online">
       <div data-role="header" data-position="fixed">
         <h1>ごいた</h1>
         <!--<a href="#robby-panel" data-icon="bars" data-iconpos="notext">Menu</a>-->
@@ -26,9 +26,9 @@
         <div data-role="tabs" id="main-tabs">
           <div data-role="navbar">
             <ul>
-              <li><a href="#robby-panel" data-ajax="false">ロビー</a></li>
-              <li><a href="#room-panel" data-ajax="false">ルーム</a></li>
-              <li><a href="#game-panel" data-ajax="false">ゲーム</a></li>
+              <li><a href="#robby-panel" >ロビー</a></li>
+              <li><a href="#room-panel" >ルーム</a></li>
+              <li><a href="#game-panel" >ゲーム</a></li><!--data-ajax="false"-->
             </ul>
           </div>
           <div id="robby-panel" data-position-fixed="true" data-display="reveal">
@@ -60,19 +60,17 @@
           </div>
           <div id="game-panel">
             <h3>ゲーム状態</h3>
-            <fieldset class="ui-grid-b">
+            <fieldset class="ui-grid-c">
               <div id="player1-panel" class="ui-block-a">
                 <button id="btn-siton-player1-seat">player1</button>
               </div>
               <div id="player2-panel" class="ui-block-b">
                 <button id="btn-siton-player2-seat">player2</button>
               </div>
-            </fieldset>
-            <fieldset class="ui-grid-b">
-              <div id="player3-panel" class="ui-block-a">
+              <div id="player3-panel" class="ui-block-c">
                 <button id="btn-siton-player3-seat">player3</button>
               </div>
-              <div id="player4-panel" class="ui-block-b">
+              <div id="player4-panel" class="ui-block-d">
                 <button id="btn-siton-player4-seat">player4</button>
               </div>
             </fieldset>
@@ -87,13 +85,13 @@
         </div><!--/tabs-->
       </div><!--/main-->
       
-      <div data-role="footer">
+      <div data-role="footer" data-position="fixed">
     		<h3 id="new-msg"></h3>
     	</div><!-- /footer -->
     </div>
     
     <!--ログイン-->
-    <div data-role="page" id="login-page" data-theme="b">
+    <div data-role="page" id="login-page" data-title="Goita Online - Login" data-theme="b">
       <div data-role="header" data-position="fixed">
         <h3>Enter your nickname</h3>
       </div>

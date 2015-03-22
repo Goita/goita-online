@@ -1,3 +1,6 @@
+//it's not used now
+//今のところ使ってない
+
 //number validation
 var isNumber = function(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
@@ -12,7 +15,7 @@ this["isNumber"] = isNumber;
 this["isUsername"] = isUsername;
 
 //for browser
-var validator = {
+var chatvalidator = {
   isNumber : isNumber,
   isUsername : isUsername
 };

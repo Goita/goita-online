@@ -19,6 +19,7 @@ io.set('match origin protocol', true);
 //io.set("log level", 1);
 
 server.listen(port, function () {
+  console.log('Version: ' + process.version);
   console.log('Server listening at port %d', port);
 });
 
