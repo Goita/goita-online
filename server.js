@@ -248,7 +248,7 @@ io.sockets.on("connection", function(socket) {
           if((p[0].no + 2)%4 == i){
             io.to(room.player[i].id).emit("goshi");
           }else{
-            io.to(room.player[i].id).emit("goshi wait");
+            io.to(room.player[i].id).emit("goshi wait", p[0].no);
           }
         }
         break;

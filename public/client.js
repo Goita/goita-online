@@ -44,7 +44,7 @@ var GoitaClient = function(){
   this.komaDealedAgain = fnEmpty; //function(RoomInfo) //非公開情報含む
   this.gotCommandError = fnEmpty; //function(error)
   this.goshiDecisionRequested = fnEmpty; //function()
-  this.goshiShown = fnEmpty; //function()
+  this.goshiShown = fnEmpty; //function(player No.)
 
 };
 
@@ -258,8 +258,8 @@ GoitaClient.prototype = {
     });
 
     // goshi wait ごしの決断をしないその他のプレイヤーは判断を待つ
-    socket.on("goshi wait",function(){
-      self.goshiShown();
+    socket.on("goshi wait",function(no){
+      self.goshiShown(no);
     });
 
     // time up     手番プレイヤーが時間切れ（ランダムで処理される）

@@ -59,7 +59,6 @@
             <div id="room-msg-list"></div>
           </div>
           <div id="game-panel">
-            <h3>ゲーム状態</h3>
             <fieldset class="ui-grid-c">
               <div id="player1-panel" class="ui-block-a">
                 <button id="btn-siton-player1-seat">player1</button>
@@ -81,6 +80,8 @@
             <canvas id="canvas-game-field" width="440" height="440"></canvas>
             <canvas id="canvas-game-input" width="400" height="50"></canvas>
             <button id="btn-game-pass">pass</button>
+            <button id="btn-test">test</button>
+            <a id="anchor-goshi-dialog" style="visibility: hidden" href="#goshi-confirm-dialog" data-rel="popup" data-position-to="window" data-transition="pop" class="ui-btn">popup</a>
           </div>
         </div><!--/tabs-->
       </div><!--/main-->
@@ -88,6 +89,22 @@
       <div data-role="footer" data-position="fixed">
     		<h3 id="new-msg"></h3>
     	</div><!-- /footer -->
+    	
+    	<div data-role="popup" id="goshi-confirm-dialog" data-overlay-theme="b" data-theme="b" data-dismissible="false" style="max-width:400px;">
+        <div data-role="header" data-theme="a">
+          <h1>goshi confirm</h1>
+        </div>
+        <div role="main" class="ui-content">
+          <p>your partner has "goshi".</p>
+          <p>相方が「ごし」です。</p>
+          <a href="#" id="confirm-goshi-proceed" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-b" data-rel="back">
+            続行
+          </a>
+          <a href="#" id="confirm-goshi-deal" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-delete ui-btn-icon-left ui-btn-b" data-rel="back">
+            配り直し
+          </a>
+        </div>
+      </div><!--/goshi-confirm-dialog-->
     </div>
     
     <!--ログイン-->

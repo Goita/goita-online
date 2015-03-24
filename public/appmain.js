@@ -47,6 +47,14 @@ var bindGoitaClientEvents = function(client){
 };
 
 var bindScreenEvents = function(client){
+  //test
+  $("#btn-test").click(function(){
+    console.log("test button clicked");
+    //$("body").pagecontainer("change", "#goshi-confirm-dialog"); //need some options to open dialog
+    $("#anchor-goshi-dialog").click();
+  });
+  
+  $("#btn-test").remove(); //enable for publishing
   
   //ログインボタン
   $('#btn-login').click(function(){
@@ -137,6 +145,17 @@ var bindScreenEvents = function(client){
     if(client.roomInfo === null){ return; }
     //if(client.roomInfo.round === false ){return;}
     client.pass();
+  });
+  
+  //ごし選択
+  $("#confirm-goshi-proceed").click(function(){
+    console.log("selected goshi proceed");
+    client.goshiProceed();
+  });
+  
+  $("#confirm-goshi-deal").click(function(){
+    console.log("selected goshi deal again");
+    client.goshiDealAgain();
   });
   
   //駒選択エリア
@@ -407,15 +426,12 @@ var notifyCommandError = function(error){
 
 var confirmGoshi = function(){
   addRoomMessage("ごしの処理を選択して下さい。");
-  if(confirm("駒の配り直しをしますか？")){
-    client.goshiDealAgain();
-  }else{
-    client.goshiProceed();
-  }
+  
+  $("#anchor-goshi-dialog").click();
 };
 
-var notifyGoshi = function(){
-  addRoomMessage("ごしが発生しました。");
+var notifyGoshi = function(no){
+  addRoomMessage(client.roomInfo.player[no].name + "が「ごし」です。");
 };
 
 String.prototype.padZero = function(len, c){
