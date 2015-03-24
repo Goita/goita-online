@@ -281,8 +281,11 @@ var updateRoomList = function(roomList){
   console.log(roomList);
   list.empty();
   for(var i in roomList){
-    list.append("<option value='" + i +"'>" + "room #" + i.padZero(2) + "</option>");
+    list.append("<option value='" + i +"' id='" + "opt-room" + i + "'>" + "room #" + i.padZero(2) + "</option>");
   }
+  
+  list.val(0);
+  //$("#opt-room0").attr("selected");
 };
 
 var updateRoomInfo = function(room){
@@ -296,6 +299,7 @@ var updateRoomInfo = function(room){
 
   if(room === null){
     $("#room-name").html("---");
+    $("#navi-room").html("ルーム");
     $("#room-msg-list").empty();
     return;
   }
@@ -303,12 +307,31 @@ var updateRoomInfo = function(room){
   //updateRoomInfo
   console.log("update RoomInfo");
   $("#room-name").html("room #" + room.id.padZero(2));
-
+  $("#navi-room").html("ルーム #" + room.id.padZero(2));
   var userlist = $("#room-user-list");
   for(var id in room.userList){
     userlist.append("<div class='username'>" + room.userList[id].name + "</div>");
   }
-
+  
+  //change player1-4 button text
+  //btn-siton-player1-seat
+  for(i=0;i<4;i++)
+  {
+    var btn = $("#btn-siton-player" + (i+1).toString() + "-seat");
+    if(room.player[i] == null)
+    {
+      btn.html("player" + (i+1).toString());
+      btn.removeAttr("disabled");
+    }
+    else
+    {
+      btn.html(room.player[i].name);
+      btn.attr("disabled","disabled");
+      
+    }
+  }
+  
+  //change ready button text
   if(client.playerNo !==null){
     $("#btn-ready-game").html(room.player[client.playerNo].ready ? "cancel ready" : "ready");
   }
