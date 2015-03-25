@@ -293,8 +293,9 @@ io.sockets.on("connection", function(socket) {
   socket.on("set ready", function(){
     var user = userList[socket.id];
     if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
-    var room = roomList[user.roomId];
     if(user.roomId === null){ socket.emit("error command", 2004); return; } //not joined in any room
+    
+    var room = roomList[user.roomId];
     if(room.setUserReady(user)){
       //success to set ready
       io.to(room.id).emit("player ready", {no: user.playerNo, username: user.name});
@@ -329,8 +330,9 @@ io.sockets.on("connection", function(socket) {
   socket.on("cancel ready", function(){
     var user = userList[socket.id];
     if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
-    var room = roomList[user.roomId];
     if(user.roomId === null){ socket.emit("error command", 2004); return; } //not joined in any room
+    
+    var room = roomList[user.roomId];
     if(roomList[user.roomId].setUserUnready(user)){
       //success to set unready
       io.to(user.roomId).emit("player cancel ready", user.name);
@@ -354,6 +356,9 @@ io.sockets.on("connection", function(socket) {
 // play  コマを出す ※あがりも兼ねる
   socket.on("play", function(koma){
     var user = userList[socket.id];
+    if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
+    if(user.roomId === null){ socket.emit("error command", 2004); return; } //not joined in any room
+    
     var room = roomList[user.roomId];
     var errcode = room.play(user, koma);
     if(errcode !== 0){ socket.emit("error command", errcode); return;}
@@ -376,6 +381,9 @@ io.sockets.on("connection", function(socket) {
 // pass    'なし
   socket.on("pass", function(){
     var user = userList[socket.id];
+    if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
+    if(user.roomId === null){ socket.emit("error command", 2004); return; } //not joined in any room
+    
     var errcode = roomList[user.roomId].pass(user);
     if(errcode !== 0){ socket.emit("error command", errcode); return;}
 
@@ -385,13 +393,21 @@ io.sockets.on("connection", function(socket) {
 
 // goshi proceed 'ごしのまま続行
   socket.on("goshi proceed", function(){
-    var room = roomList[userList[socket.id].roomId];
+    var user = userList[socket.id];
+    if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
+    if(user.roomId === null){ socket.emit("error command", 2004); return; } //not joined in any room
+    
+    var room = roomList[user.roomId];
     room.goshi = false;
   });
   
 // goshi deal again '配りなおし
   socket.on("goshi deal again", function(){
-    var room = roomList[userList[socket.id].roomId];
+    var user = userList[socket.id];
+    if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
+    if(user.roomId === null){ socket.emit("error command", 2004); return; } //not joined in any room
+    
+    var room = roomList[user.roomId];
     io.to(room.id).emit("deal again", room); //include private info
     room.dealAgain();
     io.to(room.id).emit("room info", room.toClient());
@@ -408,7 +424,8 @@ io.sockets.on("connection", function(socket) {
 
 //ユーザが所属する部屋番号を見つける
 var findRoomId = function(user){
-
+  if(user === undefined){return null;}
+  
   //find user id
   for(var room in roomList)
     for(var player in room.playerList){
@@ -422,6 +439,8 @@ var findRoomId = function(user){
 //ユーザ情報のroomIdが正しいか確認する
 //クライアントからUserInfoを受け取った場合に使用？
 var validateRoomId = function(user){
+  if(user === undefined){return false;}
+  
   //first, trust the given info
   if(validator.isNumeric(user.roomId)){
     var room = roomList[user.roomId];

@@ -4,7 +4,7 @@ Goita Client controller
 var client;
 
 //test
-onload = function(){
+var testFunc = function(){
   var canvas = $("#canvas-game-input");
   if ( canvas[0] && canvas[0].getContext ) { 
     var ctx = canvas[0].getContext("2d");
@@ -53,8 +53,6 @@ var bindScreenEvents = function(client){
     //$("body").pagecontainer("change", "#goshi-confirm-dialog"); //need some options to open dialog
     $("#anchor-goshi-dialog").click();
   });
-  
-  $("#btn-test").remove(); //enable for publishing
   
   //ログインボタン
   $('#btn-login').click(function(){
@@ -185,15 +183,33 @@ var bindScreenEvents = function(client){
     if(n < client.tegoma.koma.length){
       
       var koma = client.tegoma.koma[n];
-      console.log("selected koma index: " + n + " played: " + koma);
+      console.log("selected koma index: " + n + " played: " + Util.getKomaText(koma));
       client.play(koma);
       
     }
     return false;
   });
+  
+  //駒選択 button version
+  $("button","#game-input-container").click(function(){
+    var no = $(this).data("no");
+    var n = Number(no);
+    var koma = client.tegoma.koma[n];
+    console.log("selected koma index: " + n + " played: " + Util.getKomaText(koma));
+      client.play(koma);
+  });
 };
 
 $(document).ready(function() {
+  testFunc(); //テストコード実行 //
+  if(location.host.indexOf('c9.io') < 0) //c9.io上でのテストコードをすべて隠す
+  {
+    var hiddenStyle = {'visibility':'hidden', "height":"0px", "width":"0px"};
+    $("#btn-test").remove(); //enable for publishing
+    $("#canvas-game-input").css(hiddenStyle);
+    $("#debug-text").css(hiddenStyle);
+  }
+  
   showDefaultPage(); //Reset Navigation
   
   client = new GoitaClient(); //server);
@@ -215,6 +231,41 @@ $(document).ready(function() {
   
   //まずはログインページへ
   showLoginPage();
+});
+
+$(window).on("beforeunload", function(){ 
+    client.leaveRoom();
+    client.leaveRobby();
+});
+
+//resize対応
+//Retinaディスプレイ等できれいに表示するための処理ができてない。
+//http://qiita.com/calmbooks/items/0522e8c1082629c6c4d1
+$(window).on('load resize', function(){
+  var cLen = 440;
+  var ww = $(window).width() * 1.05 - 30; //IE対応? 1.05倍と、 スクロールバー対応の20px
+  var wh = $(window).height() * 1.05 - 30; 
+  var dpr = window.devicePixelRatio; //2ならRetina Display, Androidは1.5-3.0など・・・
+  dpr = dpr < 1.0 ? 1.0 : dpr; //1.0以上に補正
+  var horizontal = Math.abs(window.orientation) === 90;
+  var wl = Math.min(wh, ww); //horizontal ? wh : ww; //短いほうの画面幅
+  var virtualLen = wl / dpr; //仮想画面幅
+  var canvas = $("#canvas-game-field");
+  $("#debug-text").html("ua is desktop:"+ ua.isDesktop +", is iOS Retina:" + ua.isiOSRetina +" ww:"+ ww + " wh:" + wh + " dpr:" + dpr + " vLen:" + virtualLen);
+  if(virtualLen < cLen && (ua.isiPhone || ua.isiOSRetina || ua.isDesktop )) //仮想画面幅がcanvasサイズより小さいなら、調整を入れる
+  {
+    canvas.css({width: virtualLen + "px", height: virtualLen + "px"});
+  }
+  else //調整不要なら、デフォルトに戻す?
+  {
+    var l = cLen;
+    if(dpr >= 1.5) //高DPI端末は少し大きめに表示 //意味がない？？？
+    {
+      l = wl * 0.8 < cLen ? wl * 0.8 : cLen;
+      l = l > wl ? wl : l;
+    }
+    canvas.css({width: l + "px", height: l + "px"});
+  }
 });
 
 var showDefaultPage = function(){
@@ -272,6 +323,14 @@ var updateRobbyUser = function(userList){
 
 var notifyError = function(error){
   addRobbyMessage(error);
+  
+  //general error
+  if(error.toString().indexOf("error"))
+  {
+    client.leaveRobby();
+    showDefaultPage();
+    showLoginPage();
+  }
 };
 
 var notifyRobbyJoined = function()
@@ -346,7 +405,6 @@ var updateRoomInfo = function(room){
     {
       btn.html(room.player[i].name);
       btn.attr("disabled","disabled");
-      
     }
   }
   
@@ -376,6 +434,23 @@ var notifyRoomJoinedError = function(error){
 };
 
 var updatePrivateGameInfo = function(tegoma){
+  if(tegoma === undefined){
+    tegoma = new KomaInfo("12345679"); //for testing
+  }
+  //button version
+  for(var i=0;i<8;i++){
+    var btn = $("#btn-input" + i);
+    if(i<tegoma.koma.length)
+    {
+      btn.html('<img src="./img/koma' + tegoma.koma[i] + '.png" />');
+      btn.css({'visibility':'visible'});
+    }
+    else
+    {
+      btn.css({'visibility':'hidden'});
+    }
+  }
+  //canvas version
   var canvas = $("#canvas-game-input");
   if ( ! canvas[0] || ! canvas[0].getContext ) { return false; }
   var ctx = canvas[0].getContext("2d");

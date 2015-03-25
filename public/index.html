@@ -10,9 +10,10 @@
     <script src="//code.jquery.com/jquery-2.1.1.js"></script>
     <!-- <script src="//code.jquery.com/jquery-latest.min.js"></script> -->
     <script src="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
-    <script src="appmain.js"></script>
+    <script src="ua.js"></script>
     <script src="client.js"></script>
     <script src="goita.js"></script>
+    <script src="appmain.js"></script>
   </head>
   <body>
     <div data-role="page" id="main-page" data-title="Goita Online">
@@ -23,6 +24,8 @@
       </div><!-- /header -->
 
       <div role="main" class="ui-content">
+        <p id="debug-text"></p>
+        <button id="btn-test" class="ui-btn ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-b">test</button>
         <div data-role="tabs" id="main-tabs">
           <div data-role="navbar">
             <ul>
@@ -79,8 +82,17 @@
             </fieldset>
             <canvas id="canvas-game-field" width="440" height="440"></canvas>
             <canvas id="canvas-game-input" width="400" height="50"></canvas>
-            <button id="btn-game-pass">pass</button>
-            <button id="btn-test">test</button>
+            <div id="game-input-container">
+              <button id="btn-input0" data-no="0" class="ui-btn ui-btn-inline"><img src="./img/koma1.png"/></button>
+              <button id="btn-input1" data-no="1" class="ui-btn ui-btn-inline"><img src="./img/koma2.png"/></button>
+              <button id="btn-input2" data-no="2" class="ui-btn ui-btn-inline"><img src="./img/koma3.png"/></button>
+              <button id="btn-input3" data-no="3" class="ui-btn ui-btn-inline"><img src="./img/koma4.png"/></button>
+              <button id="btn-input4" data-no="4" class="ui-btn ui-btn-inline"><img src="./img/koma5.png"/></button>
+              <button id="btn-input5" data-no="5" class="ui-btn ui-btn-inline"><img src="./img/koma6.png"/></button>
+              <button id="btn-input6" data-no="6" class="ui-btn ui-btn-inline"><img src="./img/koma7.png"/></button>
+              <button id="btn-input7" data-no="7" class="ui-btn ui-btn-inline"><img src="./img/koma9.png"/></button>
+            </div>
+            <button id="btn-game-pass">なし(pass)</button>
             <a id="anchor-goshi-dialog" style="visibility: hidden" href="#goshi-confirm-dialog" data-rel="popup" data-position-to="window" data-transition="pop" class="ui-btn">popup</a>
           </div>
         </div><!--/tabs-->

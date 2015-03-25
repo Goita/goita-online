@@ -13,6 +13,19 @@
   width:59%;
   float:left;
 }*/
+#game-input-container > button
+{
+    width: auto;
+    padding:10px;
+    margin:2px;
+    background:none;
+    border:1px;
+    font-size:0;
+    line-height:0;
+    overflow:visible;
+    cursor:pointer;
+}
+
 #login-error-msg {
     color:#f55;
 }
