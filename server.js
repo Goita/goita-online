@@ -128,8 +128,8 @@ io.sockets.on("connection", function(socket) {
   });
 
   // クライアントからのメッセージ送信を受け取ったとき
-  socket.on("send robby msg", function(data) {
-    io.emit("push robby msg", validator.escape(data.msg)); //to everyone
+  socket.on("send robby msg", function(msg) {
+    io.emit("push robby msg", {text: validator.escape(msg.text), username: userList[socket.id].name}); //to everyone
   });
 
 //ルーム関連メッセージの処理----------------------------------------------------
@@ -192,12 +192,12 @@ io.sockets.on("connection", function(socket) {
   });
 
   // クライアントからのメッセージ送信を受け取ったとき
-  socket.on("send room msg", function(data) {
+  socket.on("send room msg", function(msg) {
     var user = userList[socket.id];
     if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
     var room = roomList[user.roomId];
     if(room === undefined){ socket.emit("error command", 2004); return; } //not joined in any room
-    io.to(room.id).emit("push room msg", validator.escape(data.msg)); //everyone in the same room
+    io.to(room.id).emit("push room msg", {text: validator.escape(msg.text), username: userList[socket.id].name}); //everyone in the same room
   });
 
 //ゲーム準備のやりとりをするメッセージ-----------------------------------------

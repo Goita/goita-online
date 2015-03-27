@@ -1,5 +1,5 @@
 /* Goita Client Class
-   Implements all WebSocket messages */
+   handles WebSocket messages */
 var GoitaClient = function(){
   //private field
   this._eventDefined = false;
@@ -17,22 +17,18 @@ var GoitaClient = function(){
   this.roomInfo = null; //RoomInfo
   this.tegoma = {koma:[]}; //KomaInfo
 
-  // ネットワーク負荷軽減が必要なら、逐次送信をやめてキューを使う
-  // this.robbyMessageQueue = []; // new Array(); enqueue => push(), dequeue => shift()
-  // this.roomMessageQueue = [];  // use as queue
-
   //event - inject event handler
   this.connected = fnEmpty; //function()
   this.disconnected = fnEmpty; //function()
   this.robbyUserChanged = fnEmpty;  //function(userList)
-  this.robbyMessageAdded = fnEmpty; //function(msg [, style])
+  this.robbyMessageAdded = fnEmpty; //function(msg [, header[, type]])
   this.robbyJoined = fnEmpty; //function()
   this.robbyJoiningFailed = fnEmpty; //function(errorcode)
   this.gotError = fnEmpty;
 
   this.roomListReceived = fnEmpty; //function(roomlist)
   this.roomInfoChanged = fnEmpty;  //function(RoomInfo)
-  this.roomMessageAdded = fnEmpty; //function(msg [, style])
+  this.roomMessageAdded = fnEmpty; //function(msg [, header[, type]])
   this.roomJoiningFailed = fnEmpty; //function(errorcode)
   this.gotPrivateGameInfo = fnEmpty; //function(KomaInfo)
   this.readyRequested = fnEmpty;  //function()
@@ -60,6 +56,12 @@ GoitaClient.prototype = {
 
     var socket = io.connect(); //.connect(this.serverURI);
     this.socket = socket;
+    
+    //socketが無事取得できていればこの時点で接続確立しているはず。
+    if(socket != null || socket != undefined)
+    {
+      this.isConnected = true;
+    }
 
     //for reconnecting, no need to define events again
     if(this._eventDefined) return socket;
@@ -127,11 +129,19 @@ GoitaClient.prototype = {
       self.robbyUserChanged(self.userList);
     });
 
+    //ロビーメッセージを受け取ったら
     socket.on("push robby msg", function(msg) {
       console.log("received robby msg:" + msg);
-      self.robbyMessageAdded(msg);
+      self.robbyMessageAdded(msg.text, msg.username, "m");
+    });
+    
+    //ルームメッセージを受け取ったら
+    socket.on("push room msg", function(msg) {
+      console.log("received room msg:" + msg);
+      self.roomMessageAdded(msg.text, msg.username, "m");
     });
 
+    //ルームリストを受け取ったら
     socket.on("room list", function(roomList){
       console.log("received room list");
       self.roomListReceived(roomList);
@@ -182,12 +192,6 @@ GoitaClient.prototype = {
       }
       //画面にルーム情報変化を通知
       self.roomInfoChanged(self.roomInfo);
-    });
-
-    //ルームメッセージを受け取ったら
-    socket.on("push room msg", function(msg) {
-      console.log("received room msg:" + msg);
-      self.roomMessageAdded(msg);
     });
 
     // game started    全員がreadyするとゲーム開始したことが通知される
@@ -289,7 +293,7 @@ GoitaClient.prototype = {
 
   //ロビーチャットで発言
   sendRobbyMessage : function(msg){
-    this.socket.emit("send robby msg", { msg: msg});
+    this.socket.emit("send robby msg", {text: msg, username: this.userName});
   },
 
   //ロビー情報の再要求
@@ -308,7 +312,7 @@ GoitaClient.prototype = {
 
   //ルームチャットで発言
   sendRoomMessage : function(msg){
-    this.socket.emit("send room msg", { msg: msg});
+    this.socket.emit("send room msg", {text: msg, username: this.userName});
   },
 
   //ルーム情報の再要求
@@ -365,7 +369,10 @@ GoitaClient.prototype = {
 };
 
 //empty method
-var fnEmpty = function(){ console.log("unhandled event raised"); };
+var fnEmpty = function(){
+  var callerName = fnEmpty.caller != null ? fnEmpty.caller.name : "root";
+  console.log("unhandled event raised, caller name:" + callerName); 
+};
 
 // The .bind method from Prototype.js
 if (!Function.prototype.bind) { // check if native implementation available

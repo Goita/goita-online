@@ -17,7 +17,7 @@
   </head>
   <body>
     <div data-role="page" id="main-page" data-title="Goita Online">
-      <div data-role="header" data-position="fixed">
+      <div class="header" data-role="header" data-position="fixed">
         <h1>ごいた</h1>
         <!--<a href="#robby-panel" data-icon="bars" data-iconpos="notext">Menu</a>-->
         <!--<a id="btn-login" href="#login-page" data-icon="gear" data-iconpos="notext" data-rel="popup" data-position-to="window" data-transition="pop" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-delete ui-btn-icon-left ui-btn-b">LogIn</a>-->
@@ -76,7 +76,7 @@
                 <button id="btn-siton-player4-seat">player4</button>
               </div>
             </fieldset>
-            <fieldset class="ui-grid-b">
+            <fieldset class="ui-grid-a">
               <div class="ui-block-a"><button id="btn-standup-seat">stand up</button></div>
               <div class="ui-block-b"><button id="btn-ready-game">ready</button></div>
             </fieldset>
@@ -92,8 +92,12 @@
               <button id="btn-input6" data-no="6" class="ui-btn ui-btn-inline"><img src="./img/koma7.png"/></button>
               <button id="btn-input7" data-no="7" class="ui-btn ui-btn-inline"><img src="./img/koma9.png"/></button>
             </div>
-            <button id="btn-game-pass">なし(pass)</button>
-            <a id="anchor-goshi-dialog" style="visibility: hidden" href="#goshi-confirm-dialog" data-rel="popup" data-position-to="window" data-transition="pop" class="ui-btn">popup</a>
+            <fieldset class="ui-grid-a">
+              <div class="ui-block-a"><button id="btn-game-pass">なし(pass)</button></div>
+              <div class="ui-block-b">
+                <a id="anchor-goshi-dialog" style="visibility: hidden; background:none" href="#goshi-confirm-dialog" data-rel="popup" data-position-to="window" data-transition="pop" class="ui-btn">popup</a>
+              </div>
+            </fieldset>
           </div>
         </div><!--/tabs-->
       </div><!--/main-->
@@ -121,7 +125,7 @@
     
     <!--ログイン-->
     <div data-role="page" id="login-page" data-title="Goita Online - Login">
-      <div data-role="header" data-position="fixed">
+      <div class="login-header" data-role="header" data-position="fixed">
         <h3>Enter your nickname</h3>
       </div>
       <div role="main" class="ui-content">

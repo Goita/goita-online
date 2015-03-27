@@ -1,5 +1,5 @@
 /*
-Goita Client controller
+Goita Client view controller
 */
 var client;
 
@@ -9,16 +9,12 @@ var testFunc = function(){
   if ( canvas[0] && canvas[0].getContext ) { 
     var ctx = canvas[0].getContext("2d");
     drawTegoma(ctx);
-    
   }
-  
   var canvas2 = $("#canvas-game-field");
   if ( canvas2[0] && canvas2[0].getContext ) { 
     var ctx2 = canvas2[0].getContext("2d");
     drawGameField(ctx2, undefined, 3);
-    
   }
-
 };
 
 var bindGoitaClientEvents = function(client){
@@ -204,7 +200,7 @@ $(document).ready(function() {
   testFunc(); //テストコード実行 //
   if(location.host.indexOf('c9.io') < 0) //c9.io上でのテストコードをすべて隠す
   {
-    var hiddenStyle = {'visibility':'hidden', "height":"0px", "width":"0px"};
+    var hiddenStyle = {'visibility':'hidden', "height":"0px", "width":"0px", "font-size":"0", "background": "none"};
     $("#btn-test").remove(); //enable for publishing
     $("#canvas-game-input").css(hiddenStyle);
     $("#debug-text").css(hiddenStyle);
@@ -223,7 +219,7 @@ $(document).ready(function() {
   //connect and join in robby
   client.connect();
   
-  if (!client.connected) 
+  if (!client.isConnected) 
   {
     //サーバーに接続できませんでした。とメッセージを出す。
     addLoginMessage("サーバーに接続できませんでした。");
@@ -251,8 +247,12 @@ $(window).on('load resize', function(){
   var wl = Math.min(wh, ww); //horizontal ? wh : ww; //短いほうの画面幅
   var virtualLen = wl / dpr; //仮想画面幅
   var canvas = $("#canvas-game-field");
-  $("#debug-text").html("ua is desktop:"+ ua.isDesktop +", is iOS Retina:" + ua.isiOSRetina +" ww:"+ ww + " wh:" + wh + " dpr:" + dpr + " vLen:" + virtualLen);
-  if(virtualLen < cLen && (ua.isiPhone || ua.isiOSRetina || ua.isDesktop )) //仮想画面幅がcanvasサイズより小さいなら、調整を入れる
+  $("#debug-text").html("UA is desktop:"+ ua.isDesktop +", UA is iOS Retina:" + ua.isiOSRetina +" ww:"+ ww.toFixed(0) + " wh:" + wh.toFixed(0) + " dpr:" + dpr + " vLen:" + virtualLen.toFixed(0));
+  if(wl < cLen && (ua.isiPhone || ua.isiOSRetina || ua.isDesktop )) //画面幅がcanvasサイズより小さいなら、調整を入れる
+  {
+    canvas.css({width: wl + "px", height: wl + "px"});
+  }
+  else if(false) //仮想画面幅で表示するデバイスがあればこの対応をする。今のところ対応条件不明。
   {
     canvas.css({width: virtualLen + "px", height: virtualLen + "px"});
   }
@@ -304,12 +304,14 @@ var addLoginMessage = function(msg){
   $("#login-error-msg").text(msg);
 };
 //ロビーメッセージを追加
-var addRobbyMessage = function(msg){
-  console.log("addRobbyMessage " + msg );
+var addRobbyMessage = function(msg, header, type){
+  console.log("addRobbyMessage: " + type + ":" + header + ":" + msg );
   addNewMessage(msg);
   var list = $("#robby-msg-list");
-  list.append("<div class='robby-msg'>" + msg + "</div>");
-  list.scrollTop(list.height());
+  if(header == undefined) {header = "system"; type = "i"} //default: system info
+  list.append('<div class="robby-msg"><div class="msg-header ' + type +'">' + header + '</div><div class="msg-separator">' + ":" + '</div><div class="msg-text ' + type + '">' + msg + '</div></div>');
+  //list.scrollTop(list.height());
+  list.scrollTop(list[0].scrollHeight);
 };
 
 //ロビーユーザ一覧を更新
@@ -322,7 +324,7 @@ var updateRobbyUser = function(userList){
 };
 
 var notifyError = function(error){
-  addRobbyMessage(error);
+  addRobbyMessage(error, "error", "e");
   
   //general error
   if(error.toString().indexOf("error"))
@@ -421,11 +423,14 @@ var updateRoomInfo = function(room){
   console.log("finish updating RoomInfo");
 };
 
-var addRoomMessage = function(msg){
-  console.log("addRoomMessage " + msg );
+var addRoomMessage = function(msg, header, type){
+  console.log("addRoomMessage: " + type + ":" + header + ":" + msg );
+  var h = header != undefined ? header : "system"; 
   addNewMessage(msg);
   var list = $("#room-msg-list");
-  list.append("<div class='room-msg'>" + msg + "</div>");
+  if(header == undefined) {header = "system"; type = "i"} //default: system info
+  list.append('<div class="room-msg"><div class="msg-header ' + type +'">' + header + '</div><div class="msg-separator">' + ":" + '</div><div class="msg-text ' + type + '">' + msg + '</div></div>');
+  
   list.scrollTop(list.height());
 };
 
@@ -450,6 +455,7 @@ var updatePrivateGameInfo = function(tegoma){
       btn.css({'visibility':'hidden'});
     }
   }
+  
   //canvas version
   var canvas = $("#canvas-game-input");
   if ( ! canvas[0] || ! canvas[0].getContext ) { return false; }
@@ -458,27 +464,27 @@ var updatePrivateGameInfo = function(tegoma){
 };
 
 var notifyRequestForReady = function(){
-  addRoomMessage("Readyを押して下さい。");
+  addRoomMessage("Readyを押して下さい。","system", "i");
 };
 
 var notifyRequestToPlay = function(){
-  addRoomMessage("出す駒またはパスを選択してください。");
+  addRoomMessage("出す駒またはパスを選択してください。","system", "i");
 };
 
 var notifyGameStarted = function(){
-  addRoomMessage("ゲームが開始しました。");
+  addRoomMessage("ゲームが開始しました。","system", "i");
 };
 
 var notifyGameFinished = function(){
-  addRoomMessage("ゲームが終了しました。");
+  addRoomMessage("ゲームが終了しました。","system", "i");
 };
 
 var notifyRoundStarted = function(){
-  addRoomMessage("新しいラウンドが開始しました。");
+  addRoomMessage("新しいラウンドが開始しました。","system", "i");
 };
 
 var notifyRoundFinished = function(room){
-  addRoomMessage("ラウンドが終了しました。");
+  addRoomMessage("ラウンドが終了しました。","system", "i");
   
   var canvas = $("#canvas-game-field");
   if ( ! canvas[0] || ! canvas[0].getContext ) { return false; }
@@ -487,7 +493,7 @@ var notifyRoundFinished = function(room){
 };
 
 var notifyDealedAgain = function(room){
-  addRoomMessage("駒を配り直しました。");
+  addRoomMessage("駒を配り直しました。","system", "i");
   
   var canvas = $("#canvas-game-field");
   if ( ! canvas[0] || ! canvas[0].getContext ) { return false; }
@@ -496,17 +502,18 @@ var notifyDealedAgain = function(room){
 };
 
 var notifyCommandError = function(error){
-  addRoomMessage("無効な選択です。" + error);
+  //TODO: errorの内容でメッセージ分けたい
+  addRoomMessage("無効な操作です。","error", "e");
 };
 
 var confirmGoshi = function(){
-  addRoomMessage("ごしの処理を選択して下さい。");
+  addRoomMessage("ごしの処理を選択して下さい。", "system", "i");
   
   $("#anchor-goshi-dialog").click();
 };
 
 var notifyGoshi = function(no){
-  addRoomMessage(client.roomInfo.player[no].name + "が「ごし」です。");
+  addRoomMessage(client.roomInfo.player[no].name + "が「ごし」です。","system", "i");
 };
 
 String.prototype.padZero = function(len, c){
