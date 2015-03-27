@@ -1,7 +1,5 @@
 @charset "utf-8";
 
-
-
 .login-header
 {
     margin:0px;
@@ -43,7 +41,9 @@
   overflow-y: scroll;
 }
 
-.robby-msg > div, .room-msg > div
+/* チャットメッセージを、1行で表示するために必要 */
+/* .robby-msg > div, .room-msg > div これでもいける*/ 
+.msg-header, .msg-separator, .msg-text
 {
     display: inline-block;
 }
@@ -54,6 +54,7 @@
     margin-right: 4px;
 }
 
+/* :not(selector) を使えば、テキスト部分だけ色を変えるとかできる */
 /*error message*/
 .e
 {

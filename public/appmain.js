@@ -309,7 +309,11 @@ var addRobbyMessage = function(msg, header, type){
   addNewMessage(msg);
   var list = $("#robby-msg-list");
   if(header == undefined) {header = "system"; type = "i"} //default: system info
-  list.append('<div class="robby-msg"><div class="msg-header ' + type +'">' + header + '</div><div class="msg-separator">' + ":" + '</div><div class="msg-text ' + type + '">' + msg + '</div></div>');
+  list.append('<div class="robby-msg">' 
+                + '<div class="msg-header ' + type +'">' + header + '</div>'
+                + '<div class="msg-separator ' + type + '">' + ":" + '</div>'
+                + '<div class="msg-text ' + type + '">' + msg + '</div>'
+              +'</div>');
   //list.scrollTop(list.height());
   list.scrollTop(list[0].scrollHeight);
 };
@@ -341,19 +345,7 @@ var notifyRobbyJoined = function()
 };
 
 var notifyRobbyJoinedError = function(error){
-  addLoginMessage("failed to join robby");
-  if(error == 1000){
-    addLoginMessage("ユーザ名が入力されていません。");
-  }
-  if(error == 1005){
-    addLoginMessage("ユーザ名は12文字までです。");
-  }
-  if(error == 1006){
-    addLoginMessage("ユーザ名に使用できない記号が含まれています。");
-  }
-  if(error == 1007){
-    addLoginMessage("入力したユーザ名は既に使用されています。");
-  }
+  addLoginMessage(ErrorMsg.getMsgText(error));
 };
 
 var updateRoomList = function(roomList){
@@ -425,17 +417,19 @@ var updateRoomInfo = function(room){
 
 var addRoomMessage = function(msg, header, type){
   console.log("addRoomMessage: " + type + ":" + header + ":" + msg );
-  var h = header != undefined ? header : "system"; 
   addNewMessage(msg);
   var list = $("#room-msg-list");
   if(header == undefined) {header = "system"; type = "i"} //default: system info
-  list.append('<div class="room-msg"><div class="msg-header ' + type +'">' + header + '</div><div class="msg-separator">' + ":" + '</div><div class="msg-text ' + type + '">' + msg + '</div></div>');
-  
+  list.append('<div class="room-msg">' 
+                + '<div class="msg-header ' + type +'">' + header + '</div>'
+                + '<div class="msg-separator ' + type + '">' + ":" + '</div>'
+                + '<div class="msg-text ' + type + '">' + msg + '</div>'
+              +'</div>');
   list.scrollTop(list.height());
 };
 
 var notifyRoomJoinedError = function(error){
-  addRobbyMessage(error.toString());
+  addRobbyMessage(ErrorMsg.getMsgText(error), "error", "e");
 };
 
 var updatePrivateGameInfo = function(tegoma){
