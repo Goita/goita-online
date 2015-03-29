@@ -239,6 +239,7 @@ $(window).on("beforeunload", function(){
 //http://qiita.com/calmbooks/items/0522e8c1082629c6c4d1
 $(window).on('load resize', function(){
   var cLen = 440;
+  var x = 0.9;
   var ww = $(window).width() * 1.05 - 30; //IE対応? 1.05倍と、 スクロールバー対応の20px
   var wh = $(window).height() * 1.05 - 30; 
   var dpr = window.devicePixelRatio; //2ならRetina Display, Androidは1.5-3.0など・・・
@@ -248,9 +249,9 @@ $(window).on('load resize', function(){
   var virtualLen = wl / dpr; //仮想画面幅
   var canvas = $("#canvas-game-field");
   $("#debug-text").html("UA is desktop:"+ ua.isDesktop +", UA is iOS Retina:" + ua.isiOSRetina +" ww:"+ ww.toFixed(0) + " wh:" + wh.toFixed(0) + " dpr:" + dpr + " vLen:" + virtualLen.toFixed(0));
-  if(wl < cLen && (ua.isiPhone || ua.isiOSRetina || ua.isDesktop )) //画面幅がcanvasサイズより小さいなら、調整を入れる
+  if(wl * x < cLen && (ua.isiPhone || ua.isiOSRetina || ua.isDesktop )) //画面幅がcanvasサイズより小さいなら、調整を入れる
   {
-    canvas.css({width: wl + "px", height: wl + "px"});
+    canvas.css({width: wl * x + "px", height: wl * x + "px"});
   }
   else if(false) //仮想画面幅で表示するデバイスがあればこの対応をする。今のところ対応条件不明。
   {
@@ -261,8 +262,7 @@ $(window).on('load resize', function(){
     var l = cLen;
     if(dpr >= 1.5) //高DPI端末は少し大きめに表示 //意味がない？？？
     {
-      l = wl * 0.8 < cLen ? wl * 0.8 : cLen;
-      l = l > wl ? wl : l;
+      l = wl * x < cLen ? wl * x : cLen;
     }
     canvas.css({width: l + "px", height: l + "px"});
   }
