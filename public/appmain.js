@@ -203,16 +203,16 @@ var loadImg = function(){
   for(var i = 0;i<10;i++)
   {
     var img = new Image();
-    img.src = "./img/koma" + i + ".png";
+    img.src = "./img/koma" + i + ".png" + "?" + new Date().getTime();
     _imgDic[i.toString()] = img;
   }
   
   var emptyimg = new Image();
-  emptyimg.src = "./img/koma_empty.png";
+  emptyimg.src = "./img/koma_empty.png" + "?" + new Date().getTime();
   _imgDic["empty"] = emptyimg;
   
   var glowimg = new Image();
-  glowimg.src = "./img/koma_glow.png";
+  glowimg.src = "./img/koma_glow.png" + "?" + new Date().getTime();
   _imgDic["glow"] = glowimg;
   
   var komaimg = new Image();
@@ -221,7 +221,7 @@ var loadImg = function(){
     _imgDic["koma"] = komaimg;
     _imgLoaded = true; //とりあえず、最後の画像が読み込まれたら全部OKってことに。
   };
-  komaimg.src = "./img/goita_koma.png";
+  komaimg.src = "./img/goita_koma.png" + "?" + new Date().getTime();
 };
 
 function sleep(time) {
@@ -605,8 +605,8 @@ var drawGameField = function(ctx, room, myNo){
   var n = 0;
   //palyer#1
   n = (0+myNo)%4;
-  drawKomaField(ctx, room.field[n],(n==room.from), komaWidth, 140, 340, 0);
-  drawPlayerInfo(ctx, room.player[n], 140, 420, 0);
+  drawKomaField(ctx, room.field[n],(n==room.from), komaWidth, 130, 330, 0);
+  drawPlayerInfo(ctx, room.player[n], 120, 420, 0);
   drawReady(ctx,room.player[n],140, 340, 0);
   
   //player#2
@@ -617,8 +617,8 @@ var drawGameField = function(ctx, room, myNo){
   
   //player#3
   n = (2+myNo)%4;
-  drawKomaField(ctx, room.field[n],(n==room.from), komaWidth, 300, 100, 180);
-  drawPlayerInfo(ctx, room.player[n], 140, 0, 0);
+  drawKomaField(ctx, room.field[n],(n==room.from), komaWidth, 310, 110, 180);
+  drawPlayerInfo(ctx, room.player[n], 120, 0, 0);
   drawReady(ctx,room.player[n], 300, 100, 180);
   
   //player#4
@@ -661,10 +661,6 @@ var drawKomaField = function(ctx, field, last, komaSize, tx, ty, r){
   //   ctx.fillText(text,x+5,y+30);
   // }
   
-  
-  
-  //ctx.drawImage(_imgDic["glow"], 0, 0);
-  
   for(var i=0;i<8;i++)
   {
     var x = Math.floor(i/2)*komaSize;
@@ -677,25 +673,12 @@ var drawKomaField = function(ctx, field, last, komaSize, tx, ty, r){
       if((i==(field.koma.length - 1)) && last)
       {
         ctx.drawImage(_imgDic["glow"], x, y);
-        // var imgglow = new Image();
-        // imgglow.src = "./img/koma_glow.png";
-        // imgglow.onload = function(){
-        //   ctx.drawImage(imgglow, x, y);
-        // };
       }
     }
     else
     {
       ctx.drawImage(_imgDic["empty"], x, y);
-      // var imge = new Image();
-      // imge.src = "./img/koma_empty.png";
-      // imge.onload = function(){
-      //   ctx.drawImage(imge, 0, 0);
-      //   console.log(imge);
-      // };
     }
-    
-    //ctx.fillRect(x,y,komaSize, komaSize);
   }
   
   //reset transformation
