@@ -114,7 +114,7 @@ var RoomInfo = function(roomId){
     this.tegoma[i] = new KomaInfo();
   }
   
-  //RNG
+  //RNG : Math.RandomとI/Fが同一なら、他のRNGと差し替え可能。
   this.rng = Math;
 };
 RoomInfo.prototype = {

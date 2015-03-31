@@ -11,7 +11,7 @@ var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
-var port = process.env.PORT || 8080;
+var port = process.env.PORT || 8880;
 
 //WebSocketサーバーの定義
 //io.set('transports', ['websocket']); //websocketsに限定する場合に指定。c9.ioではコメントアウト
@@ -20,6 +20,7 @@ io.set('match origin protocol', true);
 
 server.listen(port, function () {
   console.log('Version: ' + process.version);
+  console.log('process.env.IP/PORT: ' + process.env.IP +'/'+ process.env.PORT);
   console.log('Server listening at port %d', port);
 });
 
@@ -148,6 +149,9 @@ io.sockets.on("connection", function(socket) {
     //他ユーザに通知
     socket.broadcast.to(roomId).emit("user left room", { username: user.name});
     socket.broadcast.to(roomId).emit("room info", roomList[roomId].toClient());
+    
+    //ロビー情報を更新
+    io.emit("robby info", userList);
   });
 
   // ルームへ入るとき
@@ -167,7 +171,7 @@ io.sockets.on("connection", function(socket) {
     }
 
     if(!(roomId in roomList)){
-      socket.emit("room joining failed", 2003); //reason: roomId doesn't exist
+      socket.emit("room joining failed", 2003); 
       return;
     }
 
@@ -182,6 +186,9 @@ io.sockets.on("connection", function(socket) {
 
     // 他のユーザに、接続があったことを通知
     socket.broadcast.to(roomId).emit("user joined room", {id: socket.id, username: userList[socket.id].name });
+    
+    //ロビー情報を更新
+    io.emit("robby info", userList);
 
   });
 
@@ -216,6 +223,9 @@ io.sockets.on("connection", function(socket) {
       //ゲーム中に着席した場合、手持ち駒情報を送る
       if(room.round){
         io.to(user.id).emit("private game info", room.tegoma[n]);
+        
+        //ロビー情報を更新
+        io.emit("robby info", userList);
       }
     }else{
       socket.emit("error command", 2501); //cannot 
@@ -235,6 +245,9 @@ io.sockets.on("connection", function(socket) {
       io.to(user.roomId).emit("player stood", {no: user.playerNo, username: user.name});
       io.to(room.id).emit("room info", room.toClient());
     }
+    
+    //ロビー情報を更新
+    io.emit("robby info", userList);
   });
   
   var goshiFunc = function(room){
@@ -307,6 +320,9 @@ io.sockets.on("connection", function(socket) {
         //start game if it hasn't started yet
         if(!room.game && room.startGame()){
           io.to(room.id).emit("game started");
+          
+          //ロビー情報を更新
+          io.emit("robby info", userList);
         }
 
         //start round if it hasn't started yet
@@ -321,6 +337,9 @@ io.sockets.on("connection", function(socket) {
 
           //goshi
           goshiFunc(room);
+          
+          //ロビー情報を更新
+          io.emit("robby info", userList);
         }
       }
     }
@@ -398,6 +417,7 @@ io.sockets.on("connection", function(socket) {
     if(user.roomId === null){ socket.emit("error command", 2004); return; } //not joined in any room
     
     var room = roomList[user.roomId];
+    if(!room.goshi) { socket.emit("error command", 3007); return; }
     room.goshi = false;
   });
   
@@ -408,6 +428,8 @@ io.sockets.on("connection", function(socket) {
     if(user.roomId === null){ socket.emit("error command", 2004); return; } //not joined in any room
     
     var room = roomList[user.roomId];
+    if(!room.goshi) { socket.emit("error command", 3007); return; }
+    
     io.to(room.id).emit("deal again", room); //include private info
     room.dealAgain();
     io.to(room.id).emit("room info", room.toClient());

@@ -124,7 +124,7 @@ GoitaClient.prototype = {
     // ロビーのユーザ一覧を受け取ったら
     socket.on("robby info", function(userList) {
       console.log("received robby info");
-      self.playerNo = userList[self.userId].playerNo;
+      //self.playerNo = userList[self.userId].playerNo; //不要なはず
       self.userList = userList;
       self.robbyUserChanged(self.userList);
     });
@@ -269,6 +269,8 @@ GoitaClient.prototype = {
     // time up     手番プレイヤーが時間切れ（ランダムで処理される）
     socket.on("time up",function(){
       //not implemented
+      //ランダム処理の内容や、処理後の次手番への移動はサーバーがやるので、
+      //クライアントにはあくまで時間切れを伝えるのみ。
     });
     // kifu  ラウンド終了ごとに対戦の棋譜を通知
     socket.on("kifu",function(){

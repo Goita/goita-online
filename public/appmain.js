@@ -2,6 +2,8 @@
 Goita Client view controller
 */
 var client;
+var _imgDic = new Array();
+var _imgLoaded = false;
 
 //test
 var testFunc = function(){
@@ -18,15 +20,15 @@ var testFunc = function(){
 };
 
 var bindGoitaClientEvents = function(client){
-  client.robbyMessageAdded = addRobbyMessage; //function(msg [, style])
-  client.robbyUserChanged = updateRobbyUser;
-  client.robbyJoined = notifyRobbyJoined;
+  client.robbyMessageAdded = addRobbyMessage; //function(msg [, header [, type]])
+  client.robbyUserChanged = updateRobbyUser; //function(userList)
+  client.robbyJoined = notifyRobbyJoined; //function()
   client.robbyJoiningFailed = notifyRobbyJoinedError; //function(errorcode)
-  client.gotError = notifyError;
+  client.gotError = notifyError; //function(errorcode)
 
   client.roomListReceived = updateRoomList; //function(roomlist)
   client.roomInfoChanged = updateRoomInfo;  //function(RoomInfo)
-  client.roomMessageAdded = addRoomMessage; //function(msg [, style])
+  client.roomMessageAdded = addRoomMessage; //function(msg [, header [, type]])
   client.roomJoiningFailed = notifyRoomJoinedError; //function(errorcode)
 
   client.gotPrivateGameInfo = updatePrivateGameInfo; //function(KomaInfo)
@@ -196,7 +198,44 @@ var bindScreenEvents = function(client){
   });
 };
 
+var loadImg = function(){
+  
+  for(var i = 0;i<10;i++)
+  {
+    var img = new Image();
+    img.src = "./img/koma" + i + ".png";
+    _imgDic[i.toString()] = img;
+  }
+  
+  var emptyimg = new Image();
+  emptyimg.src = "./img/koma_empty.png";
+  _imgDic["empty"] = emptyimg;
+  
+  var glowimg = new Image();
+  glowimg.src = "./img/koma_glow.png";
+  _imgDic["glow"] = glowimg;
+  
+  var komaimg = new Image();
+  
+  komaimg.onload = function(){
+    _imgDic["koma"] = komaimg;
+    _imgLoaded = true; //とりあえず、最後の画像が読み込まれたら全部OKってことに。
+  };
+  komaimg.src = "./img/goita_koma.png";
+};
+
+function sleep(time) {
+  var d1 = new Date().getTime();
+  var d2 = new Date().getTime();
+  while (d2 < d1 + time) {
+    d2 = new Date().getTime();
+   }
+   return;
+}
+
 $(document).ready(function() {
+  loadImg();
+  
   testFunc(); //テストコード実行 //
   if(location.host.indexOf('c9.io') < 0) //c9.io上でのテストコードをすべて隠す
   {
@@ -229,9 +268,12 @@ $(document).ready(function() {
   showLoginPage();
 });
 
-$(window).on("beforeunload", function(){ 
+$(window).on("beforeunload", function(){
+  if(client != undefined && client != null)
+  {
     client.leaveRoom();
     client.leaveRobby();
+  }
 });
 
 //resize対応
@@ -323,7 +365,23 @@ var updateRobbyUser = function(userList){
   var list = $("#robby-user-list");
   list.empty();
   for(var id in userList){
-    list.append("<div class='username'>" + userList[id].name + "</div>");
+    var info = '<div class="robby-user-info">';
+    
+    var n = '<div class="user-info-name">' + userList[id].name + '</div>';
+    info += n;
+    
+    if(userList[id].roomId != null)
+    {
+      var r = '<div class="user-info-roomid">' + userList[id].roomId.padZero(2) + '</div>';
+      info += "(room#" + r + ")";
+    }
+    if(userList[id].isPlaying)
+    {
+      var p = '<div class="user-info-playing">' + (userList[id].isPlaying ? "ゲーム中" : "") + '</div>';
+      info += "-" + p;
+    }
+    info += '</div>';
+    list.append(info);
   }
 };
 
@@ -497,7 +555,7 @@ var notifyDealedAgain = function(room){
 
 var notifyCommandError = function(error){
   //TODO: errorの内容でメッセージ分けたい
-  addRoomMessage("無効な操作です。","error", "e");
+  addRoomMessage(ErrorMsg.getMsgText(error),"error", "e");
 };
 
 var confirmGoshi = function(){
@@ -540,7 +598,7 @@ var drawGameField = function(ctx, room, myNo){
   
   var width = 440;
   var height = 440;
-  var komaWidth = 40;
+  var komaWidth = 42;
   ctx.fillStyle="#cc9";
   ctx.fillRect(0,0,width,height);
   
@@ -578,29 +636,66 @@ var drawKomaField = function(ctx, field, last, komaSize, tx, ty, r){
   ctx.translate(tx,ty);
   ctx.rotate(r*Math.PI/180);
   
-  ctx.strokeStyle="#963";
-  ctx.font= "30px Verdana";
+  // ctx.strokeStyle="#963";
+  // ctx.font= "30px Verdana";
   
-  for(var i=0;i<field.koma.length;i++){
+  // for(var i=0;i<field.koma.length;i++){
+  //   var x = Math.floor(i/2)*komaSize;
+  //   var y = i%2*komaSize;
+    
+  //   if(i==field.koma.length - 1 && last){
+  //     ctx.fillStyle="#9fc";
+  //   }else{
+  //     ctx.fillStyle="#fc9";
+  //   }
+    
+  //   ctx.fillRect(x,y,komaSize, komaSize);
+    
+  //   var text = Util.getKomaText(field.koma[i]);
+  //   if(text === ""){
+  //     ctx.fillStyle="#c96";
+  //     ctx.fillRect(x,y,komaSize, komaSize);
+  //   }
+  //   ctx.strokeRect(x,y,komaSize, komaSize);
+  //   ctx.fillStyle="#000";
+  //   ctx.fillText(text,x+5,y+30);
+  // }
+  
+  
+  
+  //ctx.drawImage(_imgDic["glow"], 0, 0);
+  
+  for(var i=0;i<8;i++)
+  {
     var x = Math.floor(i/2)*komaSize;
     var y = i%2*komaSize;
-    
-    if(i==field.koma.length - 1 && last){
-      ctx.fillStyle="#9fc";
-    }else{
-      ctx.fillStyle="#fc9";
+    if(i<field.koma.length)
+    {
+      var koma = field.koma[i];
+      ctx.drawImage(_imgDic[koma], x, y);
+      
+      if((i==(field.koma.length - 1)) && last)
+      {
+        ctx.drawImage(_imgDic["glow"], x, y);
+        // var imgglow = new Image();
+        // imgglow.src = "./img/koma_glow.png";
+        // imgglow.onload = function(){
+        //   ctx.drawImage(imgglow, x, y);
+        // };
+      }
+    }
+    else
+    {
+      ctx.drawImage(_imgDic["empty"], x, y);
+      // var imge = new Image();
+      // imge.src = "./img/koma_empty.png";
+      // imge.onload = function(){
+      //   ctx.drawImage(imge, 0, 0);
+      //   console.log(imge);
+      // };
     }
     
-    ctx.fillRect(x,y,komaSize, komaSize);
-    
-    var text = Util.getKomaText(field.koma[i]);
-    if(text === ""){
-      ctx.fillStyle="#c96";
-      ctx.fillRect(x,y,komaSize, komaSize);
-    }
-    ctx.strokeRect(x,y,komaSize, komaSize);
-    ctx.fillStyle="#000";
-    ctx.fillText(text,x+5,y+30);
+    //ctx.fillRect(x,y,komaSize, komaSize);
   }
   
   //reset transformation
