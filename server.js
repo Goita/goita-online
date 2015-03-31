@@ -137,9 +137,9 @@ io.sockets.on("connection", function(socket) {
   // クライアントがルームから出たとき
   socket.on("leave room", function(){
     var user = userList[socket.id];
-    if(user === undefined){ socket.emit("error command", "10 user not logged in"); return; } //user not logged in
+    if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
     var roomId = user.roomId; //var roomId = findRoomId(user);
-    if(roomId === null){ socket.emit("error command", "2004 not joined in any room"); return; } //not joined in any room
+    if(roomId === null){ socket.emit("error command", 2004); return; } //not joined in any room
     
     roomList[roomId].removeUser(user);
     socket.leave(roomId);
