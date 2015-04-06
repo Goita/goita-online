@@ -116,6 +116,12 @@ var bindScreenEvents = function(client){
   $("#btn-test").click(function(){
     console.log("test button clicked");
     //$("body").pagecontainer("change", "#goshi-confirm-dialog"); //need some options to open dialog
+    var tegomaStr = "";
+    for(var i=0;i<client.tegoma.koma.length;i++)
+    {
+      tegomaStr += Util.getKomaText(client.tegoma.koma[i]);
+    }
+    $("#goshi-confirm-tegoma").text(tegomaStr);  //client.tegoma.toString()
     $("#anchor-goshi-dialog").click();
   });
   
@@ -707,6 +713,14 @@ var notifyCommandError = function(error){
 var confirmGoshi = function(){
   addRoomMessage("５しの処理を選択して下さい。", "system", "i");
   closeNotifyPopup();
+  
+  var tegomaStr = "";
+  for(var i=0;i<client.tegoma.koma.length;i++)
+  {
+    tegomaStr += Util.getKomaText(client.tegoma.koma[i]);
+  }
+  $("#goshi-confirm-tegoma").text(tegomaStr);
+  
   var a = $("#anchor-goshi-dialog");
   a.css(visibleStyle);
   a.click();
