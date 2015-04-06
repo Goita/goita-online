@@ -9,6 +9,7 @@ var GoitaClient = function(){
   //this.serverURI = server;
   this.isConnected = false;
   this.isInRobby = false;
+  this.hasGoshi = false; // I have goshi;
   this.roomId = "";
   this.userName = "";
   this.userId = "";
@@ -16,6 +17,11 @@ var GoitaClient = function(){
   this.userList = []; // {userid : UserInfo}
   this.roomInfo = null; //RoomInfo
   this.tegoma = {koma:[]}; //KomaInfo
+  
+  this.messageHistoryLimit = 1000;
+  this.robbyMessage = []; // new Array(); enqueue => push(), dequeue => shift()
+  this.roomMessage = [];
+  this.privateMessage = [];
 
   //event - inject event handler
   this.connected = fnEmpty; //function()
@@ -25,8 +31,9 @@ var GoitaClient = function(){
   this.robbyJoined = fnEmpty; //function()
   this.robbyJoiningFailed = fnEmpty; //function(errorcode)
   this.gotError = fnEmpty;
-
   this.roomListReceived = fnEmpty; //function(roomlist)
+  
+  this.roomJoined = fnEmpty; //function({id : roomId})
   this.roomInfoChanged = fnEmpty;  //function(RoomInfo)
   this.roomMessageAdded = fnEmpty; //function(msg [, header[, type]])
   this.roomJoiningFailed = fnEmpty; //function(errorcode)
@@ -46,7 +53,7 @@ var GoitaClient = function(){
 
 //class method
 GoitaClient.prototype = {
-
+  
   //connect to server
   connect : function(callback){
     //already isConnected
@@ -112,13 +119,13 @@ GoitaClient.prototype = {
     // 他のユーザが接続を解除したら
     socket.on("user left robby", function(data) {
       console.log("user left:" + data.id);
-      self.robbyMessageAdded("user left:" + data.username);
+      self.robbyMessageAdded("user left:" + data.username, "system", "i");
     });
 
     // 他のユーザが接続したら
     socket.on("user joined robby", function(data) {
       console.log("user joined:" + data.id);
-      self.robbyMessageAdded("user joined:" + data.username);
+      self.robbyMessageAdded("user joined:" + data.username, "system", "i");
     });
 
     // ロビーのユーザ一覧を受け取ったら
@@ -132,12 +139,16 @@ GoitaClient.prototype = {
     //ロビーメッセージを受け取ったら
     socket.on("push robby msg", function(msg) {
       console.log("received robby msg:" + msg);
+      self.robbyMessage.push(new Message(msg.text, msg.username));
+      self.deleteExcessedMessage();
       self.robbyMessageAdded(msg.text, msg.username, "m");
     });
     
     //ルームメッセージを受け取ったら
     socket.on("push room msg", function(msg) {
       console.log("received room msg:" + msg);
+      self.roomMessage.push(new Message(msg.text, msg.username));
+      self.deleteExcessedMessage();
       self.roomMessageAdded(msg.text, msg.username, "m");
     });
 
@@ -151,6 +162,7 @@ GoitaClient.prototype = {
     // ルームに入ったというメッセージを受け取ったら
     socket.on("room joined", function(data){
       console.log("joined in room");
+      self.roomJoined(data);
     });
 
     //ルームに入れなかった場合
@@ -258,6 +270,7 @@ GoitaClient.prototype = {
 
     // goshi ごしの決断を求める（その他のプレイヤーにはgoshi waitを送る)
     socket.on("goshi",function(){
+      self.hasGoshi = true;
       self.goshiDecisionRequested();
     });
 
@@ -335,6 +348,10 @@ GoitaClient.prototype = {
   standUp : function(){
     this.socket.emit("stand up");
   },
+  
+  swapSeats : function(){
+    this.socket.emit("swap seats");
+  },
 
   setReady : function(){
     this.socket.emit("set ready");
@@ -361,13 +378,39 @@ GoitaClient.prototype = {
 
   // goshi proceed 'ごしのまま続行
   goshiProceed : function(){
+    this.hasGoshi = false;
     this.socket.emit("goshi proceed");
   },
 
   // goshi deal again '配りなおし
   goshiDealAgain : function(){
+    this.hasGoshi = false;
     this.socket.emit("goshi deal again");
+  },
+  
+  deleteExcessedMessage : function(){
+    while(this.robbyMessage.length > this.messageHistoryLimit)
+    {
+      this.robbyMessage.shift();
+    }
+    
+    while(this.roomMessage.length > this.messageHistoryLimit)
+    {
+      this.roomMessage.shift();
+    }
+    
+    while(this.privateMessage.length > this.messageHistoryLimit)
+    {
+      this.privateMessage.shift();
+    }
   }
+};
+
+//chat message
+var Message = function(msg, from)
+{
+  this.text = msg;
+  this.from = from;
 };
 
 //empty method

@@ -36,9 +36,15 @@ image, canvas {
 
 /* チャットメッセージ */
 #robby-msg-list, #room-msg-list {
-  height:100px;
-  /*overflow:auto;*/
   overflow-y: scroll;
+}
+
+#robby-msg-list {
+    height:100px;
+}
+
+#room-msg-list {
+    height:300px;
 }
 
 /* ロビーユーザ一覧を1行で表示するために必要 */
@@ -89,3 +95,28 @@ image, canvas {
     color:#55f;
 }
 
+/* footerにボタンを表示するための設定 */
+.footer-button-left {
+    position: absolute;
+    margin: 0;
+    top: 0px;
+    bottom: auto;
+    left: 10px;
+}
+.footer-button-right {
+    position: absolute;
+    margin: 0;
+    top: 20px;
+    bottom: auto;
+    right: 10px;
+}
+
+/* Swipe works with mouse as well but often causes text selection. */
+/* We'll deny text selecton on everything but INPUTs and TEXTAREAs. */
+#room-page :not(INPUT):not(TEXTAREA) {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}

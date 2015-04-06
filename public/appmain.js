@@ -5,6 +5,12 @@ var client;
 var _imgDic = new Array();
 var _imgLoaded = false;
 
+var _popupTime = 1.0; // 1.0 = 1000ms
+var _notifyQueue = []; //message queue for popup
+
+var hiddenStyle = {'visibility':'hidden', "height":"0px", "width":"0px", "font-size":"0", "background": "none"};
+var visibleStyle = {'visibility':'visible'};
+
 //test
 var testFunc = function(){
   var canvas = $("#canvas-game-input");
@@ -19,6 +25,66 @@ var testFunc = function(){
   }
 };
 
+var notifyPopupTimer = function(){
+  setTimeout(function(){
+    
+    if(!client.hasGoshi) //５しの時は、余計なメッセージを出さない
+    {
+      if(_popupTime > 0){ _popupTime -= 0.1; }
+      if(_popupTime <= 0)
+      { 
+        //if popup exists, close
+        if($("#notify-popup").size() > 0)
+        {
+          closeNotifyPopup();
+        }
+        else
+        {
+          //checked popup is closed
+          //fetch new message
+          var msg = [];
+          while(_notifyQueue.length > 0) //no need to lock, javascript is a single thread model 
+          {
+            //sleep(1000);
+            console.log("fetching msg");
+            msg.push(_notifyQueue.shift());
+          }
+          openNotifyPopup(msg, 0.7 + (msg.length * 0.3));
+        }
+      }
+    }
+    setTimeout(arguments.callee, 100);
+  }, 100);
+};
+
+var stateCheckTimer = function(){
+  setTimeout(function()
+  {
+    if(client != undefined && client != null)
+    {
+      var activePage = $( "body" ).pagecontainer( "getActivePage" );
+      var pagename = activePage[0].attributes.getNamedItem("id").nodeValue;
+      switch(pagename)
+      {
+        case "login-page":
+          break;
+        case "robby-page":
+        case "room-page":
+          if(client.isConnected && !client.isInRobby)
+          {
+            showLoginPage();
+          }
+          break;
+      }
+      if(!client.isConnected)
+      {
+        showLoginPage();
+      }
+    }
+    setTimeout(arguments.callee, 1000);
+  }, 1000);
+};
+
 var bindGoitaClientEvents = function(client){
   client.robbyMessageAdded = addRobbyMessage; //function(msg [, header [, type]])
   client.robbyUserChanged = updateRobbyUser; //function(userList)
@@ -29,6 +95,7 @@ var bindGoitaClientEvents = function(client){
   client.roomListReceived = updateRoomList; //function(roomlist)
   client.roomInfoChanged = updateRoomInfo;  //function(RoomInfo)
   client.roomMessageAdded = addRoomMessage; //function(msg [, header [, type]])
+  client.roomJoined = notifyRoomJoined;
   client.roomJoiningFailed = notifyRoomJoinedError; //function(errorcode)
 
   client.gotPrivateGameInfo = updatePrivateGameInfo; //function(KomaInfo)
@@ -96,6 +163,7 @@ var bindScreenEvents = function(client){
   //ルーム退室ボタン
   $("#btn-leave-room").click(function(){
     client.leaveRoom();
+    showRobbyPage();
     //updateRoomInfo(null);
     //$("#room-msg-list").empty();
   });
@@ -124,6 +192,10 @@ var bindScreenEvents = function(client){
   $("#btn-standup-seat").click(function(){
     client.standUp();
   });
+  
+  $("#btn-swap-seat").click(function(){
+    client.swapSeats();
+  });
 
   //レディーボタン
   $("#btn-ready-game").click(function(){
@@ -143,15 +215,17 @@ var bindScreenEvents = function(client){
     client.pass();
   });
   
-  //ごし選択
+  //５し選択
   $("#confirm-goshi-proceed").click(function(){
     console.log("selected goshi proceed");
     client.goshiProceed();
+    $("#anchor-goshi-dialog").css(hiddenStyle);
   });
   
   $("#confirm-goshi-deal").click(function(){
     console.log("selected goshi deal again");
     client.goshiDealAgain();
+    $("#anchor-goshi-dialog").css(hiddenStyle);
   });
   
   //駒選択エリア
@@ -239,13 +313,17 @@ $(document).ready(function() {
   testFunc(); //テストコード実行 //
   if(location.host.indexOf('c9.io') < 0) //c9.io上でのテストコードをすべて隠す
   {
-    var hiddenStyle = {'visibility':'hidden', "height":"0px", "width":"0px", "font-size":"0", "background": "none"};
+    
     $("#btn-test").remove(); //enable for publishing
-    $("#canvas-game-input").css(hiddenStyle);
     $("#debug-text").css(hiddenStyle);
   }
+  $("#canvas-game-input").css(hiddenStyle); //もういらない
   
-  showDefaultPage(); //Reset Navigation
+  //Timer Start
+  stateCheckTimer();
+  notifyPopupTimer();
+  
+  resetPage(); //Reset Navigation
   
   client = new GoitaClient(); //server);
 
@@ -268,6 +346,7 @@ $(document).ready(function() {
   showLoginPage();
 });
 
+//ブラウザを閉じる前に、サーバーとの接続を切る
 $(window).on("beforeunload", function(){
   if(client != undefined && client != null)
   {
@@ -286,7 +365,7 @@ $(window).on('load resize', function(){
   var wh = $(window).height() * 1.05 - 30; 
   var dpr = window.devicePixelRatio; //2ならRetina Display, Androidは1.5-3.0など・・・
   dpr = dpr < 1.0 ? 1.0 : dpr; //1.0以上に補正
-  var horizontal = Math.abs(window.orientation) === 90;
+  var horizontal = Math.abs(window.orientation) === 90; //iOS only ?
   var wl = Math.min(wh, ww); //horizontal ? wh : ww; //短いほうの画面幅
   var virtualLen = wl / dpr; //仮想画面幅
   var canvas = $("#canvas-game-field");
@@ -310,7 +389,7 @@ $(window).on('load resize', function(){
   }
 });
 
-var showDefaultPage = function(){
+var resetPage = function(){
   $("body").pagecontainer("change", "#", {allowSamePageTransition:true, reload:true});
 };
 
@@ -318,8 +397,46 @@ var showLoginPage = function(){
   $("body").pagecontainer("change", "#login-page");
 };
 
-var showMainPage = function(){
-  $("body").pagecontainer("change", "#main-page");
+var showRobbyPage = function(){
+  $("body").pagecontainer("change", "#robby-page", {reverse:true});
+};
+
+var showRoomPage = function(){
+  $("body").pagecontainer("change", "#room-page", {transition:"slide"});
+};
+
+//msgList[] = {text: message text, header: message header, type: message type}
+var openNotifyPopup = function(msgList, autocloseTime){
+  if(msgList == undefined || msgList.length == 0) {return;}
+  //create popup
+  var popup = $('<div data-role="popup" id="notify-popup" data-theme="b"></div>');
+  var newmsg = $('<div id="new-notify-msg"></div>');
+  for(var i = 0;i < msgList.length;i++)
+  {
+    var msg = msgList[i];
+    var text = msg.text;
+    var header = msg.header == undefined ? "system" : msg.header; //default: system info
+    var type = msg.type == undefined ? "i" : msg.type; //default: system info
+    if(msg.type == undefined){ msg.type = "i"} 
+    newmsg.append('<div class="notify-msg">' 
+                + '<div class="msg-header ' + type +'">' + header + '</div>'
+                + '<div class="msg-separator ' + type + '">' + ":" + '</div>'
+                + '<div class="msg-text ' + type + '">' + text + '</div>'
+              +'</div>');
+  }
+  popup.append(newmsg);
+  $(popup).appendTo($.mobile.activePage).popup();
+  $( document ).on( "popupafterclose", "#notify-popup", function() {
+        $( this ).remove();
+    });
+  
+  var notify = $("#notify-popup");
+  _popupTime = autocloseTime == undefined ? 1.0 : autocloseTime;
+  notify.popup("open");
+};
+
+var closeNotifyPopup = function(){
+  $("#notify-popup").popup("close");
 };
 
 //モバイル機器のウィンドウに対してジェスチャーを使ったすべての操作を無効にする
@@ -337,8 +454,13 @@ $('#canvas-game-input').bind('touchmove', cancelUserGesture);
 
 //ごいたクライアントのイベントに登録するイベントハンドラ
 //最新メッセージを表示
-var addNewMessage = function(msg){
-  $("#new-msg").text(msg);
+var addNotifyMessage = function(msg){
+  var text = msg.text;
+  var header = msg.header == undefined ? "system" : msg.header; //default: system info
+
+  $("#new-robby-msg").html(header + ":" + text);
+  $("#new-room-msg").html(header + ":" + text);
+  _notifyQueue.push(msg);
 };
 //ログインメッセージを追加
 var addLoginMessage = function(msg){
@@ -348,7 +470,7 @@ var addLoginMessage = function(msg){
 //ロビーメッセージを追加
 var addRobbyMessage = function(msg, header, type){
   console.log("addRobbyMessage: " + type + ":" + header + ":" + msg );
-  addNewMessage(msg);
+  addNotifyMessage({text:msg, header:header, type:type});
   var list = $("#robby-msg-list");
   if(header == undefined) {header = "system"; type = "i"} //default: system info
   list.append('<div class="robby-msg">' 
@@ -392,14 +514,17 @@ var notifyError = function(error){
   if(error.toString().indexOf("error"))
   {
     client.leaveRobby();
-    showDefaultPage();
+    resetPage();
     showLoginPage();
   }
 };
 
-var notifyRobbyJoined = function()
-{
-  showMainPage(); //メインページへ
+var notifyRobbyJoined = function(){
+  showRobbyPage(); //メインページへ
+};
+
+var notifyRoomJoined = function(){
+  showRoomPage();  //ルームページへ
 };
 
 var notifyRobbyJoinedError = function(error){
@@ -411,10 +536,10 @@ var updateRoomList = function(roomList){
   console.log(roomList);
   list.empty();
   for(var i in roomList){
-    list.append("<option value='" + i +"' id='" + "opt-room" + i + "'>" + "room #" + i.padZero(2) + "</option>");
+      list.append("<option value='" + i +"' id='" + "opt-room" + i + "'>" + "ルーム #" + i.padZero(2) + "</option>");
   }
   
-  list.val(0);
+  //list.val(0);
   //$("#opt-room0").attr("selected");
 };
 
@@ -429,7 +554,7 @@ var updateRoomInfo = function(room){
 
   if(room === null){
     $("#room-name").html("---");
-    $("#navi-room").html("ルーム");
+    $("#room-header-name").html("ルーム");
     $("#room-msg-list").empty();
     return;
   }
@@ -437,7 +562,7 @@ var updateRoomInfo = function(room){
   //updateRoomInfo
   console.log("update RoomInfo");
   $("#room-name").html("room #" + room.id.padZero(2));
-  $("#navi-room").html("ルーム #" + room.id.padZero(2));
+  $("#room-header-name").html("ルーム #" + room.id.padZero(2));
   var userlist = $("#room-user-list");
   for(var id in room.userList){
     userlist.append("<div class='username'>" + room.userList[id].name + "</div>");
@@ -450,7 +575,7 @@ var updateRoomInfo = function(room){
     var btn = $("#btn-siton-player" + (i+1).toString() + "-seat");
     if(room.player[i] == null)
     {
-      btn.html("player" + (i+1).toString());
+      btn.html("p" + (i+1).toString());
       btn.removeAttr("disabled");
     }
     else
@@ -462,7 +587,7 @@ var updateRoomInfo = function(room){
   
   //change ready button text
   if(client.playerNo !==null){
-    $("#btn-ready-game").html(room.player[client.playerNo].ready ? "cancel ready" : "ready");
+    $("#btn-ready-game").html(room.player[client.playerNo].ready ? "READY取消" : "READY");
   }
   
   var canvas = $("#canvas-game-field");
@@ -475,7 +600,7 @@ var updateRoomInfo = function(room){
 
 var addRoomMessage = function(msg, header, type){
   console.log("addRoomMessage: " + type + ":" + header + ":" + msg );
-  addNewMessage(msg);
+  addNotifyMessage({text:msg, header:header, type:type});
   var list = $("#room-msg-list");
   if(header == undefined) {header = "system"; type = "i"} //default: system info
   list.append('<div class="room-msg">' 
@@ -483,7 +608,8 @@ var addRoomMessage = function(msg, header, type){
                 + '<div class="msg-separator ' + type + '">' + ":" + '</div>'
                 + '<div class="msg-text ' + type + '">' + msg + '</div>'
               +'</div>');
-  list.scrollTop(list.height());
+  //var newestMsg = $(".room-msg:eq(-1)");
+  list.scrollTop(list[0].scrollHeight);
 };
 
 var notifyRoomJoinedError = function(error){
@@ -520,7 +646,7 @@ var notifyRequestForReady = function(){
 };
 
 var notifyRequestToPlay = function(){
-  addRoomMessage("出す駒またはパスを選択してください。","system", "i");
+  //addNotifyMessage("出す駒またはパスを選択してください。","system", "i");
 };
 
 var notifyGameStarted = function(){
@@ -532,11 +658,31 @@ var notifyGameFinished = function(){
 };
 
 var notifyRoundStarted = function(){
-  addRoomMessage("新しいラウンドが開始しました。","system", "i");
+  var turnUser = client.room.palyer[client.room.turn].name;
+  addRoomMessage(turnUser+" の手番で新しいラウンドが開始しました。","system", "i");
 };
 
 var notifyRoundFinished = function(room){
-  addRoomMessage("ラウンドが終了しました。","system", "i");
+  var type = room.Goshi();
+  var p = room.findGoshiPlayer();
+  switch(type)
+  {
+    case Util.GoshiType.NO_GOSHI:
+      addRoomMessage("ラウンドが終了しました。","system", "i");
+      break;
+    case Util.GoshiType.ROKUSHI:
+      addRoomMessage(p[0].name + " の６しで終了しました。","system", "i");
+      break;
+    case Util.GoshiType.NANASHI:
+      addRoomMessage(p[0].name + " の７しで終了しました。","system", "i");
+      break;
+    case Util.GoshiType.HACHISHI:
+      addRoomMessage(p[0].name + " の８しで終了しました。","system", "i");
+      break;
+    case Util.GoshiType.AIGOSHI:
+      addRoomMessage(p[0].name +" と " + p[1].name + " の１０しで終了しました。","system", "i");
+      break;
+  }
   
   var canvas = $("#canvas-game-field");
   if ( ! canvas[0] || ! canvas[0].getContext ) { return false; }
@@ -559,13 +705,15 @@ var notifyCommandError = function(error){
 };
 
 var confirmGoshi = function(){
-  addRoomMessage("ごしの処理を選択して下さい。", "system", "i");
-  
-  $("#anchor-goshi-dialog").click();
+  addRoomMessage("５しの処理を選択して下さい。", "system", "i");
+  closeNotifyPopup();
+  var a = $("#anchor-goshi-dialog");
+  a.css(visibleStyle);
+  a.click();
 };
 
 var notifyGoshi = function(no){
-  addRoomMessage(client.roomInfo.player[no].name + "が「ごし」です。","system", "i");
+  addRoomMessage(client.roomInfo.player[no].name + "が「５し」です。","system", "i");
 };
 
 String.prototype.padZero = function(len, c){
@@ -596,6 +744,16 @@ var drawGameField = function(ctx, room, myNo){
   if(room === null){console.log("room is null"); return;}
   if(myNo ===null){ myNo = 0;}
   
+  //６し以上で終了した場合は、全員の手駒をfieldに表示する
+  if(room.rokushi)
+  {
+    for(var i=0;i<4;i++)
+    {
+      room.field[i] = room.tegoma[i];
+    }
+  }
+  
+  
   var width = 440;
   var height = 440;
   var komaWidth = 42;
@@ -603,27 +761,27 @@ var drawGameField = function(ctx, room, myNo){
   ctx.fillRect(0,0,width,height);
   
   var n = 0;
-  //palyer#1
+  //palyer#1 (Me)
   n = (0+myNo)%4;
-  drawKomaField(ctx, room.field[n],(n==room.from), komaWidth, 130, 330, 0);
+  drawKomaField(ctx, room.field[n],(n==room.lastPlayedPlayerNo), komaWidth, 130, 330, 0);
   drawPlayerInfo(ctx, room.player[n], 120, 420, 0);
   drawReady(ctx,room.player[n],140, 340, 0);
   
-  //player#2
+  //player#2 (The right side player of my opponents)
   n = (1+myNo)%4;
-  drawKomaField(ctx, room.field[n],(n==room.from), komaWidth, 340, 300, -90);
+  drawKomaField(ctx, room.field[n],(n==room.lastPlayedPlayerNo), komaWidth, 340, 300, -90);
   drawPlayerInfo(ctx, room.player[n], 280, 300, 0);
   drawReady(ctx,room.player[n], 340, 300, -90);
   
-  //player#3
+  //player#3 (My partner)
   n = (2+myNo)%4;
-  drawKomaField(ctx, room.field[n],(n==room.from), komaWidth, 310, 110, 180);
+  drawKomaField(ctx, room.field[n],(n==room.lastPlayedPlayerNo), komaWidth, 310, 110, 180);
   drawPlayerInfo(ctx, room.player[n], 120, 0, 0);
   drawReady(ctx,room.player[n], 300, 100, 180);
   
-  //player#4
+  //player#4 (The left side player of my opponents)
   n = (3+myNo)%4;
-  drawKomaField(ctx, room.field[n],(n==room.from), komaWidth, 100, 140, 90);
+  drawKomaField(ctx, room.field[n],(n==room.lastPlayedPlayerNo), komaWidth, 100, 140, 90);
   drawPlayerInfo(ctx, room.player[n], 0, 120, 0);
   drawReady(ctx,room.player[n], 100, 140, 90);
   

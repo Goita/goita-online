@@ -4,7 +4,7 @@ var goita = require("./public/goita");
 var validator= require('validator');
 var mt = require("./mt"); //MersenneTwister
 //固定値の定義
-var ROOM_COUNT = 10;
+var ROOM_COUNT = 100;
 
 // Setup basic express server
 var express = require('express');
@@ -130,7 +130,10 @@ io.sockets.on("connection", function(socket) {
 
   // クライアントからのメッセージ送信を受け取ったとき
   socket.on("send robby msg", function(msg) {
-    io.emit("push robby msg", {text: validator.escape(msg.text), username: userList[socket.id].name}); //to everyone
+    var user = userList[socket.id];
+    if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
+    if(msg === undefined || msg === null || msg.text === undefined || msg.text.length == 0) { return; } //just ignore
+    io.emit("push robby msg", {text: validator.escape(msg.text), username: user.name}); //to everyone
   });
 
 //ルーム関連メッセージの処理----------------------------------------------------
@@ -140,8 +143,8 @@ io.sockets.on("connection", function(socket) {
     if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
     var roomId = user.roomId; //var roomId = findRoomId(user);
     if(roomId === null){ socket.emit("error command", 2004); return; } //not joined in any room
-    
-    roomList[roomId].removeUser(user);
+    var room = roomList[roomId];
+    room.removeUser(user);
     socket.leave(roomId);
     socket.emit("room left");
     socket.emit("room info", null);
@@ -150,6 +153,14 @@ io.sockets.on("connection", function(socket) {
     socket.broadcast.to(roomId).emit("user left room", { username: user.name});
     socket.broadcast.to(roomId).emit("room info", roomList[roomId].toClient());
     
+    if(room.getPlayerCount() == 0)
+    {
+      var id = room.id;
+      //goita.RoomInfo.initialize(room);
+      roomList[id] = new goita.RoomInfo(id);
+      console.log("initialize room#" + id);
+    }
+      
     //ロビー情報を更新
     io.emit("robby info", userList);
   });
@@ -204,6 +215,7 @@ io.sockets.on("connection", function(socket) {
     if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
     var room = roomList[user.roomId];
     if(room === undefined){ socket.emit("error command", 2004); return; } //not joined in any room
+    if(msg === undefined || msg === null || msg.text === undefined || msg.text.length == 0) { return; } //just ignore
     io.to(room.id).emit("push room msg", {text: validator.escape(msg.text), username: userList[socket.id].name}); //everyone in the same room
   });
 
@@ -250,8 +262,26 @@ io.sockets.on("connection", function(socket) {
     io.emit("robby info", userList);
   });
   
+  //swap seats
+  socket.on("swap seats", function(){
+    var user = userList[socket.id];
+    if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
+    var room = roomList[user.roomId];
+    if(user.roomId === null){ socket.emit("error command", 2004); return; } //not joined in any room
+    
+    if(roomList[user.roomId].swapSeats()){
+      //success swapping
+      io.to(room.id).emit("room info", room.toClient());
+    }
+    else
+    {
+      socket.emit("error command", 2005); //cannot swap seats
+    }
+
+  });
+  
   var goshiFunc = function(room){
-    //ごし判定＆処理
+    //５し判定＆処理
     var type = room.Goshi();
     var checkFinished = false;
     switch(type){
@@ -327,8 +357,8 @@ io.sockets.on("connection", function(socket) {
 
         //start round if it hasn't started yet
         if(!room.round && room.startRound()){
-          io.to(room.id).emit("round started");
           io.to(room.id).emit("room info", room.toClient());
+          io.to(room.id).emit("round started");
 
           //send private game info to each player
           for(var i=0;i<4;i++){
@@ -410,7 +440,7 @@ io.sockets.on("connection", function(socket) {
     io.to(user.roomId).emit("passed", roomList[user.roomId].turn);
   });
 
-// goshi proceed 'ごしのまま続行
+// goshi proceed '５しのまま続行
   socket.on("goshi proceed", function(){
     var user = userList[socket.id];
     if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in

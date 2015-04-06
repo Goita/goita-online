@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
     <script src="/socket.io/socket.io.js"></script>
     <script src="//code.jquery.com/jquery-2.1.1.js"></script>
-    <!-- <script src="//code.jquery.com/jquery-latest.min.js"></script> -->
     <script src="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
     <script src="ua.js"></script>
     <script src="client.js"></script>
@@ -17,126 +16,203 @@
     <script src="appmain.js"></script>
   </head>
   <body>
-    <div data-role="page" id="main-page" data-title="Goita Online">
+    <div data-role="page" id="robby-page" data-title="Goita Online">
       <div class="header" data-role="header" data-position="fixed">
-        <h1>ごいた</h1>
-        <!--<a href="#robby-panel" data-icon="bars" data-iconpos="notext">Menu</a>-->
-        <!--<a id="btn-login" href="#login-page" data-icon="gear" data-iconpos="notext" data-rel="popup" data-position-to="window" data-transition="pop" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-delete ui-btn-icon-left ui-btn-b">LogIn</a>-->
+        <h1>ロビー</h1>
       </div><!-- /header -->
 
       <div role="main" class="ui-content">
         <p id="debug-text"></p>
         <button id="btn-test" class="ui-btn ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-icon-notext ui-btn-b ">test</button>
-        <div data-role="tabs" id="main-tabs">
-          <div data-role="navbar">
-            <ul>
-              <li><a href="#robby-panel" >ロビー</a></li>
-              <li><a href="#room-panel" id="navi-room">ルーム</a></li>
-              <li><a href="#game-panel" >ゲーム</a></li><!--data-ajax="false"-->
-            </ul>
-          </div>
           <div id="robby-panel" data-position-fixed="true" data-display="reveal">
-            <h3>ロビーユーザ一覧</h3>
-            <div id="robby-user-list"></div>
-            <h3>ルーム選択</h3>
-            <div id="room-list">
-              <select id="select-room-list" name="roomlist"></select>
-              <button id="btn-join-room">join room</button>
+            <div class="ui-corner-all custom-corners">
+              <div class="ui-bar ui-bar-a">
+                <h3>ロビーユーザ</h3>
+              </div>
+              <div class="ui-body ui-body-a">
+                <div id="robby-user-list"></div> <!--そのうちテーブル形式に-->
+              </div>
             </div>
-            <h3>ロビーメッセージ入力</h3>
-            <input id="input-robby-msg">
-            <button id="btn-send-robby-msg">send</button>
+
+            <div class="ui-corner-all custom-corners">
+              <div class="ui-bar ui-bar-a">
+                <h3>ルーム選択</h3>
+              </div>
+              <div class="ui-body ui-body-a">
+                <div class="ui-grid-a">
+                  <div class="ui-block-a">
+                    <select id="select-room-list" name="roomlist">
+                      <option value="0">ルーム #00</option>
+                    </select>
+                  </div>
+                  <div class="ui-block-b">
+                    <button id="btn-join-room" class="ui-btn ui-icon-arrow-r ui-btn-icon-right ui-corner-all">入る</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <input id="input-robby-msg" type="text" placeholder="ロビーメッセージ入力">
+            <button id="btn-send-robby-msg">送信</button>
             <h3>ロビーチャット</h3>
             <div id="robby-msg-list"></div>
           </div><!--/robby-panel-->
-          <div id="room-panel">
-            <h3>ルーム操作</h3>
-            <button id="btn-leave-room">leave room</button>
-            <h3>ルーム名</h3>
-            <div id="room-name">---</div>
-            <h3>ルームユーザ一覧</h3>
-            <div id="room-user-list"></div>
-            <h3>ルームメッセージ入力</h3>
-            <input id="input-room-msg">
-            <button id="btn-send-room-msg">send</button>
-            <h3>ルームチャット</h3>
-            <div id="room-msg-list"></div>
-          </div>
-          <div id="game-panel">
-            <fieldset class="ui-grid-c">
-              <div id="player1-panel" class="ui-block-a">
-                <button id="btn-siton-player1-seat" class="ui-btn ui-mini">player1</button>
-              </div>
-              <div id="player2-panel" class="ui-block-b">
-                <button id="btn-siton-player2-seat" class="ui-btn ui-mini">player2</button>
-              </div>
-              <div id="player3-panel" class="ui-block-c">
-                <button id="btn-siton-player3-seat" class="ui-btn ui-mini">player3</button>
-              </div>
-              <div id="player4-panel" class="ui-block-d">
-                <button id="btn-siton-player4-seat" class="ui-btn ui-mini">player4</button>
-              </div>
-            </fieldset>
-            <fieldset class="ui-grid-a">
-              <div class="ui-block-a"><button id="btn-standup-seat">stand up</button></div>
-              <div class="ui-block-b"><button id="btn-ready-game">ready</button></div>
-            </fieldset>
-            <canvas id="canvas-game-field" width="440" height="440"></canvas>
-            <canvas id="canvas-game-input" width="400" height="50"></canvas>
-            <div id="game-input-container">
-              <button id="btn-input0" data-no="0" class="ui-btn ui-btn-inline"><img src="./img/koma1.png"/></button>
-              <button id="btn-input1" data-no="1" class="ui-btn ui-btn-inline"><img src="./img/koma2.png"/></button>
-              <button id="btn-input2" data-no="2" class="ui-btn ui-btn-inline"><img src="./img/koma3.png"/></button>
-              <button id="btn-input3" data-no="3" class="ui-btn ui-btn-inline"><img src="./img/koma4.png"/></button>
-              <button id="btn-input4" data-no="4" class="ui-btn ui-btn-inline"><img src="./img/koma5.png"/></button>
-              <button id="btn-input5" data-no="5" class="ui-btn ui-btn-inline"><img src="./img/koma6.png"/></button>
-              <button id="btn-input6" data-no="6" class="ui-btn ui-btn-inline"><img src="./img/koma7.png"/></button>
-              <button id="btn-input7" data-no="7" class="ui-btn ui-btn-inline"><img src="./img/koma9.png"/></button>
-            </div>
-            <fieldset class="ui-grid-a">
-              <div class="ui-block-a"><button id="btn-game-pass">なし(pass)</button></div>
-              <div class="ui-block-b">
-                <a id="anchor-goshi-dialog" style="visibility: hidden; background:none" href="#goshi-confirm-dialog" data-rel="popup" data-position-to="window" data-transition="pop" class="ui-btn">popup</a>
-              </div>
-            </fieldset>
-          </div>
-        </div><!--/tabs-->
+          
       </div><!--/main-->
       
       <div data-role="footer" data-position="fixed">
-    		<h3 id="new-msg"></h3>
+    		<h3 id="new-robby-msg"></h3>
+    	</div><!-- /footer -->
+    </div>
+    
+    <div data-role="page" id="room-page" data-title="Goita Online">
+      <div class="header" data-role="header" data-position="fixed">
+        <h1 id="room-header-name">ルーム #--</h1>
+        <button id="btn-leave-room" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">ロビーに戻る</button>
+        <a href="#setting-panel" data-rel="popup" data-position-to="window" data-transition="pop"
+          class="ui-btn-right ui-btn ui-btn-inline ui-corner-all ui-btn-icon-right ui-icon-gear">設定</a>
+      </div><!-- /header -->
+
+      <div role="main" class="ui-content">
+        <div id="game-panel">
+          <fieldset id="player-seats" class="ui-grid-c">
+            <div id="player1-panel" class="ui-block-a">
+              <button id="btn-siton-player1-seat" class="ui-btn ui-mini">p1</button>
+            </div>
+            <div id="player2-panel" class="ui-block-b">
+              <button id="btn-siton-player2-seat" class="ui-btn ui-mini">p2</button>
+            </div>
+            <div id="player3-panel" class="ui-block-c">
+              <button id="btn-siton-player3-seat" class="ui-btn ui-mini">p3</button>
+            </div>
+            <div id="player4-panel" class="ui-block-d">
+              <button id="btn-siton-player4-seat" class="ui-btn ui-mini">p4</button>
+            </div>
+          </fieldset>
+          <fieldset class="ui-grid-b">
+            <div class="ui-block-a"><button id="btn-standup-seat">席を立つ</button></div>
+            <div class="ui-block-b"><button id="btn-swap-seat">席の入替</button></div>
+            <div class="ui-block-c"><button id="btn-ready-game">READY</button></div>
+          </fieldset>
+          <canvas id="canvas-game-field" width="440" height="440"></canvas>
+          <canvas id="canvas-game-input" width="400" height="50"></canvas>
+          <div id="game-input-container">
+            <button id="btn-input0" data-no="0" class="ui-btn ui-btn-inline"><img src="./img/koma1.png"/></button>
+            <button id="btn-input1" data-no="1" class="ui-btn ui-btn-inline"><img src="./img/koma2.png"/></button>
+            <button id="btn-input2" data-no="2" class="ui-btn ui-btn-inline"><img src="./img/koma3.png"/></button>
+            <button id="btn-input3" data-no="3" class="ui-btn ui-btn-inline"><img src="./img/koma4.png"/></button>
+            <button id="btn-input4" data-no="4" class="ui-btn ui-btn-inline"><img src="./img/koma5.png"/></button>
+            <button id="btn-input5" data-no="5" class="ui-btn ui-btn-inline"><img src="./img/koma6.png"/></button>
+            <button id="btn-input6" data-no="6" class="ui-btn ui-btn-inline"><img src="./img/koma7.png"/></button>
+            <button id="btn-input7" data-no="7" class="ui-btn ui-btn-inline"><img src="./img/koma9.png"/></button>
+          </div>
+          <fieldset class="ui-grid-a">
+            <div class="ui-block-a"><button id="btn-game-pass">なし(パス)</button></div>
+            <div class="ui-block-b">
+              <a id="anchor-goshi-dialog" style="visibility: hidden;" href="#goshi-confirm-dialog" 
+                data-rel="popup" data-position-to="window" data-transition="pop" 
+                  class="ui-btn ui-icon-star ui-btn-icon-left ui-btn-b">５しの選択</a>
+            </div>
+          </fieldset>
+        </div>
+      </div><!--/main-->
+      <div data-role="footer" data-position="fixed">
+    		<h1 id="new-room-msg">左右にスワイプ</h1>
+    		<a href="#room-info-panel"
+    		  class="footer-button-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-info">ルーム情報</a>
+    		<a href="#room-chat-panel" 
+    		  class="ui-btn-right footer-button-right ui-btn ui-btn-inline ui-corner-all ui-btn-icon-right ui-icon-comment">チャット</a>
     	</div><!-- /footer -->
     	
+    	<!--ルーム情報　パネル-->
+    	<div data-role="panel" id="room-info-panel" data-position="left" data-display="overlay" data-theme="b">
+        <!--<h3>ルーム操作</h3>-->
+        <!--<button id="btn-leave-room">ロビーに戻る</button>-->
+        <!--<h3>ルーム名</h3>-->
+        <!--<div id="room-name">---</div>-->
+        <h3>ルームユーザ</h3>
+        <div id="room-user-list"></div>
+        
+      </div><!-- /room-panel -->
+      
+      <!--ルームチャット ポップアップ-->
+      <div data-role="panel" id="room-chat-panel" data-position="right" data-dispaly="overlay" data-theme="b">
+        <div id="room-msg-list"></div>
+        <input id="input-room-msg"type="text" placeholder="メッセージ入力">
+        <button id="btn-send-room-msg">送信</button>
+      </div>
+      <script>
+        $(function(){
+          $( document ).on( "pagecreate", "#room-page", function() {
+            $( document ).on( "swipeleft swiperight", "#room-page", function( e ) {
+                // We check if there is no open panel on the page because otherwise
+                // a swipe to close the left panel would also open the right panel (and v.v.).
+                // We do this by checking the data that the framework stores on the page element (panel: open).
+                if ( $( ".ui-page-active" ).jqmData( "panel" ) !== "open" ) {
+                    if ( e.type === "swipeleft" ) {
+                        $( "#room-chat-panel" ).panel( "open" , {display:"overlay"});
+                    } else if ( e.type === "swiperight" ) {
+                        $( "#room-info-panel" ).panel( "open" );
+                    }
+                }
+            });
+          });
+        });
+      </script>
+    	
+    	<!--５しの確認ダイアログ-->
     	<div data-role="popup" id="goshi-confirm-dialog" data-overlay-theme="b" data-theme="b" data-dismissible="false" style="max-width:400px;">
-        <div data-role="header" data-theme="a">
-          <h1>goshi confirm</h1>
+        <div data-role="header">
+          <h1>５しの処理</h1>
         </div>
         <div role="main" class="ui-content">
-          <p>your partner has "goshi".</p>
-          <p>相方が「ごし」です。</p>
-          <a href="#" id="confirm-goshi-proceed" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-b" data-rel="back">
-            続行
-          </a>
-          <a href="#" id="confirm-goshi-deal" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-delete ui-btn-icon-left ui-btn-b" data-rel="back">
-            配り直し
-          </a>
+          <h3>相方が「５し」です。</h3>
+          <a href="#" id="confirm-goshi-proceed" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-b" 
+            data-rel="back">続行</a>
+          <a href="#" id="confirm-goshi-deal" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-delete ui-btn-icon-left ui-btn-b" 
+            data-rel="back">配り直し</a>
         </div>
       </div><!--/goshi-confirm-dialog-->
-    </div>
+    </div><!--/room-page-->
     
     <!--ログイン-->
     <div data-role="page" id="login-page" data-title="Goita Online - Login">
       <div class="login-header" data-role="header" data-position="fixed">
-        <h3>Enter your nickname</h3>
+        <h6>ごいたオンライン</h6>
       </div>
       <div role="main" class="ui-content">
-        <input id="input-login-name">
-        <button class="ui-btn" id="btn-login">log in</button>
+        <div class="ui-field-contain">
+          <label data-icon="user" for="input-login-name">ユーザ名:</label>
+          <input data-icon="user" name="input-login-name" id="input-login-name" type="text" placeholder="あなたの名前(12文字以内)">
+        </div>
+        <button class="ui-btn" data-clear-btn="true" id="btn-login">始める</button>
         <div id="login-error-msg"></div>
       </div><!-- /content -->
     </div><!-- /login-page -->
     
-    <script>
+    <!--external common popup / must initialize on DOMReady-->
+    <script> 
+      $(function() {
+			  $( "body>[data-role='popup']" ).enhanceWithin().popup(); //initialize popup
+		  }); 
+		</script>
+  	<div data-role="popup" id="setting-panel" data-overlay-theme="b" data-theme="b" style="max-width:400px;">
+      <div data-role="header">
+        <h1>設定</h1>
+      </div>
+      <div role="main" class="ui-content">
+        <h3>何かの設定項目</h3>
+        <a href="#" id="confirm-goshi-proceed" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-b" 
+          data-rel="back">閉じる</a>
+      </div>
+    </div><!--/goshi-confirm-dialog-->
+    
+    <!--added from code-->
+    <!--<div data-role="popup" id="notify-popup" data-theme="b">
+      <p id="new-room-msg"></p>
+    </div>-->
+    
+    <!--<script>
       $(function() {
         var $test = $("<div style='position:absolute; top:0'>").appendTo("body");
         $test.width("35em");
@@ -156,6 +232,6 @@
         $(document).on("pageshow", handler);
         //handler();
       });
-    </script>
+    </script>-->
   </body>
 </html>

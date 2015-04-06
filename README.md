@@ -1,13 +1,22 @@
 goita-online
 ============
 
-1. install some node modules.
+1. install node_modules.
 cd goita-online
 npm install
 
 2. if you need, change server application port in "server.js"
 
 ごいたゲームのnode.js+HTMLクライアントのオンライン対戦
+
+更新予定
+2倍得点計算のところがおかしい？？
+最初の受けゴマが消えて、以降、ずれた位置に駒が表示される
+手駒にはソートしておくってあげる？　見送り
+６し、７し、８しなどのメッセージ表示してあげる
+さらに、こまをオープンする
+チーム入れ替え機能
+人がいなくなったルームの状態をリセット
 
 【参考にしたいリンク】
 チャットルームとHTML側の連携（軽い説明）
@@ -145,12 +154,14 @@ stand up
 set ready
 cancel ready
 set game config
+swap seats
 
 ◆To クライアント
 player sat
 player stood
 player ready
 player cancel ready
+
 
 〈ゲーム進行〉
 ◆To サーバー

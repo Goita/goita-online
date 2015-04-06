@@ -40,6 +40,9 @@ ErrorMsg.getMsgText = function(errorcode){
     case 2004:
       text = "まだどこのルームにも入っていません";
       break;
+    case 2005:
+      text = "ゲーム中は席の入替ができません";
+      break;
       
     case 2501:
       text = "既に席についています";
