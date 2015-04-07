@@ -273,7 +273,7 @@ var bindScreenEvents = function(client){
     var no = $(this).data("no");
     var n = Number(no);
     var koma = client.tegoma.koma[n];
-    console.log("selected koma index: " + n + " played: " + Util.getKomaText(koma));
+    console.log("selected koma index: " + n + " played: val=" + koma + " text=" + Util.getKomaText(koma));
       client.play(koma);
   });
 };

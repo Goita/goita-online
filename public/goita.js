@@ -472,7 +472,7 @@ RoomInfo.prototype = {
 
   play : function(user, koma){
     if(!this.round){ return 3001;}
-    if(arguments.length < 2 || koma.length != 1){ return 3002;}
+    if(arguments.length < 2 || koma == null || koma.length != 1){ return 3002;}
     //手番を持っているプレイヤーからの要求か確認
     if(this.player[this.turn].id != user.id){ return 3003;}
     //validate that player has the koma

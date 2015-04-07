@@ -201,12 +201,21 @@
 			  $( "body>[data-role='popup']" ).enhanceWithin().popup(); //initialize popup
 		  }); 
 		</script>
-  	<div data-role="popup" id="setting-panel" data-overlay-theme="b" data-theme="b" style="max-width:400px;">
+  	<div data-role="popup" id="setting-panel" data-overlay-theme="b" data-theme="b" style="min-width:300px;">
       <div data-role="header">
         <h1>設定</h1>
       </div>
       <div role="main" class="ui-content">
-        <h3>何かの設定項目</h3>
+        <form>
+        <div class="ui-field-contain">
+            <label for="option-sound">通知音:</label>
+            <input type="checkbox" data-role="flipswitch" name="option-sound" id="option-sound" checked="">
+            <!--<select name="option-sound" id="option-sound" data-role="flipswitch">
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>-->
+        </div>
+        </form>
         <a href="#" id="confirm-goshi-proceed" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-b" 
           data-rel="back">閉じる</a>
       </div>
