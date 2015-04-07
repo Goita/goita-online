@@ -668,7 +668,7 @@ var notifyGameFinished = function(){
 };
 
 var notifyRoundStarted = function(){
-  var turnUser = client.roomInfo.palyer[client.roomInfo.turn].name;
+  var turnUser = client.roomInfo.player[client.roomInfo.turn].name;
   addRoomMessage(turnUser+" の手番で新しいラウンドが開始しました。","system", "i");
 };
 
@@ -780,7 +780,7 @@ var drawGameField = function(ctx, room, myNo){
   ctx.fillRect(0,0,width,height);
   
   var n = 0;
-  //palyer#1 (Me)
+  //player#1 (Me)
   n = (0+myNo)%4;
   drawKomaField(ctx, room.field[n],(n==room.lastPlayedPlayerNo), komaWidth, 130, 330, 0);
   drawPlayerInfo(ctx, room.player[n], 120, 420, 0);
