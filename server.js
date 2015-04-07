@@ -398,8 +398,14 @@ io.sockets.on("connection", function(socket) {
 //req game info   ゲーム状態情報を要求
   socket.on("req game info", function(){
     var user = userList[socket.id];
+    if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
+    if(user.roomId === null){ socket.emit("error command", 2004); return; } //not joined in any room
+    
     socket.emit("room info", roomList[user.roomId].toClient());
-    socket.emit("private game info", roomList[user.roomId].tegoma[user.playerNo]);
+    if(user.playerNo != null)
+    {
+      socket.emit("private game info", roomList[user.roomId].tegoma[user.playerNo]);
+    }
   });
 
 // play  コマを出す ※あがりも兼ねる
