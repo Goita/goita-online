@@ -63,7 +63,7 @@ var stateCheckTimer = function(){
     if(client != undefined && client != null)
     {
       var activePage = $( "body" ).pagecontainer( "getActivePage" );
-      var pagename = activePage[0].attributes.getNamedItem("id").nodeValue;
+      var pagename = activePage[0].attributes.getNamedItem("id").value;
       switch(pagename)
       {
         case "login-page":
@@ -664,11 +664,12 @@ var notifyGameFinished = function(){
 };
 
 var notifyRoundStarted = function(){
-  var turnUser = client.room.palyer[client.room.turn].name;
+  var turnUser = client.roomInfo.palyer[client.roomInfo.turn].name;
   addRoomMessage(turnUser+" の手番で新しいラウンドが開始しました。","system", "i");
 };
 
 var notifyRoundFinished = function(room){
+  RoomInfo.activateFunc(room); //
   var type = room.Goshi();
   var p = room.findGoshiPlayer();
   switch(type)
