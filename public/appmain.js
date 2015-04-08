@@ -11,6 +11,19 @@ var _notifyQueue = []; //message queue for popup
 var hiddenStyle = {'visibility':'hidden', "height":"0px", "width":"0px", "font-size":"0", "background": "none"};
 var visibleStyle = {'visibility':'visible'};
 
+//initialize sound
+ion.sound({
+    sounds: [
+        {alias:"notify_turn", name: "kotsudumi1"}
+    ],
+
+    // main config
+    path: "sound/",
+    preload: false,
+    multiplay: true,
+    volume: 1.0
+});
+
 //test
 var testFunc = function(){
   var canvas = $("#canvas-game-input");
@@ -657,6 +670,11 @@ var notifyRequestForReady = function(){
 
 var notifyRequestToPlay = function(){
   //addNotifyMessage("出す駒またはパスを選択してください。","system", "i");
+  var checked = $("#option-sound:checked").length > 0 ? true : false;
+  if(checked)
+  {
+    ion.sound.play("notify_turn");
+  }
 };
 
 var notifyGameStarted = function(){

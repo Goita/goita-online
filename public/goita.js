@@ -754,6 +754,15 @@ var Util = {
   },
 };
 
+//helper
+Object.size = function(obj) {
+    var size = 0;
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
+
 //for node.js   (this === module.exports)
 this["UserInfo"] = UserInfo;
 this["KomaInfo"] = KomaInfo;

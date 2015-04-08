@@ -193,4 +193,6 @@ kifu  ラウンド終了ごとに対戦の棋譜を通知（未実装）
 
 
 
-
+[Special Thanks]
+http://en.soundeffect-lab.info
+cloudconvert.com

@@ -4,7 +4,7 @@ var goita = require("./public/goita");
 var validator= require('validator');
 var mt = require("./mt"); //MersenneTwister
 //固定値の定義
-var ROOM_COUNT = 100;
+var ROOM_COUNT = 21;
 
 // Setup basic express server
 var express = require('express');
@@ -15,7 +15,7 @@ var port = process.env.PORT || 8880;
 
 //WebSocketサーバーの定義
 //io.set('transports', ['websocket']); //websocketsに限定する場合に指定。c9.ioではコメントアウト
-io.set('match origin protocol', true);
+//io.set('match origin protocol', true);
 //io.set("log level", 1);
 
 server.listen(port, function () {
@@ -27,6 +27,7 @@ server.listen(port, function () {
 // Routing
 app.use(express.static(__dirname + '/public'));
 
+//
 
 // ロビーに居るユーザの配列
 var userList = {}; //{id : UserInfo}
@@ -38,15 +39,14 @@ for(var i=0;i<ROOM_COUNT;i++)
   roomList[i.toString()].rng = new mt.MersenneTwister();
 }
 
+//bind func to socket messages
 io.sockets.on("connection", function(socket) {
   // 接続が成立したことをクライアントに通知
-  //socket.emit("connected");
-  console.log("connected:" + socket.id);
+  // socket.ioがconnectメッセージを投げてくれる
 
   var callback_disconnected = function () {
 
     if(!(socket.id in userList)){
-      console.log("user already disconnected:" + socket.id);
       // クライアントにロビーにいるユーザを通知
       socket.broadcast.emit("robby info", userList);
       return;
@@ -62,11 +62,13 @@ io.sockets.on("connection", function(socket) {
 
     // 接続が途切れたことを通知
     socket.broadcast.emit("user left robby", {id: socket.id, username: userList[socket.id].name});
-    // クライアントにロビーにいるユーザを通知
-    socket.broadcast.emit("robby info", userList);
+    
     // ロビーの配列から削除
     delete userList[socket.id];
-    console.log("disconnected:", socket.id);
+    // クライアントにロビーにいるユーザを通知
+    io.emit("robby info", userList);
+    
+    console.log("user: ", Object.keys(userList).length);
   };
 
   // 接続が途切れたときのイベントリスナを定義
@@ -114,11 +116,12 @@ io.sockets.on("connection", function(socket) {
     // テスト
     //結果 他人のsocket.id を指定して個別メッセージを送れるが、
     //socketの接続先クライアントにはto(id)で個別メッセージを送れない。
-    //したがって、  user.id == socket.id のときは, to(user.id)emit ではなく、socket.emitに切り替えが必要
+    //したがって、  user.id == socket.id のときは, socket.to(user.id).emit ではなく、socket.emitに切り替えが必要
     //もしくは io.to(id).emit を使用する。
     // for(var k in userList){
     //   io.to(k).emit("push robby msg", "PM:this is private message test from " + userList[socket.id].name);
     // }
+    console.log("user: ", Object.size(userList));
   });
 
   // クライアントがロビー情報の再送を要求したとき
@@ -364,7 +367,10 @@ io.sockets.on("connection", function(socket) {
           for(var i=0;i<4;i++){
             io.to(room.player[i].id).emit("private game info", room.tegoma[i]);
           }
-
+          
+          io.to(room.player[room.turn].id).emit("req play");
+          console.log("req play to " + room.player[room.turn].name);
+          
           //goshi
           goshiFunc(room);
           
@@ -424,7 +430,11 @@ io.sockets.on("connection", function(socket) {
       io.to(room.id).emit("round finished", room); //include private info
     }else{
       //request next player to play
-      io.to(room.player[room.turn].id).emit("req play");
+      if(!room.attack)
+      {
+        io.to(room.player[room.turn].id).emit("req play");
+        console.log("req play to " + room.player[room.turn].name);
+      }
     }
 
     if(room.isGameFinished()){
@@ -438,12 +448,16 @@ io.sockets.on("connection", function(socket) {
     var user = userList[socket.id];
     if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
     if(user.roomId === null){ socket.emit("error command", 2004); return; } //not joined in any room
+    var room = roomList[user.roomId];
     
-    var errcode = roomList[user.roomId].pass(user);
+    var errcode = room.pass(user);
     if(errcode !== 0){ socket.emit("error command", errcode); return;}
 
-    io.to(user.roomId).emit("room info", roomList[user.roomId].toClient());
-    io.to(user.roomId).emit("passed", roomList[user.roomId].turn);
+    io.to(user.roomId).emit("room info", room.toClient());
+    io.to(user.roomId).emit("passed", room.turn);
+    
+    io.to(room.player[room.turn].id).emit("req play");
+    console.log("req play to " + room.player[room.turn].name);
   });
 
 // goshi proceed '５しのまま続行
