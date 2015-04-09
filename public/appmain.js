@@ -700,16 +700,16 @@ var notifyRoundFinished = function(room){
       addRoomMessage("ラウンドが終了しました。","system", "i");
       break;
     case Util.GoshiType.ROKUSHI:
-      addRoomMessage(p[0].name + " の６しで終了しました。","system", "i");
+      addRoomMessage(p[0].player.name + " の６しで終了しました。","system", "i");
       break;
     case Util.GoshiType.NANASHI:
-      addRoomMessage(p[0].name + " の７しで終了しました。","system", "i");
+      addRoomMessage(p[0].player.name + " の７しで終了しました。","system", "i");
       break;
     case Util.GoshiType.HACHISHI:
-      addRoomMessage(p[0].name + " の８しで終了しました。","system", "i");
+      addRoomMessage(p[0].player.name + " の８しで終了しました。","system", "i");
       break;
     case Util.GoshiType.AIGOSHI:
-      addRoomMessage(p[0].name +" と " + p[1].name + " の１０しで終了しました。","system", "i");
+      addRoomMessage(p[0].player.name +" と " + p[1].player.name + " の１０しで終了しました。","system", "i");
       break;
   }
   
@@ -784,9 +784,12 @@ var drawGameField = function(ctx, room, myNo){
   //６し以上で終了した場合は、全員の手駒をfieldに表示する
   if(room.rokushi)
   {
-    for(var i=0;i<4;i++)
+    if(room.tegoma.length>=4)
     {
-      room.field[i] = room.tegoma[i];
+      for(var i=0;i<4;i++)
+      {
+        room.field[i] = room.tegoma[i];
+      }
     }
   }
   

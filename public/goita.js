@@ -19,8 +19,20 @@ var KomaInfo = function(str){
   }
 };
 KomaInfo.prototype = {
-  count : function(){
-    return this.koma.length;
+  count : function(koma){
+    if(koma == undefined || koma.length != 1)
+    {
+      return this.koma.length;
+    }
+    var c=0;
+    for(var i=0;i<this.koma.length;i++)
+    {
+      if(this.koma[i] == koma)
+      {
+        c++;
+      }
+    }
+    return c;
   },
 
   toString : function(){
@@ -405,7 +417,10 @@ RoomInfo.prototype = {
   finishRoundByShi : function(type, gp){
     switch(type){
       case Util.GoshiType.ROKUSHI:
-        this.point[gp[0].no] += Util.getPoint(this.tegoma[gp[0].no].findMaxPointKoma());
+        var te = this.tegoma[gp[0].no];
+        var pointKoma = te.findMaxPointKoma();
+        var multi = te.count(pointKoma);
+        this.point[gp[0].no] += Util.getPoint(pointKoma) * multi;
         break;
       case Util.GoshiType.NANASHI:
         this.point[gp[0].no] += Util.getPoint(this.tegoma[gp[0].no].findMaxPointKoma()) * 2;
@@ -436,7 +451,7 @@ RoomInfo.prototype = {
     for(var i=0;i<4;i++){
       var count = this.tegoma[i].countShi();
       if(count >= 5){
-        ret[ret.length] = {no:i, count:count};
+        ret[ret.length] = {no:i, count:count, player:this.player[i]};
       }
     }
     return ret;
@@ -570,7 +585,7 @@ RoomInfo.prototype = {
   },
 
   createKomaRing : function(){
-    //return "11111222862373456157911144155341"; //テスト用
+    return "11111122286237345615791114415534"; //テスト用
     
     //1:し*10, 2:香*4, 3:馬*4, 4:銀*4, 5:金*4, 6:角*2, 7:飛*2, 8:王*1, 9:玉*1
     var src = Util.komaStrToArray("11111111112222333344445555667789");

@@ -369,8 +369,7 @@ io.sockets.on("connection", function(socket) {
           }
           
           io.to(room.player[room.turn].id).emit("req play");
-          console.log("req play to " + room.player[room.turn].name);
-          
+
           //goshi
           goshiFunc(room);
           
@@ -433,7 +432,6 @@ io.sockets.on("connection", function(socket) {
       if(!room.attack)
       {
         io.to(room.player[room.turn].id).emit("req play");
-        console.log("req play to " + room.player[room.turn].name);
       }
     }
 
@@ -457,7 +455,6 @@ io.sockets.on("connection", function(socket) {
     io.to(user.roomId).emit("passed", room.turn);
     
     io.to(room.player[room.turn].id).emit("req play");
-    console.log("req play to " + room.player[room.turn].name);
   });
 
 // goshi proceed '５しのまま続行
