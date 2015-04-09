@@ -63,13 +63,7 @@ KomaInfo.prototype = {
 
   //しの数
   countShi : function(){
-    var count=0;
-    for(var i=0;i<this.koma.length;i++){
-      if(this.koma[i] == Util.SHI){
-        count++;
-      }
-    }
-    return count;
+    return this.count(Util.SHI);
   },
 
   //得点が最も高い駒を返す
@@ -426,6 +420,10 @@ RoomInfo.prototype = {
         var te = this.tegoma[gp[0].no];
         var pointKoma = te.findMaxPointKoma();
         var multi = te.count(pointKoma);
+        if((pointKoma == Util.OU && te.hasKoma(Util.GYOKU)) || (pointKoma == Util.GYOKU && te.hasKoma(Util.OU)))
+        {
+          multi = 2;
+        }
         this.point[gp[0].no] += Util.getPoint(pointKoma) * multi;
         break;
       case Util.GoshiType.NANASHI:
