@@ -113,6 +113,7 @@ GoitaClient.prototype = {
 
     //ロビーから抜けた場合
     socket.on("robby left", function(){
+      self.isInRobby = false;
       console.log("left robby");
     });
 

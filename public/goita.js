@@ -394,12 +394,18 @@ RoomInfo.prototype = {
   finishRound : function(){
     //得点の加算
     for(var i=0;i<4;i++){
-      if(this.tegoma[i].count() === 0){
+      if(this.tegoma[i].count() === 0)
+      {
         var p = Util.getPoint(this.field[i].koma[7]);
-        if(this.field[i].koma[6] != this.field[i].koma[7]){
-          this.point[i] += p;
-        }else{  //double point
+        if(this.turn == this.from 
+            && Util.isSameKoma(this.field[i].koma[6], this.field[i].koma[7]))
+        {
+          //double point
           this.point[i] += p * 2;
+        }
+        else
+        {  
+          this.point[i] += p;
         }
 
         this.lastWonPlayer = i;
@@ -461,7 +467,6 @@ RoomInfo.prototype = {
   Goshi : function(){
     var p = this.findGoshiPlayer();
     if(p.length > 0){
-      this.goshi = true; //５し状態
 
       //@TODO: 勝敗処理
       if(p.length >= 2){
@@ -475,7 +480,10 @@ RoomInfo.prototype = {
       }else{
         var type = Util.GoshiType.NO_GOSHI;
         switch(p[0].count){
-          case 5: type = Util.GoshiType.GOSHI; break;
+          case 5: 
+            type = Util.GoshiType.GOSHI; 
+            this.goshi = true; //５し状態
+            break;
           case 6: type = Util.GoshiType.ROKUSHI; break;
           case 7: type = Util.GoshiType.NANASHI; break;
           case 8: type = Util.GoshiType.HACHISHI; break;
@@ -523,12 +531,9 @@ RoomInfo.prototype = {
         if(!this.ouUsed && !this.tegoma[this.turn].isDamaDama()){ return 3100;}
         this.ouUsed = true;
       }
+      
       this.playAttack(koma);
       this.from = this.turn;
-      // if(this.tegoma[this.turn].count() === 0){
-      //   this.finishRound();
-      //   return 0;
-      // }
       this.attackCount++;
       this.attackKoma = koma;
       this.forwardTurn();
@@ -751,7 +756,16 @@ var Util = {
     }
     return ret;
   },
-
+  
+  isSameKoma : function(koma1, koma2){
+    if(arguments.length < 2){return false;}
+    if(koma1 == undefined || koma2 == undefined){return false;}
+    if(koma1 == null || koma2 == null){return false;}
+    if(koma1.toString().length != 1 || koma2.toString().length != 1){return false;}
+    return ( koma1 == koma2
+          || (koma1 == Util.OU && koma2 == Util.GYOKU)
+          || (koma1 == Util.GYOKU && koma2 == Util.OU) ) ;
+  },
   sortKoma : function(tegomaStr){
     var str = this.komaStrToArray(tegomaStr);
     str.sort();

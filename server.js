@@ -63,10 +63,13 @@ io.sockets.on("connection", function(socket) {
     // 接続が途切れたことを通知
     socket.broadcast.emit("user left robby", {id: socket.id, username: userList[socket.id].name});
     
+    //robbyから除外
+    socket.leave("robby");
+    
     // ロビーの配列から削除
     delete userList[socket.id];
     // クライアントにロビーにいるユーザを通知
-    io.emit("robby info", userList);
+    io.to("robby").emit("robby info", userList);
     
     console.log("user: ", Object.keys(userList).length);
   };
@@ -108,8 +111,9 @@ io.sockets.on("connection", function(socket) {
     socket.emit("robby joined", {id: socket.id, username: username });
     //ルームリストを通知
     socket.emit("room list", getArrayKeys(roomList));
+    socket.join("robby");
     // クライアントにロビーにいるユーザを通知
-    io.emit("robby info", userList);
+    io.to("robby").emit("robby info", userList);
     // 他のユーザに通知
     socket.broadcast.emit("user joined robby", {id: socket.id, username: username });
 
@@ -136,7 +140,7 @@ io.sockets.on("connection", function(socket) {
     var user = userList[socket.id];
     if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
     if(msg === undefined || msg === null || msg.text === undefined || msg.text.length == 0) { return; } //just ignore
-    io.emit("push robby msg", {text: validator.escape(msg.text), username: user.name}); //to everyone
+    io.to("robby").emit("push robby msg", {text: validator.escape(msg.text), username: user.name}); //to everyone
   });
 
 //ルーム関連メッセージの処理----------------------------------------------------
@@ -165,7 +169,7 @@ io.sockets.on("connection", function(socket) {
     }
       
     //ロビー情報を更新
-    io.emit("robby info", userList);
+    io.to("robby").emit("robby info", userList);
   });
 
   // ルームへ入るとき
@@ -202,7 +206,7 @@ io.sockets.on("connection", function(socket) {
     socket.broadcast.to(roomId).emit("user joined room", {id: socket.id, username: userList[socket.id].name });
     
     //ロビー情報を更新
-    io.emit("robby info", userList);
+    io.to("robby").emit("robby info", userList);
 
   });
 
@@ -240,7 +244,7 @@ io.sockets.on("connection", function(socket) {
         io.to(user.id).emit("private game info", room.tegoma[n]);
         
         //ロビー情報を更新
-        io.emit("robby info", userList);
+        io.to("robby").emit("robby info", userList);
       }
     }else{
       socket.emit("error command", 2501); //cannot 
@@ -262,7 +266,7 @@ io.sockets.on("connection", function(socket) {
     }
     
     //ロビー情報を更新
-    io.emit("robby info", userList);
+    io.to("robby").emit("robby info", userList);
   });
   
   //swap seats
@@ -355,7 +359,7 @@ io.sockets.on("connection", function(socket) {
           io.to(room.id).emit("game started");
           
           //ロビー情報を更新
-          io.emit("robby info", userList);
+          io.to("robby").emit("robby info", userList);
         }
 
         //start round if it hasn't started yet
@@ -374,7 +378,7 @@ io.sockets.on("connection", function(socket) {
           goshiFunc(room);
           
           //ロビー情報を更新
-          io.emit("robby info", userList);
+          io.to("robby").emit("robby info", userList);
         }
       }
     }

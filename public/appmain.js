@@ -94,8 +94,8 @@ var stateCheckTimer = function(){
         showLoginPage();
       }
     }
-    setTimeout(arguments.callee, 1000);
-  }, 1000);
+    setTimeout(arguments.callee, 5000);
+  }, 5000);
 };
 
 var bindGoitaClientEvents = function(client){
@@ -781,6 +781,14 @@ var drawGameField = function(ctx, room, myNo){
   if(room === null){console.log("room is null"); return;}
   if(myNo ===null){ myNo = 0;}
   
+  if(room.goshi)
+  {
+    RoomInfo.activateFunc(room);
+    var p = room.findGoshiPlayer();
+    var n = p[0].no;
+    room.field[n] = new KomaInfo("11111000"); //draw goshi
+  }
+  
   //６し以上で終了した場合は、全員の手駒をfieldに表示する
   if(room.rokushi)
   {
@@ -863,14 +871,25 @@ var drawKomaField = function(ctx, field, last, komaSize, tx, ty, r){
   {
     var x = Math.floor(i/2)*komaSize;
     var y = i%2*komaSize;
-    if(i<field.koma.length)
+    var komaCount = field.koma.length;
+    if(i<komaCount)
     {
       var koma = field.koma[i];
       ctx.drawImage(_imgDic[koma], x, y);
       
-      if((i==(field.koma.length - 1)) && last)
+      if(komaCount <= 6)
       {
-        ctx.drawImage(_imgDic["glow"], x, y);
+        if((i==(komaCount - 1)) && last)
+        {
+          ctx.drawImage(_imgDic["glow"], x, y);
+        }
+      }
+      else
+      {
+        if(i==5 && last)
+        {
+          ctx.drawImage(_imgDic["glow"], x, y);
+        }
       }
     }
     else
@@ -959,7 +978,7 @@ var drawGameInfo = function(ctx, room, tx, ty, r){
 // c = canvas context
 var drawTegoma = function(ctx, tegoma){
   if(tegoma === undefined){
-    tegoma = new KomaInfo("12345679"); //for testing
+    tegoma = new KomaInfo("89898989"); //for testing
   }
   var width = 50 * 8;
   var height = 50;
