@@ -137,21 +137,27 @@ RoomInfo.initialize = function(room)
 RoomInfo.activateFunc = function(room)
 {
   //copy prototype
-  room.prototype = RoomInfo.prototype;
+  room.__proto__ = RoomInfo.prototype;
   
   //field tegoma player userList
   for(var k in room.userList)
   {
-    room.userList[k].prototype = UserInfo.prototype;
+    room.userList[k].__proto__ = UserInfo.prototype;
   }
   for(var i=0;i<4;i++)
   {
     if(room.player[i] != null)
     {
-      room.player[i].prototype = UserInfo.prototype;
+      room.player[i].__proto__ = UserInfo.prototype;
     }
-    room.field[i].prototype = KomaInfo.prototype;
-    room.tegoma[i].prototype = KomaInfo.prototype;
+    if(room.field[i] != null)
+    {
+      room.field[i].__proto__ = KomaInfo.prototype;
+    }
+    if(room.tegoma[i] != null)
+    {
+        room.tegoma[i].__proto__ = KomaInfo.prototype;
+    }
   }
 };
 
@@ -159,7 +165,7 @@ RoomInfo.prototype = {
   //clone object
   clone : function(obj){
     if(obj === undefined){ obj = this; }
-    var c = null; //Object.create(obj) //__proto__ に余計な情報が付随してくる。
+    var c = null; //Object.create(obj) //prototype に余計な情報が付随してくる。
     if(Array.isArray(obj)){
       c = [];
     }else{
