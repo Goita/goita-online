@@ -136,22 +136,22 @@ RoomInfo.initialize = function(room)
 
 RoomInfo.activateFunc = function(room)
 {
-  //mutating prototype cause very slow performance
-  room.__proto__ = new RoomInfo().__proto__;
+  //copy prototype
+  room.prototype = RoomInfo.prototype;
   
   //field tegoma player userList
   for(var k in room.userList)
   {
-    room.userList[k].__proto__ = new UserInfo("","").__proto__;
+    room.userList[k].prototype = UserInfo.prototype;
   }
   for(var i=0;i<4;i++)
   {
     if(room.player[i] != null)
     {
-      room.player[i].__proto__ = new UserInfo("","").__proto__;
+      room.player[i].prototype = UserInfo.prototype;
     }
-    room.field[i].__proto__ = new KomaInfo().__proto__;
-    room.tegoma[i].__proto__ = new KomaInfo().__proto__;
+    room.field[i].prototype = KomaInfo.prototype;
+    room.tegoma[i].prototype = KomaInfo.prototype;
   }
 };
 

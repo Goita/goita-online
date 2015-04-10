@@ -637,7 +637,7 @@ var notifyRoomJoinedError = function(error){
 
 var updatePrivateGameInfo = function(tegoma){
   if(tegoma === undefined){
-    tegoma = new KomaInfo("11111111"); //for testing
+    tegoma = new KomaInfo("89898989"); //for testing
     
     //if missing tegoma info. request for newest tegoma info.
     if(client.playerNo != null)
