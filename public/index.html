@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
     <script src="/socket.io/socket.io.js"></script>
-    <script src="//code.jquery.com/jquery-2.1.1.js"></script>
+    <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
-    <script src="/plugin/ion.sound.js"></script>
+    <script src="/plugin/ion.sound.min.js"></script>
     <script src="ua.js"></script>
     <script src="client.js"></script>
     <script src="goita.js"></script>
@@ -97,6 +97,10 @@
             <div class="ui-block-c"><button id="btn-ready-game">READY</button></div>
           </fieldset>
           <canvas id="canvas-game-field" width="440" height="440"></canvas>
+          <div class="notify-offline"><!--オフラインの通知。あとで、これはロビーにもって行き、ルームでは、game-field内に描画して通知する。(どうせユーザはそこに注目してる)-->
+            <canvas id="canvas-offline-room" width="20" height="20"></canvas>
+            <p>サーバーとの接続が確認できません。ごいたオンラインのページを再読込してください。</p>
+          </div>
           <canvas id="canvas-game-input" width="400" height="50"></canvas>
           <div id="game-input-container">
             <button id="btn-input0" data-no="0" class="ui-btn ui-btn-inline"><img src="./img/koma8.png"/></button>
@@ -117,6 +121,7 @@
             </div>
           </fieldset>
         </div>
+        
       </div><!--/main-->
       <div data-role="footer" data-position="fixed">
     		<h1 id="new-room-msg">左右にスワイプ</h1>

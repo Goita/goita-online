@@ -59,7 +59,7 @@ var notifyPopupTimer = function(){
           while(_notifyQueue.length > 0) //no need to lock, javascript is a single thread model 
           {
             //sleep(1000);
-            console.log("fetching msg");
+            //console.log("fetching msg");
             msg.push(_notifyQueue.shift());
           }
           openNotifyPopup(msg, 0.7 + (msg.length * 0.3));
@@ -75,27 +75,34 @@ var stateCheckTimer = function(){
   {
     if(client != undefined && client != null)
     {
-      var activePage = $( "body" ).pagecontainer( "getActivePage" );
-      var pagename = activePage[0].attributes.getNamedItem("id").value;
-      switch(pagename)
+      if(client.isConnected)
       {
-        case "login-page":
-          break;
-        case "robby-page":
-        case "room-page":
-          if(client.isConnected && !client.isInRobby)
-          {
-            showLoginPage();
-          }
-          break;
+        var activePage = $( "body" ).pagecontainer( "getActivePage" );
+        var pagename = activePage[0].attributes.getNamedItem("id").value;
+      
+        switch(pagename)
+        {
+          case "login-page":
+            if(client.isInRobby) { showRobbyPage(); }
+            break;
+          case "robby-page":
+            if(!client.isInRobby) { showLoginPage(); }
+            if(client.roomId != null) { showRoomPage(); }
+            break;
+          case "room-page":
+            if(!client.isInRobby) { showLoginPage(); }
+            if(client.roomId == null) { showRobbyPage(); }
+            break;
+        }
       }
-      if(!client.isConnected)
+      else
       {
         showLoginPage();
       }
+      
     }
-    setTimeout(arguments.callee, 5000);
-  }, 5000);
+    setTimeout(arguments.callee, 1000);
+  }, 1000);
 };
 
 var bindGoitaClientEvents = function(client){
@@ -104,7 +111,9 @@ var bindGoitaClientEvents = function(client){
   client.robbyJoined = notifyRobbyJoined; //function()
   client.robbyJoiningFailed = notifyRobbyJoinedError; //function(errorcode)
   client.gotError = notifyError; //function(errorcode)
-
+  client.gotAlive = gotAliveMessage; //function()
+  client.lostAlive = lostAliveMessage; //function()
+  
   client.roomListReceived = updateRoomList; //function(roomlist)
   client.roomInfoChanged = updateRoomInfo;  //function(RoomInfo)
   client.roomMessageAdded = addRoomMessage; //function(msg [, header [, type]])
@@ -122,6 +131,7 @@ var bindGoitaClientEvents = function(client){
   client.gotCommandError = notifyCommandError; //function(error)
   client.goshiDecisionRequested = confirmGoshi; //function()
   client.goshiShown = notifyGoshi; //function()
+  client.goshiProceeded = notifyGoshiProceeded;
 };
 
 var bindScreenEvents = function(client){
@@ -142,7 +152,7 @@ var bindScreenEvents = function(client){
   $('#btn-login').click(function(){
     var loginName = $('#input-login-name').val();
     console.log("login name: ", loginName);
-    client.joinRobby(loginName);
+    login(loginName, undefined);
   });
   
   //ロビーチャット送信ボタン
@@ -183,8 +193,6 @@ var bindScreenEvents = function(client){
   $("#btn-leave-room").click(function(){
     client.leaveRoom();
     showRobbyPage();
-    //updateRoomInfo(null);
-    //$("#room-msg-list").empty();
   });
 
   //プレイヤー1着席ボタン
@@ -342,8 +350,6 @@ $(document).ready(function() {
   stateCheckTimer();
   notifyPopupTimer();
   
-  resetPage(); //Reset Navigation
-  
   client = new GoitaClient(); //server);
 
   //set event handler
@@ -351,18 +357,16 @@ $(document).ready(function() {
 
   //クライアント画面での操作に対するイベントの定義とバインディング
   bindScreenEvents(client);
-
-  //connect and join in robby
-  client.connect();
   
-  if (!client.isConnected) 
-  {
-    //サーバーに接続できませんでした。とメッセージを出す。
-    addLoginMessage("サーバーに接続できませんでした。");
-  }
-  
+  resetPage(); //Reset Navigation
   //まずはログインページへ
   showLoginPage();
+  
+  //ひとまずここでオフライン表示を描画しておく
+  var canvas = $("#canvas-offline-room");
+  if ( ! canvas[0] || ! canvas[0].getContext ) { return false; }
+  var ctx = canvas[0].getContext("2d");
+  drawOfflineIcon(ctx);
 });
 
 //ブラウザを閉じる前に、サーバーとの接続を切る
@@ -427,6 +431,8 @@ var showRoomPage = function(){
 //msgList[] = {text: message text, header: message header, type: message type}
 var openNotifyPopup = function(msgList, autocloseTime){
   if(msgList == undefined || msgList.length == 0) {return;}
+  
+  //@TODO: http://jsfiddle.net/Gajotres/tMpf7/ 参考にして、non-blocking popupにする
   //create popup
   var popup = $('<div data-role="popup" id="notify-popup" data-theme="b"></div>');
   var newmsg = $('<div id="new-notify-msg"></div>');
@@ -472,6 +478,38 @@ $('#canvas-game-input').bind('touchmove', cancelUserGesture);
 
 
 //ごいたクライアントのイベントに登録するイベントハンドラ
+var login = function(userid, password)
+{
+    //connect and join in robby
+  client.connect();
+  
+  //on successed to connect
+  client.connected = function(){
+    client.joinRobby(userid);
+    console.log("joinRobby: " + userid);
+  };
+  //on failed to connect
+  client.connectFailed = function(){
+    addLoginMessage("サーバーに接続できませんでした。");
+  };
+  //on disconnected
+  client.disconnected = function(){
+    addLoginMessage("サーバーとの接続が切れました。");
+    showLoginPage();
+  };
+  
+};
+
+var gotAliveMessage = function()
+{
+  $(".notify-offline").css(hiddenStyle);
+};
+
+var lostAliveMessage = function()
+{
+  $(".notify-offline").css(visibleStyle);
+};
+
 //最新メッセージを表示
 var addNotifyMessage = function(msg){
   var text = msg.text;
@@ -567,7 +605,7 @@ var updateRoomInfo = function(room){
   var no = 0; //as playerNo
 
   //clearRoomInfo
-  console.log("clear RoomInfo");
+  //console.log("clear RoomInfo");
   $("#room-name").empty();
   $("#room-user-list").empty();
 
@@ -579,7 +617,7 @@ var updateRoomInfo = function(room){
   }
 
   //updateRoomInfo
-  console.log("update RoomInfo");
+  //console.log("update RoomInfo");
   $("#room-name").html("room #" + room.id.padZero(2));
   $("#room-header-name").html("ルーム #" + room.id.padZero(2));
   var userlist = $("#room-user-list");
@@ -614,7 +652,7 @@ var updateRoomInfo = function(room){
   var ctx = canvas[0].getContext("2d");
   drawGameField(ctx, room, this.playerNo);
 
-  console.log("finish updating RoomInfo");
+  //console.log("finish updating RoomInfo");
 };
 
 var addRoomMessage = function(msg, header, type){
@@ -700,16 +738,17 @@ var notifyRoundFinished = function(room){
       addRoomMessage("ラウンドが終了しました。","system", "i");
       break;
     case Util.GoshiType.ROKUSHI:
-      addRoomMessage(p[0].player.name + " の６しで終了しました。","system", "i");
+      addRoomMessage(p.length > 0 ? p[0].player.name : "(名称不明)" + " の６しで終了しました。","system", "i");
       break;
     case Util.GoshiType.NANASHI:
-      addRoomMessage(p[0].player.name + " の７しで終了しました。","system", "i");
+      addRoomMessage(p.length > 0 ? p[0].player.name : "(名称不明)" + " の７しで終了しました。","system", "i");
       break;
     case Util.GoshiType.HACHISHI:
-      addRoomMessage(p[0].player.name + " の８しで終了しました。","system", "i");
+      addRoomMessage(p.length > 0 ? p[0].player.name : "(名称不明)" + " の８しで終了しました。","system", "i");
       break;
     case Util.GoshiType.AIGOSHI:
-      addRoomMessage(p[0].player.name +" と " + p[1].player.name + " の１０しで終了しました。","system", "i");
+      addRoomMessage(p.length > 0 ? p[0].player.name : "(名称不明)" +" と "
+                    + p.length > 1 ? p[1].player.name : "(名称不明)" + " の１０しで終了しました。","system", "i");
       break;
   }
   
@@ -751,6 +790,10 @@ var confirmGoshi = function(){
 
 var notifyGoshi = function(no){
   addRoomMessage(client.roomInfo.player[no].name + "が「５し」です。","system", "i");
+};
+
+var notifyGoshiProceeded = function(){
+  addRoomMessage("「５し」のまま続行しました。","system", "i");
 };
 
 String.prototype.padZero = function(len, c){
@@ -995,4 +1038,15 @@ var drawTegoma = function(ctx, tegoma){
     var text = Util.getKomaText(tegoma.koma[i]);
     ctx.fillText(text,x+5,y+40);
   }
+};
+
+var drawOfflineIcon = function(ctx){
+  ctx.fillStyle="#922";
+  ctx.beginPath();
+  ctx.arc(10, 10, 10, 0, Math.PI * 2.0, true);
+  ctx.fill();
+  ctx.fillStyle="#f66";
+  ctx.beginPath();
+  ctx.arc(10, 10, 8, 0, Math.PI * 2.0, true);
+  ctx.fill();
 };

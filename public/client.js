@@ -10,13 +10,15 @@ var GoitaClient = function(){
   this.isConnected = false;
   this.isInRobby = false;
   this.hasGoshi = false; // I have goshi;
-  this.roomId = "";
+  this.roomId = null;
   this.userName = "";
-  this.userId = "";
+  this.userId = null;
   this.playerNo = null;
   this.userList = []; // {userid : UserInfo}
   this.roomInfo = null; //RoomInfo
   this.tegoma = {koma:[]}; //KomaInfo
+  this.keepAlive = false;
+  this.alive = true;
   
   this.messageHistoryLimit = 1000;
   this.robbyMessage = []; // new Array(); enqueue => push(), dequeue => shift()
@@ -25,7 +27,10 @@ var GoitaClient = function(){
 
   //event - inject event handler
   this.connected = fnEmpty; //function()
+  this.connectFailed = fnEmpty;//function()
   this.disconnected = fnEmpty; //function()
+  this.gotAlive = fnEmpty; //function() //got alive message
+  this.lostAlive = fnEmpty; //function() //do not recieve alive message
   this.robbyUserChanged = fnEmpty;  //function(userList)
   this.robbyMessageAdded = fnEmpty; //function(msg [, header[, type]])
   this.robbyJoined = fnEmpty; //function()
@@ -48,14 +53,15 @@ var GoitaClient = function(){
   this.gotCommandError = fnEmpty; //function(error)
   this.goshiDecisionRequested = fnEmpty; //function()
   this.goshiShown = fnEmpty; //function(player No.)
-
+  this.goshiProceeded = fnEmpty; //function()
+  
 };
 
 //class method
 GoitaClient.prototype = {
   
   //connect to server
-  connect : function(callback){
+  connect : function(){
     //already isConnected
     if(this.isConnected) return this.socket;
 
@@ -67,7 +73,12 @@ GoitaClient.prototype = {
     //socketが無事取得できていればこの時点で接続確立しているはず。
     if(socket != null || socket != undefined)
     {
-      this.isConnected = true;
+      console.log("got socket-client successfuly");
+    }
+    else
+    {
+      this.isConnected = false;
+      this.connectFailed();
     }
 
     //for reconnecting, no need to define events again
@@ -78,6 +89,7 @@ GoitaClient.prototype = {
     // 接続できたというメッセージを受け取ったら
     socket.on("connect", function() {
       self.isConnected = true;
+      self.startKeepAliveTimer();
       console.log("client connected!");
       self.connected();
     });
@@ -85,8 +97,20 @@ GoitaClient.prototype = {
     //切断した場合
     socket.on('disconnect', function(){
       self.isConnected = false;
+      self.userId = null;
+      self.isInRobby = false;
+      self.roomId = null;
+      self.roomInfo = null;
+      self.stopKeepAliveTimer();
       console.log("client disconnected");
       self.disconnected();
+    });
+    
+    socket.on("answer alive", function(){
+      //setTimeoutと組み合わせで、一定時間で応答が来なければ、接続切れと判断するロジックを導入する
+      //console.log("answer alive");
+      self.alive = true;
+      self.gotAlive();
     });
 
     //unhandled error
@@ -147,7 +171,7 @@ GoitaClient.prototype = {
     
     //ルームメッセージを受け取ったら
     socket.on("push room msg", function(msg) {
-      console.log("received room msg:" + msg);
+      //console.log("received room msg:" + msg.text);
       self.roomMessage.push(new Message(msg.text, msg.username));
       self.deleteExcessedMessage();
       self.roomMessageAdded(msg.text, msg.username, "m");
@@ -162,7 +186,8 @@ GoitaClient.prototype = {
     //ルーム関連-----------------------------------------------
     // ルームに入ったというメッセージを受け取ったら
     socket.on("room joined", function(data){
-      console.log("joined in room");
+      console.log("joined in room#" + data.id);
+      self.roomId = data.id;
       self.roomJoined(data);
     });
 
@@ -175,6 +200,7 @@ GoitaClient.prototype = {
     //ルームから抜けた場合
     socket.on("room left", function(){
       console.log("left room");
+      self.roomId = null;
       self.roomInfo = null;
       self.playerNo = null;
     });
@@ -263,6 +289,10 @@ GoitaClient.prototype = {
     socket.on("round finished",function(room){
       self.roundFinished(room);
     });
+    
+    socket.on("goshi proceeded", function(){
+      self.goshiProceeded();
+    });
 
     // deal again 配りなおし
     socket.on("deal again",function(room){
@@ -301,6 +331,59 @@ GoitaClient.prototype = {
     this.socket.close();
     //this.isConnected = false;
     console.log("client disconnected...");
+  },
+  
+  sendAlive : function(){
+    //console.log("send alive");
+    if(this.socket != undefined && this.socket != null)
+    {
+      this.socket.emit("alive");
+    }
+  },
+  
+  startKeepAliveTimer : function(){
+    
+    this.keepAlive = true;
+    var self = this; //capture "this" as GoitaClient instance
+    var task = function()
+    {
+      if(!self.keepAlive)
+      {
+        return;
+      }
+      self.sendAlive();
+      setTimeout(arguments.callee, 5000);
+    };
+    
+    task(); //task start
+    this.startCheckAliveTimer();
+  },
+  
+  stopKeepAliveTimer : function(){
+    this.keepAlive = false;
+  },
+  
+  startCheckAliveTimer : function(){
+    this.alive = true;
+    var self = this;
+    var task = function()
+    {
+      if(!self.keepAlive)
+      {
+        return;
+      }
+      
+      if(self.alive)
+      {
+        self.alive = false;
+      }
+      else
+      {
+        self.lostAlive();
+      }
+      setTimeout(arguments.callee, 10000);
+    };
+    task(); //task start
   },
 
   joinRobby : function(username){

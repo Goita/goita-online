@@ -44,7 +44,7 @@ io.sockets.on("connection", function(socket) {
   // 接続が成立したことをクライアントに通知
   // socket.ioがconnectメッセージを投げてくれる
 
-  var callback_disconnected = function () {
+  var disconnected = function () {
 
     if(!(socket.id in userList)){
       // クライアントにロビーにいるユーザを通知
@@ -74,12 +74,22 @@ io.sockets.on("connection", function(socket) {
     console.log("user: ", Object.keys(userList).length);
   };
 
+  socket.on("alive", function()
+  {
+    var user = userList[socket.id];
+    if(user === undefined){ socket.emit("error command", 10); return; } //user not logged in
+    user.alive = true;
+    console.log("alive message from: " + user.name);
+    socket.emit("answer alive");
+  });
+  
   // 接続が途切れたときのイベントリスナを定義
-  socket.on("disconnect", callback_disconnected);
+  socket.on("disconnect", disconnected);
+  
 
 //ロビー関連のメッセージ処理----------------------------------------------------
   // ユーザがロビーを離れたときのイベントリスナを定義(disconnectと同じ)
-  socket.on("leave robby", callback_disconnected);
+  socket.on("leave robby", disconnected);
 
   // ロビーへ入るとき・戻ってきたときのイベントリスナを定義
   socket.on("join robby", function (username){
@@ -470,6 +480,7 @@ io.sockets.on("connection", function(socket) {
     var room = roomList[user.roomId];
     if(!room.goshi) { socket.emit("error command", 3007); return; }
     room.goshi = false;
+    io.to(room.id).emit("goshi proceeded");
   });
   
 // goshi deal again '配りなおし
@@ -494,6 +505,34 @@ io.sockets.on("connection", function(socket) {
   });
 
 });
+
+var aliveCheckTimer = function(){
+    
+    for(var i =0; i< io.sockets.sockets.length;i++)
+    {
+      var socket = io.sockets.sockets[i];
+      var id = socket.id;
+      if(id in userList)
+      {
+        var user = userList[id];
+        if(user.alive)
+        {
+          user.alive = false;
+        }
+        else
+        {
+          //user is not alive. force to logout
+          socket.leave("robby");
+          socket.disconnect();
+          console.log("user is not alive: " + user.name);
+        }
+      }
+    }
+    
+    setTimeout(arguments.callee, 30000); //30sec
+};
+
+
 
 //ユーザが所属する部屋番号を見つける
 var findRoomId = function(user){
@@ -549,4 +588,5 @@ var getArrayKeys = function(a){
   return list;
 };
 
+aliveCheckTimer();
 console.log('server started');

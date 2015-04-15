@@ -1,17 +1,42 @@
-//ユーザ情報
+//ユーザ情報 //ロビー所属時用の情報を持つ
 var UserInfo = function(id, name){
-  this.id = id;
-  this.name = name;
+  this.id = id; //socket.id
+  this.name = name; //display username
+  this.loginId = null; //twitter id / null:guest
   this.roomId = null;
+  
+  this.isPlaying = false; //ルーム一覧に、席についてるプレイヤーを表示するので、削除する予定
+  
+  this.playerNo = null; //これを参照している処理を全て排除したら、削除
+  this.alive = true; //alive check
+  this.active = true; //ユーザが、browserウインドウをアクティブにしていない。 browser側から通知させる？
+  this.rate = 0;
+  
+  //UserInfoにゲームの情報を持たせない！
+  //PlayerInfoを代わりに作る！
+};
+
+var PlayerInfo = function(roomId)
+{
+  this.user = null; //UserInfo
+  this.hasTurn = false;
   this.sitting = false;
   this.ready = false;
-  this.isPlaying = false;
-  this.hasTurn = false;
-  this.playerNo = null;
-  this.active = true;
+  this.tegoma = new KomaInfo();
+  this.field = new KomaInfo();
+  this.openfield = new KomaInfo();
+};
+
+PlayerInfo.prototype = {
+  
+  //return the hidden koma array(the places are indicated)
+  getHiddenKoma : function(){
+    //diff field and openfield
+  }
 };
 
 //駒情報（出した駒、持ち駒共通)
+//常に空を含め、8個の要素を持つ配列で表す
 var KomaInfo = function(str){
   this.koma = []; //index(0-7) array of char
   if(arguments.length > 0 && str.length > 0){
@@ -19,18 +44,24 @@ var KomaInfo = function(str){
   }
 };
 KomaInfo.prototype = {
+  
+  //count given/all koma
   count : function(koma){
+    var c=0, i;
     if(koma == undefined || koma.length != 1)
     {
-      return this.koma.length;
-    }
-    var c=0;
-    for(var i=0;i<this.koma.length;i++)
-    {
-      if(this.koma[i] == koma)
-      {
-        c++;
+      //count all koma
+      for(i=0;i<8;i++){
+        if(this.koma[i] != Util.EMPTY){
+          c++; }
       }
+      return c;
+    }
+    
+    //count given koma
+    for(i=0;i<0;i++){
+      if(this.koma[i] == koma){
+        c++; }
     }
     return c;
   },
@@ -459,9 +490,12 @@ RoomInfo.prototype = {
   findGoshiPlayer : function(){
     var ret = []; // playerObj{ no : playerNo, count : number of shi}
     for(var i=0;i<4;i++){
-      var count = this.tegoma[i].countShi();
-      if(count >= 5){
-        ret[ret.length] = {no:i, count:count, player:this.player[i]};
+      if(this.tegoma[i] != undefined && this.tegoma[i] != null)
+      {
+        var count = this.tegoma[i].countShi();
+        if(count >= 5){
+          ret[ret.length] = {no:i, count:count, player:this.player[i]};
+        }
       }
     }
     return ret;
@@ -737,7 +771,7 @@ var Util = {
   },
 
   canBlock : function(attack, block){
-    if(attack === null) { return true;} //最初の1手
+    if(attack == null) { return true;} //最初の1手
     //if(this.from == this.turn) { return true;} //from, turnを参照できれば伏せ出しOK判定可能
     if(block == this.OU || block == this.GYOKU){
       if(attack == this.SHI || attack == this.GON){
@@ -778,10 +812,25 @@ var Util = {
     return temp;
   },
 
+  /*
+  * 指定した文字列を1文字ずつ配列に収めます。
+  */
   komaStrToArray : function(str){
+    var i;
     var a = [];
-    for(var i=0;i<str.length;i++){
-      a[i] = str.charAt(i);
+    for(i=0;i<8;i++){
+      a[i] = this.EMPTY;
+    }
+      
+    if(str != undefined && str != null && str.length > 0)
+    {
+      for(i=0;i<8;i++){
+        if(i < str.length)
+        {
+          var c = str.charAt(i);
+          a[i] = c;
+        }
+      }
     }
     return a;
   },

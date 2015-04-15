@@ -1,10 +1,11 @@
 //https://github.com/masakihongo/searchUA
 var ua = {};
+ua.browser = {};
 ua.name = window.navigator.userAgent.toLowerCase();
-var dpr = window.devicePixelRatio;
-var isRetina = dpr >= 2.0;
+ua.ver = "unknown";
+ua.dpr = window.devicePixelRatio;
+var isRetina = ua.dpr >= 2.0;
 
-ua.isIE = (ua.name.indexOf('msie') >= 0 || ua.name.indexOf('trident') >= 0);
 ua.isiPhone = ua.name.indexOf('iphone') >= 0;
 ua.isiPod = ua.name.indexOf('ipod') >= 0;
 ua.isiPad = ua.name.indexOf('ipad') >= 0;
@@ -19,7 +20,11 @@ ua.isDesktop = (ua.name.indexOf('windows') >= 0 || (ua.name.indexOf('linux') >= 
                 
 ua.isiOSRetina = ((ua.isiPhone || ua.isiPad || ua.isiPod) && isRetina);
 
-if (ua.isIE) {
+ua.browser.isIE = (ua.name.indexOf('msie') >= 0 || ua.name.indexOf('trident') >= 0);
+ua.browser.isChrome = (ua.name.indexOf('chrome') >= 0 && ua.name.indexOf('safari') >= 0);
+ua.browser.isAndroidDefault = (ua.name.indexOf('safari') && ua.name.indexOf('mobile') >= 0 && ua.name.indexOf('chrome') < 0);
+
+if (ua.browser.isIE) {
     ua.verArray = /(msie|rv:?)\s?([0-9]{1,})([\.0-9]{1,})/.exec(ua.name);
     if (ua.verArray) {
         ua.ver = parseInt(ua.verArray[2], 10);

@@ -111,6 +111,10 @@ image, canvas {
     right: 10px;
 }
 
+.notify-offline > canvas, p{
+    display: inline-block;
+}
+
 /* Swipe works with mouse as well but often causes text selection. */
 /* We'll deny text selecton on everything but INPUTs and TEXTAREAs. */
 #room-page :not(INPUT):not(TEXTAREA) {
