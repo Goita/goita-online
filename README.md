@@ -134,7 +134,14 @@ req room info　部屋情報要求
 ◆To クライアント
 room joined　部屋参加完了通知
 room joining failed  部屋参加失敗
-room info  部屋情報通知
+room info  部屋情報通知(全て)
+** 各情報毎に分割して、変化した部分の情報のみ送信する。(通信量削減案)
+<!-- room user list
+room ready info
+room player info
+room field info
+game point info 
+game history info -->
 user joined room    誰かが部屋に参加した
 user left room　誰かが切断
 
@@ -170,9 +177,11 @@ pass    'なし
 goshi proceed 'ごしのまま続行
 goshi deal again '配りなおし
 
+** tsuigoshi '対５しが発生したことを通知
+** tsuigoshi checked '対５しが発生したことを確認して、配り直しOKを通知
+
 ◆To クライアント
 game started    全員がreadyするとゲーム開始したことが通知される
-public game info　　ゲーム終了後に全員の持ち駒をオープンするとかする場合に使う？
 private game info ゲーム状態情報通知（各プレイヤーの秘匿情報を渡す。公開情報はとりあえずRoomInfoで渡す）
 error command   '無効なプレイを受け取ったときの通知
 game finished     規定点数に達した時に終了を通知

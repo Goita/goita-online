@@ -7,13 +7,13 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
     <script src="/socket.io/socket.io.js"></script>
-    <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="//code.jquery.com/jquery-2.1.1.js"></script>
     <script src="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
     <script src="/plugin/ion.sound.min.js"></script>
     <script src="ua.js"></script>
     <script src="client.js"></script>
     <script src="goita.js"></script>
-    <script src="errormsg-ja.js"></script>
+    <script src="textdic-ja.js"></script>
     <script src="appmain.js"></script>
   </head>
   <body>
@@ -96,21 +96,26 @@
             <div class="ui-block-b"><button id="btn-swap-seat">席の入替</button></div>
             <div class="ui-block-c"><button id="btn-ready-game">READY</button></div>
           </fieldset>
-          <canvas id="canvas-game-field" width="440" height="440"></canvas>
-          <div class="notify-offline"><!--オフラインの通知。あとで、これはロビーにもって行き、ルームでは、game-field内に描画して通知する。(どうせユーザはそこに注目してる)-->
-            <canvas id="canvas-offline-room" width="20" height="20"></canvas>
-            <p>サーバーとの接続が確認できません。ごいたオンラインのページを再読込してください。</p>
+          <div id="game-main">
+            <canvas id="canvas-game-field" width="440" height="440"></canvas>
+            <canvas id="canvas-game-info" width="440" height="440"></canvas>
           </div>
-          <canvas id="canvas-game-input" width="400" height="50"></canvas>
+          <div class="notify-offline"><!--オフラインの通知。あとで、これはロビーにもって行き、ルームでは、game-field内に描画して通知する。(どうせユーザはそこに注目してる)-->
+
+            <p>
+              <canvas id="canvas-offline-room" width="20" height="20"></canvas>
+              サーバーとの接続が確認できません。ごいたオンラインのページを再読込してください。
+            </p>
+          </div>
           <div id="game-input-container">
-            <button id="btn-input0" data-no="0" class="ui-btn ui-btn-inline"><img src="./img/koma8.png"/></button>
-            <button id="btn-input1" data-no="1" class="ui-btn ui-btn-inline"><img src="./img/koma9.png"/></button>
-            <button id="btn-input2" data-no="2" class="ui-btn ui-btn-inline"><img src="./img/koma8.png"/></button>
-            <button id="btn-input3" data-no="3" class="ui-btn ui-btn-inline"><img src="./img/koma9.png"/></button>
-            <button id="btn-input4" data-no="4" class="ui-btn ui-btn-inline"><img src="./img/koma8.png"/></button>
-            <button id="btn-input5" data-no="5" class="ui-btn ui-btn-inline"><img src="./img/koma9.png"/></button>
-            <button id="btn-input6" data-no="6" class="ui-btn ui-btn-inline"><img src="./img/koma8.png"/></button>
-            <button id="btn-input7" data-no="7" class="ui-btn ui-btn-inline"><img src="./img/koma9.png"/></button>
+            <button id="btn-input0" data-no="0" class="btn-koma ui-btn ui-btn-inline"><img src="./img/koma0.png"/></button>
+            <button id="btn-input1" data-no="1" class="btn-koma ui-btn ui-btn-inline"><img src="./img/koma0.png"/></button>
+            <button id="btn-input2" data-no="2" class="btn-koma ui-btn ui-btn-inline"><img src="./img/koma0.png"/></button>
+            <button id="btn-input3" data-no="3" class="btn-koma ui-btn ui-btn-inline"><img src="./img/koma0.png"/></button>
+            <button id="btn-input4" data-no="4" class="btn-koma ui-btn ui-btn-inline"><img src="./img/koma0.png"/></button>
+            <button id="btn-input5" data-no="5" class="btn-koma ui-btn ui-btn-inline"><img src="./img/koma0.png"/></button>
+            <button id="btn-input6" data-no="6" class="btn-koma ui-btn ui-btn-inline"><img src="./img/koma0.png"/></button>
+            <button id="btn-input7" data-no="7" class="btn-koma ui-btn ui-btn-inline"><img src="./img/koma0.png"/></button>
           </div>
           <fieldset class="ui-grid-a">
             <div class="ui-block-a"><button id="btn-game-pass">なし(パス)</button></div>
@@ -143,7 +148,7 @@
       </div><!-- /room-panel -->
       
       <!--ルームチャット ポップアップ-->
-      <div data-role="panel" id="room-chat-panel" data-position="right" data-dispaly="overlay" data-theme="b">
+      <div data-role="panel" id="room-chat-panel" data-position="right" data-display="overlay" data-theme="b">
         <div id="room-msg-list"></div>
         <input id="input-room-msg"type="text" placeholder="メッセージ入力">
         <button id="btn-send-room-msg">送信</button>
@@ -205,8 +210,8 @@
     <script> 
       $(function() {
 			  $( "body>[data-role='popup']" ).enhanceWithin().popup(); //initialize popup
-		  }); 
-		</script>
+      });
+    </script>
   	<div data-role="popup" id="setting-panel" data-overlay-theme="b" data-theme="b" style="min-width:300px;">
       <div data-role="header">
         <h1>設定</h1>
@@ -216,13 +221,19 @@
         <div class="ui-field-contain">
             <label for="option-sound">通知音:</label>
             <input type="checkbox" data-role="flipswitch" name="option-sound" id="option-sound" checked="">
-            <!--<select name="option-sound" id="option-sound" data-role="flipswitch">
-              <option value="off">Off</option>
-              <option value="on">On</option>
-            </select>-->
         </div>
         </form>
-        <a href="#" id="confirm-goshi-proceed" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-b" 
+        <form class="sound-volume-slider">
+          <label for="option-sound-volume" >音量:</label>
+          <input name="option-sound-volume" id="option-sound-volume" min="0" max="1" step="0.1" value="0.5" type="range">
+        </form>
+        <form>
+          <div class="ui-field-contain">
+            <label for="option-show-hidden">伏駒表示:</label>
+            <input type="checkbox" data-role="flipswitch" name="option-show-hidden" id="option-show-hidden">
+          </div>
+        </form>
+        <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-check ui-btn-icon-left ui-btn-b"
           data-rel="back">閉じる</a>
       </div>
     </div><!--/goshi-confirm-dialog-->
@@ -231,27 +242,6 @@
     <!--<div data-role="popup" id="notify-popup" data-theme="b">
       <p id="new-room-msg"></p>
     </div>-->
-    
-    <!--<script>
-      $(function() {
-        var $test = $("<div style='position:absolute; top:0'>").appendTo("body");
-        $test.width("35em");
-    
-        var $panels = $("body > [data-role='panel']");
-                    
-        $panels.panel().enhanceWithin();
-    
-        function handler() { 
-            var key = ($test.width() <= $(window).width()) ? "open" : "close" ;
-            $panels.panel(key);
-            $panels.height($(window).height());
-                        
-        }
-    
-        $(window).on("throttledresize", handler);
-        $(document).on("pageshow", handler);
-        //handler();
-      });
-    </script>-->
+
   </body>
 </html>

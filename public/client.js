@@ -6,7 +6,7 @@ var GoitaClient = function(){
 
   //member field
   this.socket = null;  //socket.io
-  //this.serverURI = server;
+  this.serverURI = null;
   this.isConnected = false;
   this.isInRobby = false;
   this.hasGoshi = false; // I have goshi;
@@ -14,9 +14,10 @@ var GoitaClient = function(){
   this.userName = "";
   this.userId = null;
   this.playerNo = null;
-  this.userList = []; // {userid : UserInfo}
+  this.userList = []; // {userid : UserInfo} -> robby
   this.roomInfo = null; //RoomInfo
-  this.tegoma = {koma:[]}; //KomaInfo
+  this.playerInfo = null; //PlayerInfo
+  this.privatePlayerInfo = null; //PlayerInfo
   this.keepAlive = false;
   this.alive = true;
   
@@ -30,7 +31,7 @@ var GoitaClient = function(){
   this.connectFailed = fnEmpty;//function()
   this.disconnected = fnEmpty; //function()
   this.gotAlive = fnEmpty; //function() //got alive message
-  this.lostAlive = fnEmpty; //function() //do not recieve alive message
+  this.lostAlive = fnEmpty; //function() //do not receive alive message
   this.robbyUserChanged = fnEmpty;  //function(userList)
   this.robbyMessageAdded = fnEmpty; //function(msg [, header[, type]])
   this.robbyJoined = fnEmpty; //function()
@@ -42,14 +43,16 @@ var GoitaClient = function(){
   this.roomInfoChanged = fnEmpty;  //function(RoomInfo)
   this.roomMessageAdded = fnEmpty; //function(msg [, header[, type]])
   this.roomJoiningFailed = fnEmpty; //function(errorcode)
-  this.gotPrivateGameInfo = fnEmpty; //function(KomaInfo)
+  this.gotPrivateGameInfo = fnEmpty; //function(PlayerInfo)
   this.readyRequested = fnEmpty;  //function()
+  this.readyInfoChanged = fnEmpty; //function(RoomInfo)
   this.playRequested = fnEmpty; //function()
   this.gameStarted = fnEmpty; //function()
   this.gameFinished = fnEmpty; //function()
   this.roundStarted = fnEmpty; //function()
   this.roundFinished = fnEmpty; //function(RoomInfo) //非公開情報含む
-  this.komaDealedAgain = fnEmpty; //function(RoomInfo) //非公開情報含む
+  this.komaDealtAgain = fnEmpty; //function(RoomInfo) //非公開情報含む
+  this.komaDealedAgainTsui = fnEmpty; //function(RoomInfo) //非公開情報含む
   this.gotCommandError = fnEmpty; //function(error)
   this.goshiDecisionRequested = fnEmpty; //function()
   this.goshiShown = fnEmpty; //function(player No.)
@@ -67,13 +70,17 @@ GoitaClient.prototype = {
 
     var self = this;  //capture a client instance
 
-    var socket = io.connect(); //.connect(this.serverURI);
+    var socket;
+    if(this.serverURI != null)
+      io.connect(this.serverURI);
+    else
+      socket = io.connect();
     this.socket = socket;
     
     //socketが無事取得できていればこの時点で接続確立しているはず。
-    if(socket != null || socket != undefined)
+    if(socket != undefined && socket != null)
     {
-      console.log("got socket-client successfuly");
+      console.log("got socket-client successfully");
     }
     else
     {
@@ -115,7 +122,7 @@ GoitaClient.prototype = {
 
     //unhandled error
     socket.on("error", function(error){
-      console.log("happend error: " + error);
+      console.log("happened error: " + error);
       self.gotError(error);
     });
 
@@ -141,16 +148,16 @@ GoitaClient.prototype = {
       console.log("left robby");
     });
 
-    // 他のユーザが接続を解除したら
+    // 他のユーザが接続を解除したら {id: socket.id, username: user.name }
     socket.on("user left robby", function(data) {
       console.log("user left:" + data.id);
-      self.robbyMessageAdded("user left:" + data.username, "system", "i");
+      self.robbyMessageAdded(data.username + " がロビーから退出しました", "system", "i");
     });
 
-    // 他のユーザが接続したら
+    // 他のユーザが接続したら {id: socket.id, username: username }
     socket.on("user joined robby", function(data) {
       console.log("user joined:" + data.id);
-      self.robbyMessageAdded("user joined:" + data.username, "system", "i");
+      self.robbyMessageAdded(data.username + " がロビーに参加しました", "system", "i");
     });
 
     // ロビーのユーザ一覧を受け取ったら
@@ -161,19 +168,19 @@ GoitaClient.prototype = {
       self.robbyUserChanged(self.userList);
     });
 
-    //ロビーメッセージを受け取ったら
+    //ロビーメッセージを受け取ったら msg={text: message text, username: user name}
     socket.on("push robby msg", function(msg) {
-      console.log("received robby msg:" + msg);
+      //console.log("received robby msg:" + msg);
       self.robbyMessage.push(new Message(msg.text, msg.username));
-      self.deleteExcessedMessage();
+      self.deleteExcessMessage();
       self.robbyMessageAdded(msg.text, msg.username, "m");
     });
     
-    //ルームメッセージを受け取ったら
+    //ルームメッセージを受け取ったら msg={text: message text, username: user name}
     socket.on("push room msg", function(msg) {
       //console.log("received room msg:" + msg.text);
       self.roomMessage.push(new Message(msg.text, msg.username));
-      self.deleteExcessedMessage();
+      self.deleteExcessMessage();
       self.roomMessageAdded(msg.text, msg.username, "m");
     });
 
@@ -184,7 +191,7 @@ GoitaClient.prototype = {
     });
 
     //ルーム関連-----------------------------------------------
-    // ルームに入ったというメッセージを受け取ったら
+    // ルームに入ったというメッセージを受け取ったら data={id:room id}
     socket.on("room joined", function(data){
       console.log("joined in room#" + data.id);
       self.roomId = data.id;
@@ -217,20 +224,54 @@ GoitaClient.prototype = {
       self.roomMessageAdded("user joined:" + data.username);
     });
 
-    // ルームのユーザ一覧を受け取ったら
-    socket.on("room info", function(roomInfo) {
+    // ルームの情報を受け取ったら
+    socket.on("room info", function(room) {
+      RoomInfo.activateFunc(room);
       //clientのプロパティを更新
-      self.roomInfo = roomInfo;
+      self.roomInfo = room;
       self.playerNo = null;
-      if(roomInfo !== null){
+      if(room != null){
         for(var i=0;i<4;i++){
-          if(roomInfo.player[i] !== null && roomInfo.player[i].id == self.userId){
+          if(room.player[i].user != null && room.player[i].user.id == self.userId){
             self.playerNo = i;
           }
         }
       }
+      if(client.playerNo != null)
+        self.playerInfo = room.player[client.playerNo];
+      else
+        self.playerInfo = null;
       //画面にルーム情報変化を通知
       self.roomInfoChanged(self.roomInfo);
+    });
+
+    // ルームの情報(秘匿情報含む)を受け取ったら
+    socket.on("room public info", function(room) {
+      RoomInfo.activateFunc(room);
+      //clientのプロパティを更新
+      self.roomInfo = room;
+      self.playerNo = null;
+      if(room != null){
+        for(var i=0;i<4;i++){
+          if(room.player[i].user != null && room.player[i].user.id == self.userId){
+            self.playerNo = i;
+          }
+        }
+      }
+      if(client.playerNo != null)
+        self.playerInfo = room.player[client.playerNo];
+      else
+        self.playerInfo = null;
+      //画面にルーム情報変化を通知
+      self.roomInfoChanged(self.roomInfo);
+    });
+
+    socket.on("room ready info", function(players){
+      if(client.playerNo != null)
+        self.playerInfo = players[client.playerNo];
+      else
+        self.playerInfo = null;
+      self.readyInfoChanged(players);
     });
 
     // game started    全員がreadyするとゲーム開始したことが通知される
@@ -238,16 +279,13 @@ GoitaClient.prototype = {
       console.log("game started");
       self.gameStarted();
     });
-    // public game info
-    socket.on("public game info",function(){
-      //this infomation is included in room info
-    });
 
-    // private game info ゲーム状態情報通知（各プレイヤーの秘匿情報を渡す。公開情報はとりあえずRoomInfoで渡す）
-    socket.on("private game info",function(tegoma){
+    // private game info ゲーム状態情報通知（自分の情報のみを受け取る。）
+    socket.on("private game info",function(player){
       console.log("received private game info");
-      self.tegoma = tegoma;
-      self.gotPrivateGameInfo(tegoma);
+      PlayerInfo.activateFunc(player);
+      self.privatePlayerInfo = player;
+      self.gotPrivateGameInfo(player);
     });
 
     // error command   '無効なプレイを受け取ったときの通知
@@ -267,15 +305,13 @@ GoitaClient.prototype = {
 
     // played          プレイヤーの手を通知
     socket.on("played",function(koma){
-      self.roomInfoChanged(self.roomInfo);
     });
 
     // passed      パス
     socket.on("passed",function(turn){
-      self.roomInfoChanged(self.roomInfo);
     });
 
-    // req play    手番プレイヤーへの通知（処理しなくてもいい）
+    // req play    手番プレイヤーへの通知
     socket.on("req play",function(){
       self.playRequested();
     });
@@ -285,8 +321,12 @@ GoitaClient.prototype = {
       self.roundStarted();
     });
 
-    // round finished  場の非公開情報もついでに送る。//ろくし、ななし、はちし、相ごし、対ごしを含む
+    // round finished  場の非公開情報もついでに送る。
+    // ろくし、ななし、はちし、相ごし、対ごしを含む
     socket.on("round finished",function(room){
+      RoomInfo.activateFunc(room);
+      self.roomInfo = room;
+      self.privatePlayerInfo = null;
       self.roundFinished(room);
     });
     
@@ -296,11 +336,22 @@ GoitaClient.prototype = {
 
     // deal again 配りなおし
     socket.on("deal again",function(room){
-      self.komaDealedAgain(room);
+      console.log("got deal again message");
+      RoomInfo.activateFunc(room);
+      self.roomInfo = room;
+      self.komaDealtAgain(room);
+    });
+
+    // deal again tsuigoshi 配りなおし
+    socket.on("deal again tsuigoshi",function(room){
+      RoomInfo.activateFunc(room);
+      self.roomInfo = room;
+      self.komaDealedAgainTsui(room);
     });
 
     // goshi ごしの決断を求める（その他のプレイヤーにはgoshi waitを送る)
     socket.on("goshi",function(){
+      console.log("got goshi message")
       self.hasGoshi = true;
       self.goshiDecisionRequested();
     });
@@ -310,7 +361,7 @@ GoitaClient.prototype = {
       self.goshiShown(no);
     });
 
-    // time up     手番プレイヤーが時間切れ（ランダムで処理される）
+    // time up     手番プレイヤーが時間切れ（ランダムで処理される(パス優先)）
     socket.on("time up",function(){
       //not implemented
       //ランダム処理の内容や、処理後の次手番への移動はサーバーがやるので、
@@ -335,8 +386,7 @@ GoitaClient.prototype = {
   
   sendAlive : function(){
     //console.log("send alive");
-    if(this.socket != undefined && this.socket != null)
-    {
+    if(this.socket != undefined && this.socket != null && this.isInRobby) {
       this.socket.emit("alive");
     }
   },
@@ -347,7 +397,7 @@ GoitaClient.prototype = {
     var self = this; //capture "this" as GoitaClient instance
     var task = function()
     {
-      if(!self.keepAlive)
+      if(self.keepAlive)
       {
         return;
       }
@@ -375,7 +425,7 @@ GoitaClient.prototype = {
       
       if(self.alive)
       {
-        self.alive = false;
+        //self.alive = false;
       }
       else
       {
@@ -387,7 +437,7 @@ GoitaClient.prototype = {
   },
 
   joinRobby : function(username){
-    this.socket.emit("join robby",username);
+    this.socket.emit("join robby", username);
   },
 
   //ロビーチャットで発言
@@ -451,8 +501,19 @@ GoitaClient.prototype = {
   },
 
   // play  駒を出す。ゲーム状況で自動的に出し方を判断させる。ゲーム終了処理まで行って結果を返す。
-  play : function(koma){
-    this.socket.emit("play", koma);
+  play : function(tegomaIndex){
+    if(this.privatePlayerInfo == undefined || this.privatePlayerInfo == null) {return;}
+
+    if(0 <= tegomaIndex && tegomaIndex <= 7){ //0-7
+
+      var koma = this.privatePlayerInfo.tegoma[tegomaIndex];
+      console.log("selected koma index: " + tegomaIndex + " played: val=" + koma + " text=" + Util.getKomaText(koma));
+      if(koma != Util.EMPTY) {
+        this.socket.emit("play", tegomaIndex);
+      }
+
+    }
+
   },
 
   // pass    'なし
@@ -462,29 +523,28 @@ GoitaClient.prototype = {
 
   // goshi proceed 'ごしのまま続行
   goshiProceed : function(){
+    console.log("send goshi proceed message");
     this.hasGoshi = false;
     this.socket.emit("goshi proceed");
   },
 
   // goshi deal again '配りなおし
   goshiDealAgain : function(){
+    console.log("send goshi deal again message");
     this.hasGoshi = false;
     this.socket.emit("goshi deal again");
   },
   
-  deleteExcessedMessage : function(){
-    while(this.robbyMessage.length > this.messageHistoryLimit)
-    {
+  deleteExcessMessage : function(){
+    while(this.robbyMessage.length > this.messageHistoryLimit) {
       this.robbyMessage.shift();
     }
     
-    while(this.roomMessage.length > this.messageHistoryLimit)
-    {
+    while(this.roomMessage.length > this.messageHistoryLimit) {
       this.roomMessage.shift();
     }
     
-    while(this.privateMessage.length > this.messageHistoryLimit)
-    {
+    while(this.privateMessage.length > this.messageHistoryLimit) {
       this.privateMessage.shift();
     }
   }

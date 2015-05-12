@@ -1,22 +1,45 @@
 @charset "utf-8";
 
-.login-header
-{
+.login-header {
     margin:0px;
     padding:0px;
 }
 
-#game-input-container > button
-{
+#game-input-container > button {
     width: auto;
-    padding:10px;
+    padding:6px;
     margin:2px;
     background:none;
+    /*
+    background-repeat: no-repeat;
+    background-position: 5px 5px;
+    background-image:url("./img/koma.png");
+    */
     border:1px;
     font-size:0;
     line-height:0;
     overflow:visible;
     cursor:pointer;
+}
+
+#game-input-container > canvas {
+    width: 48px;
+    height: 48px;
+}
+
+#game-main{
+    position: relative;
+    width: 440px;
+    height: 440px;
+}
+#canvas-game-info, #canvas-game-field {
+    position:absolute;
+    top:0px;
+    left:0px;
+}
+
+#canvas-game-info {
+    z-index:99;
 }
 
 #login-error-msg {
@@ -53,45 +76,43 @@ image, canvas {
     display: inline-block;
 }
 
-.user-info-roomid
-{
+.user-info-roomid {
     margin-left:4px;
 }
 
-.user-info-playing
-{
+.user-info-playing {
     margin-left:4px;
+}
+
+/* 自動生成されるポップアップが他のコンテンツをブロックしないようにする */
+#notify-popup-screen {
+    display: none;
 }
 
 /* チャットメッセージを、1行で表示するために必要 */
 /* .robby-msg > div, .room-msg > div これでもいける*/ 
-.msg-header, .msg-separator, .msg-text
-{
+.msg-header, .msg-separator, .msg-text {
     display: inline-block;
 }
 
-.msg-separator
-{
+.msg-separator {
     margin-left: 2px;
     margin-right: 4px;
 }
 
 /* :not(selector) を使えば、テキスト部分だけ色を変えるとかできる */
 /*error message*/
-.e
-{
+.e {
     color:#f55;
 }
 
 /*warning message*/
-.w
-{
+.w {
     color:#fa5;
 }
 
 /*information message*/
-.i
-{
+.i {
     color:#55f;
 }
 
@@ -103,6 +124,7 @@ image, canvas {
     bottom: auto;
     left: 10px;
 }
+
 .footer-button-right {
     position: absolute;
     margin: 0;
@@ -111,16 +133,24 @@ image, canvas {
     right: 10px;
 }
 
-.notify-offline > canvas, p{
+.notify-offline > canvas, p {
     display: inline-block;
 }
 
 /* Swipe works with mouse as well but often causes text selection. */
-/* We'll deny text selecton on everything but INPUTs and TEXTAREAs. */
+/* We'll deny text selection on everything but INPUTs and TEXTAREAs. */
 #room-page :not(INPUT):not(TEXTAREA) {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     -o-user-select: none;
     user-select: none;
+}
+
+/* Hide the number input */
+.sound-volume-slider input {
+    display: none;
+}
+.sound-volume-slider .ui-slider-track {
+    margin-left: 15px;
 }
