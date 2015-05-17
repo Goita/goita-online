@@ -78,12 +78,10 @@ GoitaClient.prototype = {
     this.socket = socket;
     
     //socketが無事取得できていればこの時点で接続確立しているはず。
-    if(socket != undefined && socket != null)
-    {
+    if(socket != undefined && socket != null){
       console.log("got socket-client successfully");
     }
-    else
-    {
+    else{
       this.isConnected = false;
       this.connectFailed();
     }
@@ -186,7 +184,7 @@ GoitaClient.prototype = {
 
     //ルームリストを受け取ったら
     socket.on("room list", function(roomList){
-      console.log("received room list");
+      //console.log("received room list");
       self.roomListReceived(roomList);
     });
 
@@ -215,13 +213,13 @@ GoitaClient.prototype = {
     // ルームの他のユーザが接続を解除したら
     socket.on("user left room", function(data) {
       console.log("user left:" + data.username);
-      self.roomMessageAdded("user left:" + data.username);
+      self.roomMessageAdded(data.username + " がルームから退出しました。");
     });
 
     // ルームに他のユーザが接続したら
     socket.on("user joined room", function(data) {
       console.log("user joined:" + data.username);
-      self.roomMessageAdded("user joined:" + data.username);
+      self.roomMessageAdded(data.username + " がルームに参加しました。");
     });
 
     // ルームの情報を受け取ったら
@@ -282,7 +280,7 @@ GoitaClient.prototype = {
 
     // private game info ゲーム状態情報通知（自分の情報のみを受け取る。）
     socket.on("private game info",function(player){
-      console.log("received private game info");
+      //console.log("received private game info");
       PlayerInfo.activateFunc(player);
       self.privatePlayerInfo = player;
       self.gotPrivateGameInfo(player);
@@ -336,7 +334,7 @@ GoitaClient.prototype = {
 
     // deal again 配りなおし
     socket.on("deal again",function(room){
-      console.log("got deal again message");
+      //console.log("got deal again message");
       RoomInfo.activateFunc(room);
       self.roomInfo = room;
       self.komaDealtAgain(room);
@@ -351,7 +349,7 @@ GoitaClient.prototype = {
 
     // goshi ごしの決断を求める（その他のプレイヤーにはgoshi waitを送る)
     socket.on("goshi",function(){
-      console.log("got goshi message")
+      //console.log("got goshi message")
       self.hasGoshi = true;
       self.goshiDecisionRequested();
     });
@@ -397,8 +395,7 @@ GoitaClient.prototype = {
     var self = this; //capture "this" as GoitaClient instance
     var task = function()
     {
-      if(self.keepAlive)
-      {
+      if(!self.keepAlive){
         return;
       }
       self.sendAlive();
@@ -425,7 +422,7 @@ GoitaClient.prototype = {
       
       if(self.alive)
       {
-        //self.alive = false;
+        self.alive = false;
       }
       else
       {
@@ -507,7 +504,7 @@ GoitaClient.prototype = {
     if(0 <= tegomaIndex && tegomaIndex <= 7){ //0-7
 
       var koma = this.privatePlayerInfo.tegoma[tegomaIndex];
-      console.log("selected koma index: " + tegomaIndex + " played: val=" + koma + " text=" + Util.getKomaText(koma));
+      //console.log("selected koma index: " + tegomaIndex + " played: val=" + koma + " text=" + Util.getKomaText(koma));
       if(koma != Util.EMPTY) {
         this.socket.emit("play", tegomaIndex);
       }
@@ -523,14 +520,14 @@ GoitaClient.prototype = {
 
   // goshi proceed 'ごしのまま続行
   goshiProceed : function(){
-    console.log("send goshi proceed message");
+    //console.log("send goshi proceed message");
     this.hasGoshi = false;
     this.socket.emit("goshi proceed");
   },
 
   // goshi deal again '配りなおし
   goshiDealAgain : function(){
-    console.log("send goshi deal again message");
+    //console.log("send goshi deal again message");
     this.hasGoshi = false;
     this.socket.emit("goshi deal again");
   },

@@ -39,7 +39,18 @@
 }
 
 #canvas-game-info {
-    z-index:99;
+    z-index:2;
+}
+
+#notify-message-box {
+    width:440px;
+    position:absolute;
+    top:0;
+    bottom:0;
+    margin:auto;
+    margin-bottom: 0;
+    background: rgba(0,0,0,0.6);
+    z-index:3;
 }
 
 #login-error-msg {
@@ -82,11 +93,6 @@ image, canvas {
 
 .user-info-playing {
     margin-left:4px;
-}
-
-/* 自動生成されるポップアップが他のコンテンツをブロックしないようにする */
-#notify-popup-screen {
-    display: none;
 }
 
 /* チャットメッセージを、1行で表示するために必要 */

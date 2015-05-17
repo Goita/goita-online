@@ -376,7 +376,7 @@ RoomInfo.prototype = {
     var player = this.player[n];
     player.user = user;
     player.sitting = true;
-    if(this.round) { player.ready = true; }
+    //if(this.round) { player.ready = true; }
     user.playerNo = n;
     if(this.round){ user.isPlaying = true; }
     return true;
@@ -790,7 +790,7 @@ RoomInfo.prototype = {
     //return "11111113286237345615791124425534"; //7しテスト用
     //return "11111111286237345615793124425534"; //8しテスト用
     //return "11111444" + "33222233" + "11111455" + "55667789"; //10しテスト用
-    return "11111444" + "11111455" + "33222233" + "55667789"; //相5しテスト用
+    //return "11111444" + "11111455" + "33222233" + "55667789"; //相5しテスト用
 
     //1:し*10, 2:香*4, 3:馬*4, 4:銀*4, 5:金*4, 6:角*2, 7:飛*2, 8:王*1, 9:玉*1
     var src = Util.komaStrToArray("11111111112222333344445555667789");

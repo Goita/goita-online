@@ -37,24 +37,22 @@ var testFunc = function(){
 };
 
 var notifyPopupTimer = function(){
-  if(!client.hasGoshi) //５しの時は、余計なメッセージを出さない
-  {
-    if(_popupTime > 0){ _popupTime -= 0.1; }
-    if(_popupTime <= 0) {
-      //if popup exists, close
-      if($("#notify-popup").size() > 0) {
-        closeNotifyPopup();
+
+  if(_popupTime > 0){ _popupTime -= 0.1; }
+  if(_popupTime <= 0) {
+    //if popup exists, close
+    if($("#notify-message-box").css('visibility') == 'visible') {
+      closeNotifyPopup();
+    }
+    else {
+      //checked popup is closed
+      //fetch new message
+      var msg = [];
+      while(_notifyQueue.length > 0){ //no need to lock, javascript is a single thread model{
+        //console.log("fetching msg");
+        msg.push(_notifyQueue.shift());
       }
-      else {
-        //checked popup is closed
-        //fetch new message
-        var msg = [];
-        while(_notifyQueue.length > 0){ //no need to lock, javascript is a single thread model{
-          //console.log("fetching msg");
-          msg.push(_notifyQueue.shift());
-        }
-        openNotifyPopup(msg, 1 + (msg.length - 1) * 0.3);
-      }
+      openNotifyPopup(msg, 1 + (msg.length - 1) * 0.3);
     }
   }
   setTimeout(arguments.callee, 100);
@@ -287,9 +285,10 @@ $(document).ready(function() {
   if(location.host.indexOf('c9.io') < 0){ //c9.io上でのテストコードをすべて隠す
     
     //$("#btn-test").remove(); //enable for publishing
-    $("#debug-text").css(hiddenStyle);
+    $("#debug-text").css(collapseStyle);
   }
-
+  $("#btn-test").remove();
+  $("#debug-text").css(collapseStyle);
   //create object
   client = new GoitaClient();
 
@@ -336,15 +335,18 @@ $(window).on('load resize', function(){
   var horizontal = Math.abs(window.orientation) === 90; //iOS only ?
   var wl = Math.min(wh, ww); //horizontal ? wh : ww; //短いほうの画面幅
   var virtualLen = wl / dpr; //仮想画面幅
-  var canvas = $("#canvas-game-field, #canvas-game-info, #game-main");
+  var cgamearea = $("#canvas-game-field, #canvas-game-info ,#game-main");
+  var msgarea = $("#notify-message-box");
   $("#debug-text").html("UA is desktop:"+ ua.isDesktop +", UA is iOS Retina:" + ua.isiOSRetina +" ww:"+ ww.toFixed(0) + " wh:" + wh.toFixed(0) + " dpr:" + dpr + " vLen:" + virtualLen.toFixed(0));
   if(wl * x < cLen && (ua.isiPhone || ua.isiOSRetina || ua.isDesktop )) //画面幅がcanvasサイズより小さいなら、調整を入れる
   {
-    canvas.css({width: wl * x + "px", height: wl * x + "px"});
+    cgamearea.css({width: wl * x + "px", height: wl * x + "px"});
+    msgarea.css({width: wl * x + "px"});
   }
   else if(false) //仮想画面幅で表示するデバイスがあればこの対応をする。今のところ対応条件不明。
   {
-    canvas.css({width: virtualLen + "px", height: virtualLen + "px"});
+    cgamearea.css({width: virtualLen + "px", height: virtualLen + "px"});
+    msgarea.css({width: virtualLen + "px"});
   }
   else //調整不要なら、デフォルトに戻す?
   {
@@ -353,7 +355,8 @@ $(window).on('load resize', function(){
     {
       l = wl * x < cLen ? wl * x : cLen;
     }
-    canvas.css({width: l + "px", height: l + "px"});
+    cgamearea.css({width: l + "px", height: l + "px"});
+    msgarea.css({width: l + "px"});
   }
 });
 
@@ -377,9 +380,8 @@ var showRoomPage = function(){
 var openNotifyPopup = function(msgList, autoCloseTime){
   if(msgList == undefined || msgList.length == 0) {return;}
   
-  //参考 http://jsfiddle.net/Gajotres/tMpf7/
-  //create popup
-  var popup = $('<div data-role="popup" id="notify-popup" data-theme="b"></div>');
+  //create messagebox
+  var msgbox = $('#notify-message-box');
   var newMsg = $('<div id="new-notify-msg"></div>');
   for(var i = 0;i < msgList.length;i++) {
     var msg = msgList[i];
@@ -393,21 +395,16 @@ var openNotifyPopup = function(msgList, autoCloseTime){
                 + '<div class="msg-text ' + type + '">' + text + '</div>'
               +'</div>');
   }
-  popup.append(newMsg);
-  $(popup).appendTo($.mobile.activePage).popup();
-  $(document).on("popupafterclose", "#notify-popup", function() {
-      $(this).remove();
-  });
-  
-  var notify = $("#notify-popup");
+  msgbox.empty();
+  msgbox.append(newMsg);
   _popupTime = autoCloseTime == undefined ? 1.0 : autoCloseTime;
-  notify.popup("open");
+  msgbox.css('height', newMsg[0].scrollHeight);
+  msgbox.css(visibleStyle); //show messagebox
 };
 
 var closeNotifyPopup = function(){
-  var notify = $("#notify-popup");
-  if(notify.size() > 0)
-    notify.popup("close");
+  var msgbox = $("#notify-message-box");
+  msgbox.css(hiddenStyle);
 };
 
 //モバイル機器のウィンドウに対してジェスチャーを使ったすべての操作を無効にする
@@ -445,11 +442,11 @@ var login = function(userid, password) {
 };
 
 var gotAliveMessage = function() {
-  $(".notify-offline").css(hiddenStyle);
+  $(".notify-offline").css(collapseStyle);
 };
 
 var lostAliveMessage = function() {
-  $(".notify-offline").css(visibleStyle);
+  $(".notify-offline").css({'visibility':'visible', "height":"", "width":"", "font-size":"", "background": ""});
 };
 
 //最新メッセージを表示
@@ -710,9 +707,6 @@ var notifyCommandError = function(error){
 var confirmGoshi = function(){
   console.log("requested to confirm goshi decision");
   addRoomMessage("５しの処理を選択して下さい。", "system", "i");
-  //closeNotifyPopup();
-  //closeGoshiPopup();
-
 
   var wait = function(){
     var tegomaStr = "手駒情報取得に失敗しました・・・";
@@ -723,17 +717,18 @@ var confirmGoshi = function(){
     var a = $("#anchor-goshi-dialog");
     a.css(visibleStyle);
     a.click(); //perform click
-    console.log("goshi confirm dialog opened")
+    console.log("goshi confirm dialog opened");
   };
 
   setTimeout(wait, 1000);
   console.log("wait for closing other popup");
 };
 
-var closeGoshiPopup = function(){
-  var dialog = $("#goshi-confirm-dialog");
-  if(dialog.size() > 0)
+var closePopup = function(){
+  var dialog = $(".ui-page-active .ui-popup-active");
+  if(isAnyPopupOpen()){
     dialog.popup("close");
+  }
 };
 
 var isAnyPopupOpen = function(){
@@ -767,8 +762,6 @@ var drawGameReady = function(players, myNo){
 
   var width = 440;
   var height = 440;
-  //ctx.fillStyle="rgba(255,255,255,0)";
-  //ctx.fillRect(0,0,width,height);
 
   ctx.clearRect(0,0,width,height);
 

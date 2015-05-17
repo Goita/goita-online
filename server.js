@@ -251,6 +251,10 @@ io.sockets.on("connection", function(socket) {
       //ゲーム中に着席した場合、手持ち駒情報を送る
       if(room.round){
         io.to(user.id).emit("private game info", room.player[n]);
+        //5しの処理選択中ならば、要求を再び送信する
+        if(room.goshi && room.goshiPlayerNo == (user.playerNo + 2)%4){
+          io.to(user.id).emit("goshi");
+        }
       }
       //ロビー情報を更新
       io.to("robby").emit("robby info", userList);
@@ -448,7 +452,7 @@ io.sockets.on("connection", function(socket) {
       io.to(room.id).emit("round finished", room); //include private info
     }else{
       //request next player to play
-      if(!room.attack) {
+      if(!room.attack && room.player[room.turn].user != null) {
         io.to(room.player[room.turn].user.id).emit("req play");
       }
     }
@@ -510,7 +514,9 @@ io.sockets.on("connection", function(socket) {
     io.to(room.id).emit("room info", room.toClient());
     //send private game info to each player
     for(var i=0;i<4;i++){
-      io.to(room.player[i].id).emit("private game info", room.player[i]);
+      if(room.player[i].user != null){
+        io.to(room.player[i].user.id).emit("private game info", room.player[i]);
+      }
     }
     
     //goshi
@@ -530,14 +536,14 @@ var aliveCheckTimer = function(){
         }
         else {
           //user is not alive. force to logout
-          //socket.leave("robby");
-          //socket.disconnect();
+          socket.leave("robby");
+          socket.disconnect();
           console.log("user is not alive: " + user.name);
         }
       }
     }
     
-    setTimeout(arguments.callee, 30000); //30sec
+    setTimeout(arguments.callee,  2 * 30 * 1000); //30sec
 };
 
 
