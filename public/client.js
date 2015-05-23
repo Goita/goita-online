@@ -208,6 +208,7 @@ GoitaClient.prototype = {
       self.roomId = null;
       self.roomInfo = null;
       self.playerNo = null;
+      self.privatePlayerInfo = null;
     });
 
     // ルームの他のユーザが接続を解除したら
@@ -220,6 +221,13 @@ GoitaClient.prototype = {
     socket.on("user joined room", function(data) {
       console.log("user joined:" + data.username);
       self.roomMessageAdded(data.username + " がルームに参加しました。");
+    });
+    
+    //player.no  player.username
+    socket.on("player stood", function(player) {
+      if(self.playerNo == player.no){
+        self.privatePlayerInfo = null;
+      }
     });
 
     // ルームの情報を受け取ったら

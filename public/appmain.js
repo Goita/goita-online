@@ -533,6 +533,12 @@ var notifyRobbyJoined = function(){
 };
 
 var notifyRoomJoined = function(){
+  //5しのボタンを非表示に。
+  //TODO:ここで行うべき処理かは・・・要検討
+  var a = $("#anchor-goshi-dialog");
+  a.css(hiddenStyle);
+  
+  
   showRoomPage();  //ルームページへ
 };
 
