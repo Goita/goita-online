@@ -23,6 +23,16 @@ server.listen(port, function () {
   console.log('Server listening at port %d', port);
 });
 
+process.on('exit', function(){
+  server.close();
+});
+process.on('uncaughtException', function(){
+  server.close();
+});
+process.on('SIGTERM', function(){
+  server.close();
+});
+
 // Routing
 app.use(express.static(__dirname + '/public'));
 
