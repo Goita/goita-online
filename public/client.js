@@ -40,7 +40,7 @@ var GoitaClient = function(){
   this.roomListReceived = fnEmpty; //function(roomlist)
   
   this.roomJoined = fnEmpty; //function({id : roomId})
-  this.roomInfoChanged = fnEmpty;  //function(RoomInfo)
+  this.roomInfoChanged = fnEmpty;  //function(RoomInfo, isPublic)
   this.roomMessageAdded = fnEmpty; //function(msg [, header[, type]])
   this.roomJoiningFailed = fnEmpty; //function(errorcode)
   this.gotPrivateGameInfo = fnEmpty; //function(PlayerInfo)
@@ -248,7 +248,7 @@ GoitaClient.prototype = {
       else
         self.playerInfo = null;
       //画面にルーム情報変化を通知
-      self.roomInfoChanged(self.roomInfo);
+      self.roomInfoChanged(self.roomInfo, false);
     });
 
     // ルームの情報(秘匿情報含む)を受け取ったら
@@ -269,7 +269,7 @@ GoitaClient.prototype = {
       else
         self.playerInfo = null;
       //画面にルーム情報変化を通知
-      self.roomInfoChanged(self.roomInfo);
+      self.roomInfoChanged(self.roomInfo, true);
     });
 
     socket.on("room ready info", function(players){

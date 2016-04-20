@@ -2,6 +2,7 @@
 Goita Client view controller
 */
 var client;
+var isRoomInit = true;
 var _imgDic = [];
 var _imgLoaded = false;
 
@@ -99,7 +100,7 @@ var bindGoitaClientEvents = function(client){
 
   //room events
   client.roomListReceived = updateRoomList; //function(roomList)L
-  client.roomInfoChanged = updateRoomInfo;  //function(RoomInfo)
+  client.roomInfoChanged = updateRoomInfo;  //function(RoomInfo, isPublic)
   client.readyInfoChanged = updateReadyInfo;//function(player[])
   client.roomMessageAdded = addRoomMessage; //function(msg [, header [, type]])
   client.roomJoined = notifyRoomJoined;
@@ -538,6 +539,7 @@ var notifyRoomJoined = function(){
   var a = $("#anchor-goshi-dialog");
   a.css(hiddenStyle);
   
+  isRoomInit = true;
   
   showRoomPage();  //ルームページへ
 };
@@ -565,14 +567,40 @@ var updateReadyInfo = function(players){
   drawGameReady(players, client.playerNo);
 };
 
+var updateRoomUserInfo = function(room){
+    
+    $("#room-user-list").empty();
+    
+    if(room == null){
+        return;
+    }
+    
+    var userlist = $("#room-user-list");
+    for(var id in room.userList){
+        userlist.append("<div class='username'>" + room.userList[id].name + "</div>");
+    }
+    
+    //change player1-4 button text
+    //btn-siton-player1-seat
+    for(i=0;i<4;i++) {
+        var btn = $("#btn-siton-player" + (i+1).toString() + "-seat");
+        if(room.player[i].user == null) {
+            btn.html("p" + (i+1).toString());
+            btn.removeAttr("disabled");
+        }
+        else {
+            btn.html(room.player[i].user.name);
+            btn.attr("disabled","disabled");
+        }
+    }
+};
 
-var updateRoomInfo = function(room){
+var updateRoomInfo = function(room, isPublic){
   var i; //as counter
 
   //clearRoomInfo
   //console.log("clear RoomInfo");
-  $("#room-name").empty();
-  $("#room-user-list").empty();
+  $("#room-name").empty(); 
 
   if(room == null){
     $("#room-name").html("---");
@@ -580,32 +608,20 @@ var updateRoomInfo = function(room){
     $("#room-msg-list").empty();
     return;
   }
+  
+  updateRoomUserInfo(room);
 
   //updateRoomInfo
   //console.log("update RoomInfo");
   $("#room-name").html("room #" + room.id.padZero(2));
   $("#room-header-name").html("ルーム #" + room.id.padZero(2));
-  var userlist = $("#room-user-list");
-  for(var id in room.userList){
-    userlist.append("<div class='username'>" + room.userList[id].name + "</div>");
-  }
-  
-  //change player1-4 button text
-  //btn-siton-player1-seat
-  for(i=0;i<4;i++) {
-    var btn = $("#btn-siton-player" + (i+1).toString() + "-seat");
-    if(room.player[i].user == null) {
-      btn.html("p" + (i+1).toString());
-      btn.removeAttr("disabled");
-    }
-    else {
-      btn.html(room.player[i].user.name);
-      btn.attr("disabled","disabled");
-    }
-  }
 
-  drawGameField(room, client.playerNo);
-
+  //ラウンドの合間（終了〜READY押すまで）は盤面の描画しない
+  //つまり、最初にRoomに入った時と、ラウンドの最中のみ描画
+  if( isRoomInit || room.round){
+      drawGameField(room, client.playerNo);
+      isRoomInit = false;
+  }
   //console.log("finish updating RoomInfo");
 };
 
