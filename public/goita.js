@@ -282,6 +282,8 @@ var RoomInfo = function(roomId){
   this.rokushi = false; //６し以上で終了
   this.lastPlayedPlayerNo = 0; //the last player played koma(attack/block)
   this.swapCount = 0;
+  this.kifu = [];
+  this.kifuText = "";
   
   //game option
   this.option = new GameOption();
@@ -474,6 +476,8 @@ RoomInfo.prototype = {
       this.player[i].ready = false;
       this.player[i].hasTurn = false;
     }
+    this.kifu = [];
+    this.kifuText = "";
       this.player[this.turn].hasTurn = true;
   },
 
@@ -532,6 +536,14 @@ RoomInfo.prototype = {
    * (call from play method)
    */
   finishRound : function(){
+    // 上がり駒は記録されていないので追加する
+    for(var i=0; i<4; i++) {
+      if(this.player[i].field.count() != 8) { continue; }
+      this.kifu[this.kifu.length-1].push(this.player[i].field[7]);
+    }
+    // 得点加算前に棋譜を生成する
+    this.makeKifuText();
+
     //得点の加算
     for(var i=0;i<4;i++){
       if(this.player[i].field.count() == 8) {
@@ -553,6 +565,39 @@ RoomInfo.prototype = {
     }
   },
 
+  /**
+   * make Kifu Text
+   */
+  makeKifuText : function() {
+    var players = this.player;
+    var kifu = "version: 1.0\n";
+    var point1 = players[0].point+players[2].point;
+    var point2 = players[1].point+players[3].point;
+    var handToString = function(player) {
+      return (player.tegoma.toString() + player.openfield.toString()).split("").sort().join("");
+    };
+    kifu += "p0: \"" + players[0].user.name + "\"\n";
+    kifu += "p1: \"" + players[1].user.name + "\"\n";
+    kifu += "p2: \"" + players[2].user.name + "\"\n";
+    kifu += "p3: \"" + players[3].user.name + "\"\n";
+    kifu += "log:\n";
+    kifu += " - hand:\n";
+    kifu += "     p0: \"" + handToString(players[0]) + "\"\n";
+    kifu += "     p1: \"" + handToString(players[1]) + "\"\n";
+    kifu += "     p2: \"" + handToString(players[2]) + "\"\n";
+    kifu += "     p3: \"" + handToString(players[3]) + "\"\n";
+    kifu += "   uchidashi: " + this.lastWonPlayer + "\n";
+    kifu += "   score: [" + point1.toString() + "," + point2.toString() +"]\n";
+    kifu += "   game:\n";
+    
+    var numToStr = { "1":"し", "2":"香", "3":"馬", "4":"銀", "5":"金", "6":"角", "7":"飛", "8":"王", "9":"王" }
+    for(var i=0; i<this.kifu.length; ++i) {
+      step = this.kifu[i];
+      kifu += "    - [\"" + step[0] + "\",\"" + numToStr[step[1]] + "\",\"" + numToStr[step[2]] + "\"]\n";
+    }
+    this.kifuText = kifu;
+  },
+  
   /**
    * finish round by more than 5 shi
    * @param type
@@ -700,6 +745,9 @@ RoomInfo.prototype = {
         this.ouUsed = true;
       }
       
+      // 棋譜に追加
+      this.kifu[this.kifu.length-1].push(koma);
+      
       this.playAttackAt(index);
       this.from = this.turn;
       //this.attackCount++;
@@ -714,6 +762,10 @@ RoomInfo.prototype = {
       if(koma == Util.OU || koma == Util.GYOKU){
         this.ouUsed = true;
       }
+      
+      // 棋譜に追加
+      this.kifu.push( [this.turn, koma] );
+      
       this.playBlock(index);
       if(this.player[this.turn].tegoma.count() == 1){
         var tegoma = this.player[this.turn].tegoma;
@@ -727,7 +779,7 @@ RoomInfo.prototype = {
     }
     return 0;
   },
-
+  
   /**
    * private method, call from play()
    * @param index - index of tegoma to play

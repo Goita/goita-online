@@ -235,6 +235,9 @@ var bindScreenEvents = function(client){
     //if(this.checked) {  }
     drawGameField(client.roomInfo, client.playerNo);
   });
+  
+  // 棋譜生成
+  $("#btn-save-kifu").click(saveKifu);
 };
 
 var loadImg = function(){
@@ -616,7 +619,7 @@ var updateRoomInfo = function(room, isPublic){
   $("#room-name").html("room #" + room.id.padZero(2));
   $("#room-header-name").html("ルーム #" + room.id.padZero(2));
 
-  //ラウンドの合間（終了〜READY押すまで）は盤面の描画しない
+  //ラウンドの合間（終了?READY押すまで）は盤面の描画しない
   //つまり、最初にRoomに入った時と、ラウンドの最中のみ描画
   if( isRoomInit || room.round){
       drawGameField(room, client.playerNo);
@@ -1083,4 +1086,29 @@ var drawOfflineIcon = function(ctx){
   ctx.beginPath();
   ctx.arc(10, 10, 8, 0, Math.PI * 2.0, true);
   ctx.fill();
+};
+
+var saveKifu = function() {
+  var content = client.roomInfo.kifuText;
+  var bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+  var blob = new Blob([ bom, content ], { "type" : "text/plain" });
+
+  var date = new Date();
+  var filename = "goita_kifu_" + date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate() + "-" + date.getHours() + "-" + date.getMinutes() + "-" + date.getSeconds() + ".yaml";
+
+  if (window.navigator.msSaveBlob) { 
+    window.navigator.msSaveBlob(blob, filename); 
+
+    // msSaveOrOpenBlobの場合はファイルを保存せずに開ける
+    window.navigator.msSaveOrOpenBlob(blob, filename); 
+  } else {
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    a.href = URL.createObjectURL(blob);
+    a.target = '_blank';
+    a.download = filename;
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL();
+  }
 };
