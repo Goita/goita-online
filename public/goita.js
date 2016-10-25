@@ -476,8 +476,6 @@ RoomInfo.prototype = {
       this.player[i].ready = false;
       this.player[i].hasTurn = false;
     }
-    this.kifu = [];
-    this.kifuText = "";
       this.player[this.turn].hasTurn = true;
   },
 
@@ -487,6 +485,7 @@ RoomInfo.prototype = {
     for(var i = 0; i<4;i++){
       this.player[i].point = 0;
     }
+    this.initKifu();
   },
 
   isAllPlayerReady : function(){
@@ -541,8 +540,8 @@ RoomInfo.prototype = {
       if(this.player[i].field.count() != 8) { continue; }
       this.kifu[this.kifu.length-1].push(this.player[i].field[7]);
     }
-    // 得点加算前に棋譜を生成する
-    this.makeKifuText();
+    // 得点加算前に棋譜を追記する
+    this.appendGameKifuText();
 
     //得点の加算
     for(var i=0;i<4;i++){
@@ -566,21 +565,17 @@ RoomInfo.prototype = {
   },
 
   /**
-   * make Kifu Text
+   * append Kifu Text of this game
    */
-  makeKifuText : function() {
+  appendGameKifuText : function() {
     var players = this.player;
-    var kifu = "version: 1.0\n";
+    var kifu = this.kifuText;
     var point1 = players[0].point+players[2].point;
     var point2 = players[1].point+players[3].point;
     var handToString = function(player) {
       return (player.tegoma.toString() + player.openfield.toString()).split("").sort().join("");
     };
-    kifu += "p0: \"" + players[0].user.name + "\"\n";
-    kifu += "p1: \"" + players[1].user.name + "\"\n";
-    kifu += "p2: \"" + players[2].user.name + "\"\n";
-    kifu += "p3: \"" + players[3].user.name + "\"\n";
-    kifu += "log:\n";
+  
     kifu += " - hand:\n";
     kifu += "     p0: \"" + handToString(players[0]) + "\"\n";
     kifu += "     p1: \"" + handToString(players[1]) + "\"\n";
@@ -595,6 +590,22 @@ RoomInfo.prototype = {
       step = this.kifu[i];
       kifu += "    - [\"" + step[0] + "\",\"" + numToStr[step[1]] + "\",\"" + numToStr[step[2]] + "\"]\n";
     }
+    this.kifuText = kifu;
+  },
+  
+  /**
+   * init Kifu
+   */
+  initKifu : function() {
+    this.kifu = [];
+    
+    var players = this.player;
+    var kifu = "version: 1.0\n";
+    kifu += "p0: \"" + players[0].user.name + "\"\n";
+    kifu += "p1: \"" + players[1].user.name + "\"\n";
+    kifu += "p2: \"" + players[2].user.name + "\"\n";
+    kifu += "p3: \"" + players[3].user.name + "\"\n";
+    kifu += "log:\n";
     this.kifuText = kifu;
   },
   

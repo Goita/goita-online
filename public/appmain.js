@@ -1094,7 +1094,7 @@ var saveKifu = function() {
   var blob = new Blob([ bom, content ], { "type" : "text/plain" });
 
   var date = new Date();
-  var filename = "goita_kifu_" + date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate() + "-" + date.getHours() + "-" + date.getMinutes() + "-" + date.getSeconds() + ".yaml";
+  var filename = "goita_kifu_" + date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate() + "-" + date.getHours() + "-" + date.getMinutes() + "-" + date.getSeconds() + ".yaml";
 
   if (window.navigator.msSaveBlob) { 
     window.navigator.msSaveBlob(blob, filename); 
