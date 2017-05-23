@@ -585,11 +585,15 @@ RoomInfo.prototype = {
     kifu += "   score: [" + point1.toString() + "," + point2.toString() +"]\n";
     kifu += "   game:\n";
     
+    // ラウンドの推移を記録する
     var numToStr = { "1":"し", "2":"香", "3":"馬", "4":"銀", "5":"金", "6":"角", "7":"飛", "8":"王", "9":"王" }
     for(var i=0; i<this.kifu.length; ++i) {
       step = this.kifu[i];
       kifu += "    - [\"" + step[0] + "\",\"" + numToStr[step[1]] + "\",\"" + numToStr[step[2]] + "\"]\n";
     }
+    // 記録が終わったのでリセットする
+    this.kifu = [];
+
     this.kifuText = kifu;
   },
   
