@@ -340,6 +340,8 @@ RoomInfo.prototype = {
       copy.player[i].tegoma = null; //hide secret info
       copy.player[i].openfield = null;
     }
+    // hide secret info
+    copy.kifu = [];
 
     return copy;
   },
