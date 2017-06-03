@@ -1,4 +1,5 @@
-node_modules/
-.c9/
-.c9/metadata/
-*.cmd
+node_modules
+coverage
+lib
+.vscode/chrome
+npm-debug.log.*

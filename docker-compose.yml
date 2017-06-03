@@ -1,0 +1,10 @@
+goita-online:
+  build: .
+  environment:
+    NODE_ENV: development
+  ports:
+    - "3000:3000"
+  volumes:
+    - .:/home/node/goita-online
+    - /home/node/goita-online/node_modules
+  command: yarn run debug

@@ -1,0 +1,8 @@
+# do not send to docker image
+.vscode
+.dockerignore
+Dockerfile
+docker-compose.yml
+.editorconfig
+*.log
+node_modules

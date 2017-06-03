@@ -1,29 +1,58 @@
 {
-  "name": "goita-online",
-  "version": "0.0.0",
-  "description": "goita-online server & web client",
-  "main": "server.js",
-  "dependencies": {
-    "express": "^3.20.2",
-    "socket.io": "^1.3.5",
-    "validator": "^3.16.0"
-  },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/pandalabo/goita-online.git"
-  },
-  "keywords": [
-    "goita"
-  ],
-  "author": "fuyu",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/pandalabo/goita-online/issues"
-  },
-  "homepage": "https://github.com/pandalabo/goita-online"
+    "name": "goita-online",
+    "version": "0.3.0",
+    "description": "goita-online server & web client",
+    "main": "lib/server.js",
+    "scripts": {
+        "start": "node lib/server.js",
+        "debug": "nodemon lib/server.js",
+        "build": "tsc && webpack",
+        "test": "karma start",
+        "test-watch": "karma start --no-single-run --auto-watch"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/Goita/goita-online.git"
+    },
+    "keywords": [
+        "goita"
+    ],
+    "author": "yoskeoka",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/Goita/goita-online/issues"
+    },
+    "homepage": "https://github.com/Goita/goita-online",
+    "dependencies": {
+        "@types/express": "^4.0.35",
+        "@types/socket.io": "^1.4.29",
+        "@types/validator": "^6.2.0",
+        "express": "^4.0.0",
+        "goita-core": "^0.1.10",
+        "socket.io": "^2.0.0",
+        "validator": "^7.0.0"
+    },
+    "devDependencies": {
+        "@types/jasmine": "^2.5.0",
+        "copy-webpack-plugin": "^4.0.1",
+        "istanbul-instrumenter-loader": "^2.0.0",
+        "jasmine-core": "^2.0.0",
+        "json-loader": "^0.5.4",
+        "karma": "^1.0.0",
+        "karma-chrome-launcher": "^2.0.0",
+        "karma-coverage": "^1.1.1",
+        "karma-jasmine": "^1.1.0",
+        "karma-spec-reporter": "^0.0.31",
+        "karma-webpack": "^2.0.0",
+        "nodemon": "^1.11.0",
+        "source-map-loader": "^0.2.0",
+        "transform-loader": "^0.2.4",
+        "ts-loader": "^2.0.0",
+        "tslib": "^1.0.0",
+        "tslint": "^5.0.0",
+        "tslint-loader": "^3.3.0",
+        "typescript": "^2.3.0",
+        "webpack": "^2.6.0",
+        "webpack-dev-server": "^2.0.0"
+    }
 }
