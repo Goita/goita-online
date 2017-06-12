@@ -1,5 +1,33 @@
+# Directories
 node_modules
 coverage
-lib
+dist
+pids
+logs
+results
+tmp
+lib-cov
+
+# Debugger for Chrome cache
 .vscode/chrome
-npm-debug.log.*
+
+# Files
+*debug.log.*
+*.log
+*.seed
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+*.swp
+
+# Build
+public/css/main.css
+
+# API keys and secrets
+.env
+
+# OS metadata
+.DS_Store
+Thumbs.db

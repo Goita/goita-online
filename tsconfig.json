@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "es6",
         "module": "commonjs",
-        "outDir": "./lib",
+        "outDir": "./dist",
         "moduleResolution": "node",
         "noImplicitAny": true,
         "declaration": true,
@@ -10,7 +10,14 @@
         "newLine": "LF",
         "preserveConstEnums": true,
         "removeComments": false,
-        "importHelpers": true
+        "importHelpers": true,
+        "baseUrl": ".",
+        "paths": {
+            "*": [
+                "node_modules/*",
+                "src/types/*"
+            ]
+        }
     },
     "include": [
         "src/**/*"

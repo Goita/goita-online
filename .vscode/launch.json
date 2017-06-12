@@ -1,10 +1,13 @@
 {
     "version": "0.2.0",
-    "configurations": [{
-            "name": "Launch",
+    "configurations": [
+
+        {
+            "name": "Launch Server",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/server.js",
+            "program": "${workspaceRoot}/dist/server.js",
+            "smartStep": true,
             "stopOnEntry": false,
             "args": [],
             "cwd": "${workspaceRoot}",
@@ -16,9 +19,11 @@
             "env": {
                 "NODE_ENV": "development"
             },
-            "externalConsole": false,
-            "sourceMaps": false,
-            "outDir": null
+            "console": "internalConsole",
+            "outFiles": [
+                "../dist/**/*.js"
+            ],
+            "protocol": "inspector"
         },
         {
             "name": "Attach",
@@ -27,8 +32,9 @@
             "port": 5858,
             "address": "localhost",
             "restart": false,
-            "sourceMaps": false,
-            "outDir": null,
+            "outFiles": [
+                "../dist/**/*.js"
+            ],
             "localRoot": "${workspaceRoot}",
             "remoteRoot": null
         }

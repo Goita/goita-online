@@ -1,4 +1,5 @@
 # goita-online
+ごいたのオンライン対戦サーバーと簡易HTMLクライアント
 
 # Install
 1. install node_modules.
@@ -7,7 +8,35 @@ cd goita-online
 npm install
 ```
 
-ごいたゲームのnode.js+HTMLクライアントのオンライン対戦
+
+
+# Run and Test
+
+dockerコマンドとdocker-composeコマンドを導入しておくこと。
+
+まずはDockerのビルド
+```sh
+docker-compose build
+```
+
+本番環境の起動
+```sh
+docker-compose -f docker-compose.prod.yml up
+```
+
+開発時環境の起動
+
+```sh
+yarn install
+yarn run build
+docker-compose up
+```
+NOTE: 開発時は高速化のため、ローカルの編集中ファイルと同期して起動する設定なので、ローカルでのパッケージインストールとビルドが必要
+
+テストの実行
+```sh
+docker-compose run --rm goita-online /bin/bash -c "yarn test"
+```
 
 # TODOs
 
@@ -222,6 +251,7 @@ kifu  ラウンド終了ごとに対戦の棋譜を通知（未実装）
 
 
 
-# Special Thanks
+# Acknowledgement
 http://en.soundeffect-lab.info
-cloudconvert.com
+https://cloudconvert.com/
+http://jdlm.info/articles/2016/03/06/lessons-building-node-app-docker.html

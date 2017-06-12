@@ -1,10 +1,10 @@
-FROM node:6.10.3
+FROM node:8.1.0
 
 MAINTAINER yoskeoka <yoske.oka@gmail.com>
 
 ENV HOME=/home/node
 
-COPY package.json yarn.lock $HOME/goita-online/
+COPY package.json yarn.lock .yarnclean $HOME/goita-online/
 RUN chown -R node:node $HOME/*
 
 # use user 'node'(UID:1000) which is created in node docker image
@@ -17,6 +17,6 @@ COPY . $HOME/goita-online/
 RUN chown -R node:node $HOME/*
 USER node
 
-RUN yarn run build
+RUN yarn build
 
-CMD ["node", "lib/server.js"]
+CMD ["node", "dist/server.js"]

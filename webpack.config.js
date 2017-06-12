@@ -1,38 +1,30 @@
 var CopyWebpackPlugin = require('copy-webpack-plugin');
+var webpack = require("webpack");
 var path = require('path');
 
 module.exports = {
     devServer: {
-        outputPath: path.join(__dirname, 'lib/public'),
+        outputPath: path.join(__dirname, 'dist/public'),
         port: 8080,
         colors: false
     },
     devtool: "source-map",
     entry: {
-        app: ['./src/public/app.ts']
+        app: ['./src/public/main.ts']
     },
     module: {
-        rules: [
-            // {
-            //     test: /\.json$/,
-            //     include: path.join(__dirname, 'node_modules', 'pixi.js'),
-            //     loader: 'json-loader',
-            // },
-            {
+        rules: [{
                 test: /\.ts$/,
-                loader: 'ts-loader'
+                loader: 'ts-loader',
+                options: {
+                    configFileName: 'tsconfig.webpack.json'
+                },
             },
             {
                 enforce: 'pre',
                 test: /\.ts$/,
                 loader: 'tslint-loader'
             },
-            // {
-            //     enforce: "post",
-            //     test: /\.js$/,
-            //     loader: 'transform-loader?brfs',
-            //     include: path.join(__dirname, 'node_modules', 'pixi.js'),
-            // },
             {
                 enforce: 'pre',
                 test: /\.(js|tsx?)$/,
@@ -41,14 +33,21 @@ module.exports = {
         ],
     },
     output: {
-        path: path.resolve(__dirname, 'lib/public'),
+        path: path.resolve(__dirname, 'dist/public'),
         filename: 'bundle.js'
     },
     externals: {
         "pixi.js": "PIXI"
     },
     plugins: [
-        new CopyWebpackPlugin([{ from: 'src/public' }])
+        new CopyWebpackPlugin([{
+            from: 'src/public',
+            ignore: ["*.ts", "*.scss"]
+        }]),
+        new webpack.ProvidePlugin({
+            $: "jquery",
+            jQuery: "jquery"
+        })
     ],
     resolve: {
         extensions: ['.ts', ".js"]
