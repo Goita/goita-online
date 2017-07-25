@@ -1,0 +1,252 @@
+# 仕様
+
+ごいたのゲーム進行はごいたライブラリの  
+
+[goita-core-js](https://github.com/Goita/goita-core-js)
+
+の仕様で進める。
+
+各プレイヤーにはクライアント用に自分以外を秘匿加工した`goita-core.ThinkingInfo`のJSONを送信する。  
+見学プレイヤーには全プレイヤー情報を秘匿加工した`goita-core.ThinkingInfo`のJSONを送信する。
+
+1プレイヤーから4プレイヤーまで。1プレイヤーと3プレイヤーが味方。2プレイヤーと4プレイヤーが味方。
+プレイヤー番号は1-4とするが、プログラム内部では0-3として値を管理する。  
+駒の割り当ては全てごいたライブラリに従い、以下となる。
+
+ 値 | 駒の種類 
+---------|----------
+ 0 | 空
+ 1 | し
+ 2 | 香
+ 3 | 馬
+ 4 | 銀
+ 5 | 金
+ 6 | 角
+ 7 | 飛
+ 8 | 王
+ 9 | 玉
+ x | 裏(不明)
+
+# 秘匿情報
+
+秘匿情報の扱いについて。
+
+ 内容 | 駒の種類 
+---------|----------
+ 手駒 | ゲーム参加プレイヤーは自身の手駒のみ参照可能。他のプレイヤーの手駒情報は参照不可。見学者は全ての手駒が参照不可。
+ 伏せ駒 | ゲーム参加プレイヤーは自身の伏せ駒のみ参照可能。他のプレイヤーの伏せ駒情報は参照不可。見学者は全ての伏せ駒が参照不可。
+ 手番 | 全てのプレイヤと見学者が参照可能。
+ 得点 | 全てのプレイヤーと見学者が参照可能。
+ 盤面履歴 | ゲーム参加者および、見学者全員が参照可能。ただし、伏せ駒の部分については、「伏せ駒」の秘匿の扱いに従う。
+ 
+
+# 実装方針
+絶対方針として、サーバーがすべての戦局判断をする。
+
+通信内容のキャプチャリングやブラウザのデバッグ機能によって不正が行えないように、各クライアントにはマスクした情報を渡す。
+
+# 機能
+
+## ロビー管理
+1. 全体チャットが可能
+2. 個別プレイヤーへのDMが可能
+3. ルーム作成機能
+
+## ルーム管理
+1. ゲーム設定をしてルームを作成
+2. ルームにパスワード設定
+3. ルームへ招待を送信
+4. ルーム作成者がルームマスターとなる。ルームマスターが抜けた場合、最も参加が古いプレイヤーが次のルームマスターとなる
+5. ルームマスターはゲーム設定を変更可能
+
+## ゲーム設定
+1. 持ち時間
+2. 秒読み
+3. レート下限・上限制限
+4. レート無し (ゲスト参加で自動的にレート無しになる)
+5. ゲストの参加禁止
+6. 6-8,5-5し無し
+7. 5し無し
+8. 手駒差解消 (選択するとレート無しになる)
+
+## 手駒差
+1. 各プレイヤーに配られた手駒の得点を合計する -> 手駒得点
+2. 最も高い手駒得点と最も低い手駒得点に２倍の差 -> 手駒差あり
+3. ただし、5し以上の役がある場合は手駒差を計算しない
+
+## 試合時間・持ち時間の設定  
+
+1. 思考時間に応じて持ち時間を減少する
+2. 持ち時間を使い切ると、以降は秒読み時間が減少する
+3. 秒読み時間は、次のプレイヤーに手番が移ると回復する
+4. 持ち時間が0になると、パス優先ランダムで手を選択する
+2. 5しの場合は、続行判断時も持ち時間を消費する
+
+持ち時間
+- 10分
+- 5分
+- 3分
+- 2分
+- 1分
+
+秒読み
+- 30秒
+- 20秒
+- 10秒
+- 5秒
+
+## 途中落ち
+- 持ち時間が残っている間は、他の参加者が座ることはできない
+- 持ち時間が0ならば、他の観戦プレイヤーが座って続きを打てる
+- 自分が最初に座っていた席にしか座れない
+- 誰も座っていない状態で手番が回ってきたら、その手番プレイヤーの思考時間として扱う (つまり持ち時間がなくなるとパス優先ランダム)
+
+## レーティング
+
+1300を初期レートとする
+
+調整目安
+階級 | 数値 | 表示色
+---------|----------|---------
+ 名人  | 2000〜 | 赤
+ 達人  | 1800〜 | オレンジ
+ 上級者 | 1600〜 | 紫
+ 中級者 | 1400〜 | 黄
+ 初級者 | 1200〜 | 緑
+ 初心者 | 1000〜 | シアン
+ 天邪鬼 |    0〜 | 白
+
+レート移動量計算時の期待勝率  
+- 0差   -> 50%勝利  
+- 100差 -> 60%勝利  
+- 200差 -> 70%勝利  
+- 300差 -> 80%勝利  
+- 400差 -> 90%勝利  
+- 500差 -> 95%勝利  
+
+レート移動基礎点 20
+
+**レート移動量**
+
+レート差 = (敗北ペアレート平均 - 勝利ペアレート平均)
+
+レート差補正値 = 1 + レート差 / 500
+
+レート移動量 = レート移動基礎点(20) * レート差補正値
+
+レート移動量を、敗北ペアにはマイナス値として適用、勝利ペアにはプラス値として適用する
+
+レート移動量をペアで等分配する
+
+最終レート移動量 = レート移動量 / 2
+
+ただし、最終レート移動量には以下の制限がかかる  
+レート移動最小値 1  
+レート移動最大値 20
+
+# ログイン
+- メールアドレスでの認証(非推奨)
+- Twitter
+- Facebook
+- Google+
+- Yahoo!JAPAN
+
+
+# WebSocket Messages
+
+A message event name will be `prefix message`.
+If the `prefix` is "robby" and the message is "info", the websocket message event name is `robby info`.
+
+## Sockect.io event
+prefix | message | description | direction
+---------|----------|---------|---------
+ | connection | socket.io connect event | -> server
+ | disconnect | socket.io disconnect event | -> server
+ | connect | connected to socket.io server | -> client
+ | error | error on connection to server | -> client
+
+## Server event
+prefix | message | description | direction
+---------|----------|---------|---------
+server | unauthorized | not logged in | -> client
+server | invalid action | server recieved an invalid message | -> client
+
+
+## Robby event
+
+prefix | message | description | direction
+---------|----------|---------|---------
+robby | req info | request robby information | -> server
+robby | info | robby information | -> client
+robby | user joined | a user joined to robby | -> client
+robby | user left | a user left robby | -> client
+robby | send msg | send a chat message in robby | -> server
+robby | recieve msg | recieve a chat message in robby | -> client
+
+## Room event
+prefix | message | description | direction
+---------|----------|---------|---------
+room | recieved invitation | an invitation to a room | -> client
+room | send invitation | send an invitation to the room | -> server
+room | join | request to join to the room | -> server
+room | leave | request to leave the room | -> server
+room | req info | request the room information | -> server
+room | joined | successed to join to the room | -> client
+room | failed to join | failure to join to the room | -> client
+room | info | the room information without table information | -> client
+room | user joined | a user joined to the room | -> client
+room | user left | a user left room | -> client
+room | send msg | send a chat message in the room | -> server
+room | recieve msg | recieved a chat message in the room | -> client
+room | change config | request to change the room config | -> server
+
+## Table event
+prefix | message | description | direction
+---------|----------|---------|---------
+table | player info | player sitting and ready info | -> client
+table | sit on | request to sit on the table | -> server
+table | stand up | request to stand up the table | -> server
+table | set ready | set the user ready to begin a game/round | -> server
+table | cancel ready | cancel the ready state | -> server
+table | swap seats | request to swap the players' seat | -> server
+
+** 各情報毎に分割して、変化した部分の情報のみ送信する。(通信量削減案)
+<!-- room user list
+room ready info
+room player info
+room field info
+game point info 
+game history info -->
+
+## Game event
+
+〈ゲーム進行〉
+◆To サーバー
+req game info   ゲーム状態情報を要求　※必要ないかもしれないけど、使うかはクライアント実装者に任せる
+play  駒を出す。ゲーム状況で自動的に出し方を判断させる。ゲーム終了処理まで行って結果を返す。
+pass    'なし
+
+goshi proceed 'ごしのまま続行
+goshi deal again '配りなおし
+
+** tsuigoshi '対５しが発生したことを通知
+** tsuigoshi checked '対５しが発生したことを確認して、配り直しOKを通知
+
+◆To クライアント
+game started    全員がreadyするとゲーム開始したことが通知される
+private game info ゲーム状態情報通知（各プレイヤーの秘匿情報を渡す。公開情報はとりあえずRoomInfoで渡す）
+error command   '無効なプレイを受け取ったときの通知
+game finished     規定点数に達した時に終了を通知
+played          プレイヤーの手を通知
+passed      パス
+req play    手番プレイヤーへの通知（処理しなくてもいい）
+time up     手番プレイヤーが時間切れ（ランダムで処理される）（未実装）
+round started   次ラウンド開始の通知（一定時間で次ラウンド強制開始もありかも）
+round finished  場の非公開情報もついでに送る。//ろくし、ななし、はちし、相ごし、対ごしを含む
+deal again 配りなおし
+goshi ごしの決断を求める（その他のプレイヤーにはgoshi waitを送る)
+goshi wait ごしの決断をしないその他のプレイヤーは判断を待つ
+kifu  ラウンド終了ごとに対戦の棋譜を通知（未実装）
+
+
+
