@@ -11,6 +11,12 @@
         ],
         "no-console": [
             false
+        ],
+        "interface-name": [
+            false
+        ],
+        "member-access": [
+            false
         ]
     }
 }

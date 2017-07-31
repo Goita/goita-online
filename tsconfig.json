@@ -14,13 +14,14 @@
         "baseUrl": ".",
         "paths": {
             "*": [
-                "node_modules/*",
-                "src/types/*"
+                "node_modules/@types/*",
+                "src/types/*",
+                "*"
             ]
         }
     },
     "include": [
-        "src/**/*"
+        "src/server/**/*"
     ],
     "exclude": [
         "node_modules",

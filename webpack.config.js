@@ -1,55 +1,45 @@
-var CopyWebpackPlugin = require('copy-webpack-plugin');
-var webpack = require("webpack");
-var path = require('path');
+var CopyWebpackPlugin = require("copy-webpack-plugin");
+// var commonsPlugin = new webpack.optimize.CommonsChunkPlugin("common.js");
+// var webpack = require("webpack");
+var path = require("path");
 
 module.exports = {
-    devServer: {
-        outputPath: path.join(__dirname, 'dist/public'),
-        port: 8080,
-        colors: false
+    entry: "./src/client/index.tsx",
+    output: {
+        path: path.resolve(__dirname, "dist/public"),
+        filename: "bundle.js"
     },
     devtool: "source-map",
-    entry: {
-        app: ['./src/public/main.ts']
+    resolve: {
+        extensions: [".ts", ".tsx", ".js", ".jsx"]
     },
     module: {
         rules: [{
-                test: /\.ts$/,
-                loader: 'ts-loader',
+                test: /\.tsx?$/,
+                loader: "awesome-typescript-loader",
                 options: {
-                    configFileName: 'tsconfig.webpack.json'
+                    configFileName: "tsconfig.webpack.json"
                 },
             },
             {
-                enforce: 'pre',
-                test: /\.ts$/,
-                loader: 'tslint-loader'
+                enforce: "pre",
+                test: /\.(ts|tsx)$/,
+                loader: "tslint-loader"
             },
             {
-                enforce: 'pre',
-                test: /\.(js|tsx?)$/,
+                enforce: "pre",
+                test: /\.js$/,
                 loader: "source-map-loader"
             }
         ],
     },
-    output: {
-        path: path.resolve(__dirname, 'dist/public'),
-        filename: 'bundle.js'
-    },
-    externals: {
-        "pixi.js": "PIXI"
-    },
+    // externals: {
+    //     "pixi.js": "PIXI"
+    // },
     plugins: [
         new CopyWebpackPlugin([{
-            from: 'src/public',
-            ignore: ["*.ts", "*.scss"]
-        }]),
-        new webpack.ProvidePlugin({
-            $: "jquery",
-            jQuery: "jquery"
-        })
-    ],
-    resolve: {
-        extensions: ['.ts', ".js"]
-    }
+            from: "src/public",
+            ignore: ["*.scss"]
+        }])
+    ]
 }

@@ -182,6 +182,7 @@ robby | user joined | a user joined to robby | -> client
 robby | user left | a user left robby | -> client
 robby | send msg | send a chat message in robby | -> server
 robby | recieve msg | recieve a chat message in robby | -> client
+robby | create room | create a new room | -> server
 
 ## Room event
 prefix | message | description | direction

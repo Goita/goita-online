@@ -9,12 +9,17 @@
         "preserveConstEnums": true,
         "removeComments": false,
         "importHelpers": true,
+        "jsx": "react",
         "baseUrl": ".",
         "paths": {
             "*": [
-                "node_modules/*",
-                "src/types/*"
+                "node_modules/@types/*",
+                "src/types/*",
+                "*"
             ]
         }
-    }
+    },
+    "include": [
+        "src/client/**/*"
+    ]
 }

@@ -1,4 +1,4 @@
-FROM node:8.1.0
+FROM node:8.1.3
 
 MAINTAINER yoskeoka <yoske.oka@gmail.com>
 
@@ -17,6 +17,6 @@ COPY . $HOME/goita-online/
 RUN chown -R node:node $HOME/*
 USER node
 
-RUN yarn build
+RUN yarn run build
 
 CMD ["node", "dist/server.js"]

@@ -16,5 +16,5 @@ goita-online:
     - mongodb
   volumes:
     - .:/home/node/goita-online
-    - /home/node/goita-online/node_modules
-  command: yarn watch # yarn docker-watch # for Node Sass binding error
+    #- /home/node/goita-online/node_modules
+  command: yarn run watch # yarn docker-watch # for Node Sass binding error
