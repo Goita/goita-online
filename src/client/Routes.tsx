@@ -1,22 +1,24 @@
 import * as React from "react";
 import { Switch } from "react-router";
 import { Link, Route } from "react-router-dom";
-import Robby from "./robby/Container";
+import App from "./App";
+import Home from "./Home";
+import GameContainer from "./GameContainer";
+import Login from "./login/Container";
 
 import NotFound from "./NotFound";
 
 export class Routes extends React.Component<{}, {}> {
     render() {
         return (
-            <div>
-                <h1>Tab</h1>
-                <li><Link to="/robby" >Robby</Link></li>
-                <li><Link to="/room" >Room</Link></li>
+            <App>
                 <Switch>
-                    <Route exact path="/robby" component={Robby} />
+                    <Route exact path="/" component={Home} />
+                    <Route path="/game" component={GameContainer} />
+                    <Route path="/login" component={Login} />
                     <Route component={NotFound} />
                 </Switch>
-            </div>
+            </App>
         );
     }
 }

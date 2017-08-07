@@ -1,35 +1,44 @@
 import * as Facebook from "passport-facebook";
-import { oAuthConfig } from "./oAuthConfig";
+
 // import * as Local from "passport-local";
 import { User } from "../models/User";
 // import * as store from "store";
-import * as passport from "passport";
+import * as p from "passport";
 
 const host = process.env.NODE_ENV !== "production" ? "localhost:3000" : "goita.net";
 
-export function SetupPassport(passport: passport.Passport) {
+export function SetupPassport(passport: p.Passport) {
+
+    passport.serializeUser<any, any>((user, done) => {
+        done(undefined, user.id);
+    });
+
+    passport.deserializeUser((id, done) => {
+        User.findById(id, (err, user) => {
+            done(err, user);
+        });
+    });
 
     // NOTE: to set up FB auth you need your own clientID, clientSecret and set up your callbackURL.  This can all be done at https://developers.facebook.com/
     passport.use(new Facebook.Strategy({
-        clientID: oAuthConfig.facebook.clientID,
-        clientSecret: oAuthConfig.facebook.clientSecret,
-        callbackURL: "http://" + host + "/api/auth/facebook/callback",
+        clientID: process.env.FACEBOOK_ID,
+        clientSecret: process.env.FACEBOOK_SECRET,
+        callbackURL: "http://" + host + "/auth/facebook/callback",
+        profileFields: ["id", "displayName", "photos", "email"],
     },
         (accessToken, refreshToken, profile, done) => {
-            // store.set("username", profile.displayName);
-
-            User.findOne({ "facebook.id": profile.id }, (err, user) => {
+            const id = "fb@" + profile.id;
+            User.findOne({ userid: id }, (err, user) => {
                 if (err) { console.log(err); }
                 if (!err && user !== null) {
                     done(null, user);
                 } else {
-                    const newUser = new User({ "facebook.id": profile.id, "facebook.username": profile.displayName });
-                    // tslint:disable-next-line:no-shadowed-variable
-                    newUser.save((err, user) => {
-                        if (err) {
-                            console.log(err);
+                    const newUser = new User({ userid: id, authtype: "facebook", username: profile.displayName, email: profile.emails[0].value, photos: profile.photos[0].value });
+                    newUser.save((e, u) => {
+                        if (e) {
+                            console.log(e);
                         } else {
-                            done(null, user);
+                            done(null, u);
                         }
                     });
                 }

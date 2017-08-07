@@ -1,20 +1,26 @@
-mongodb:
-  image: mongo
-  ports:
-    - 27017:27017
-  volumes:
-    - db_data:/data/db
-goita-online:
-  build: .
-  environment:
-    NODE_ENV: development
-    PORT: 3000
-    MONGODB_URI: mongodb://mongodb:27017/test
-  ports:
-    - 3000:3000
-  links:
-    - mongodb
-  volumes:
-    - .:/home/node/goita-online
-    #- /home/node/goita-online/node_modules
-  command: yarn run watch # yarn docker-watch # for Node Sass binding error
+version: "2"
+
+services:
+  mongodb:
+    image: mongo:3.4.6
+    command: -smallfiles -nojournal
+    ports:
+      - 27017:27017
+    volumes:
+      - ./db_mongo:/data/db
+  goita-online:
+    build: .
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      MONGODB_URI: mongodb://mongodb:27017/test
+    ports:
+      - 3000:3000
+      - 9229:9229
+    links:
+      - mongodb
+    volumes:
+      - .:/home/node/goita-online
+      - ./db_mongo:/home/node/goita-online/db_mongo
+      #- /home/node/goita-online/node_modules
+    command: yarn run watch # yarn docker-watch # for Node Sass binding error

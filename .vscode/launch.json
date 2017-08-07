@@ -1,42 +1,16 @@
 {
     "version": "0.2.0",
-    "configurations": [
-
-        {
-            "name": "Launch Server",
-            "type": "node",
-            "request": "launch",
-            "program": "${workspaceRoot}/dist/server.js",
-            "smartStep": true,
-            "stopOnEntry": false,
-            "args": [],
-            "cwd": "${workspaceRoot}",
-            "preLaunchTask": null,
-            "runtimeExecutable": null,
-            "runtimeArgs": [
-                "--nolazy"
-            ],
-            "env": {
-                "NODE_ENV": "development"
-            },
-            "console": "internalConsole",
-            "outFiles": [
-                "../dist/**/*.js"
-            ],
-            "protocol": "inspector"
-        },
-        {
-            "name": "Attach",
-            "type": "node",
-            "request": "attach",
-            "port": 5858,
-            "address": "localhost",
-            "restart": false,
-            "outFiles": [
-                "../dist/**/*.js"
-            ],
-            "localRoot": "${workspaceRoot}",
-            "remoteRoot": null
-        }
-    ]
+    "configurations": [{
+        "name": "Attach to Server",
+        "type": "node",
+        "request": "attach",
+        "port": 9229,
+        "address": "localhost",
+        "protocol": "inspector",
+        "localRoot": "${workspaceRoot}",
+        "remoteRoot": "/home/node/goita-online",
+        "outFiles": [
+            "../dist/server.js"
+        ]
+    }]
 }

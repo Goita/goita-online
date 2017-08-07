@@ -2,19 +2,16 @@ import * as bcrypt from "bcrypt-nodejs";
 import * as mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
+    userid: { type: String, unique: true, index: true },
     authtype: String,
-    local: {
-        username: { type: String, unique: true },
-        password: String,
-        email: String,
-    },
-    facebook: {
-        id: String,
-        username: String,
-        token: String,
-        email: String,
-    },
-});
+    password: String,
+    username: String,
+    email: String,
+    photos: String,
+    token: String,
+}, {
+        collection: "users",
+    });
 
 UserSchema.methods.generateHash = (password: string) => {
     return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);

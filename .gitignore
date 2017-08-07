@@ -21,13 +21,22 @@ lib-cov
 *.pid
 *.gz
 *.swp
+core
 
 # Build
 public/css/main.css
 
 # API keys and secrets
 .env
+.env.dev
 
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# protect secret keys
+oAuthConfig.dev.ts
+
+# db data
+db_mongo/*.*
+WiredTiger
