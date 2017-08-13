@@ -63,11 +63,10 @@
 1. 持ち時間
 2. 秒読み
 3. レート下限・上限制限
-4. レート無し (ゲスト参加で自動的にレート無しになる)
-5. ゲストの参加禁止
-6. 6-8,5-5し無し
-7. 5し無し
-8. 手駒差解消 (選択するとレート無しになる)
+4. レート無し
+5. 6-8,5-5し無し
+6. 5し無し
+7. 手駒差解消 (選択するとレート無しになる) <※実装見送り>
 
 ## 手駒差
 1. 各プレイヤーに配られた手駒の得点を合計する -> 手駒得点
@@ -77,10 +76,10 @@
 ## 試合時間・持ち時間の設定  
 
 1. 思考時間に応じて持ち時間を減少する
-2. 持ち時間を使い切ると、以降は秒読み時間が減少する
+2. 持ち時間を使い切ると、以降は秒読み時間が減少する (秒読みルール)
 3. 秒読み時間は、次のプレイヤーに手番が移ると回復する
 4. 持ち時間が0になると、パス優先ランダムで手を選択する
-2. 5しの場合は、続行判断時も持ち時間を消費する
+5. 5しの場合は、続行判断時も持ち時間を消費する(時間切れは配り直し)
 
 持ち時間
 - 10分
@@ -154,38 +153,42 @@
 
 # WebSocket Messages
 
-A message event name will be `prefix message`.
-If the `prefix` is "robby" and the message is "info", the websocket message event name is `robby info`.
+A message event name will be `event` in `io.of("/namespace")`.
 
 ## Sockect.io event
-prefix | message | description | direction
+namespace | event | description | direction
 ---------|----------|---------|---------
  | connection | socket.io connect event | -> server
  | disconnect | socket.io disconnect event | -> server
  | connect | connected to socket.io server | -> client
  | error | error on connection to server | -> client
 
-## Server event
-prefix | message | description | direction
+## Server message
+namespace | event | description | direction
 ---------|----------|---------|---------
-server | unauthorized | not logged in | -> client
-server | invalid action | server recieved an invalid message | -> client
+ | unauthorized | not logged in | -> client
+ | invalid action | server recieved an invalid message | -> client
 
 
-## Robby event
+## Lobby message
 
-prefix | message | description | direction
+namespace | event | description | direction
 ---------|----------|---------|---------
-robby | req info | request robby information | -> server
-robby | info | robby information | -> client
-robby | user joined | a user joined to robby | -> client
-robby | user left | a user left robby | -> client
-robby | send msg | send a chat message in robby | -> server
-robby | recieve msg | recieve a chat message in robby | -> client
-robby | create room | create a new room | -> server
+lobby | req info | request lobby information | -> server
+lobby | info | lobby information | -> client
+lobby | user joined | a user joined to lobby | -> client
+lobby | user left | a user left lobby | -> client
+lobby | send msg | send a chat message in lobby | -> server
+lobby | recieve msg | recieve a chat message in lobby | -> client
+lobby | new room | create a new room | -> server
+lobby | room created | done creating a room | -> client
+lobby | room removed | done creating a room | -> client
+lobby | move to room | request to move to a room | -> client
+lobby | unauthorized | not logged in | -> client
+lobby | invalid action | invalid lobby action | -> client 
 
-## Room event
-prefix | message | description | direction
+## Room message
+namespace | message | description | direction
 ---------|----------|---------|---------
 room | recieved invitation | an invitation to a room | -> client
 room | send invitation | send an invitation to the room | -> server
@@ -201,15 +204,15 @@ room | send msg | send a chat message in the room | -> server
 room | recieve msg | recieved a chat message in the room | -> client
 room | change config | request to change the room config | -> server
 
-## Table event
-prefix | message | description | direction
+## Table message
+namespace | message | description | direction
 ---------|----------|---------|---------
-table | player info | player sitting and ready info | -> client
-table | sit on | request to sit on the table | -> server
-table | stand up | request to stand up the table | -> server
-table | set ready | set the user ready to begin a game/round | -> server
-table | cancel ready | cancel the ready state | -> server
-table | swap seats | request to swap the players' seat | -> server
+room | player info | player sitting and ready info | -> client
+room | sit on | request to sit on the table | -> server
+room | stand up | request to stand up the table | -> server
+room | set ready | set the user ready to begin a game/round | -> server
+room | cancel ready | cancel the ready state | -> server
+room | swap seats | request to swap the players' seat | -> server
 
 ** 各情報毎に分割して、変化した部分の情報のみ送信する。(通信量削減案)
 <!-- room user list

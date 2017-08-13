@@ -17,6 +17,7 @@
         ],
         "member-access": [
             false
-        ]
+        ],
+        "max-classes-per-file": [false]
     }
 }

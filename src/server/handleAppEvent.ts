@@ -1,5 +1,5 @@
 import * as SocketIO from "socket.io";
-export default function handleWsEvent(io: SocketIO.Server) {
+export default function handleAppEvent(io: SocketIO.Server) {
     io.on("connection", (socket: SocketIO.Socket) => {
         if (!socket.request.user || !socket.request.user.logged_in) {
             console.log("not authorized access");

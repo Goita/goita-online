@@ -18,6 +18,9 @@ import expressValidator = require("express-validator");
 import nochace = require("nocache");
 import * as SocketIo from "socket.io";
 
+import Lobby from "./lobby";
+const lobby = new Lobby();
+
 const MongoStore = mongo(session);
 
 /**
@@ -91,6 +94,7 @@ app.get("/auth/facebook/callback", passport.authenticate("facebook", { failureRe
     res.redirect(rd);
 });
 
+/** just check http status code (OK:200 / BAD:401)  */
 app.get("/auth/check", (req, res) => {
     if (req.isAuthenticated()) {
         res.contentType("application/json")
@@ -104,6 +108,8 @@ app.get("/logout", (req, res) => {
     req.logout();
     res.redirect("/login");
 });
+import * as apiController from "./controllers/api";
+app.get("/api/user/:id", apiController.getUser);
 
 /**
  * React-Router parses undefined path
@@ -138,6 +144,7 @@ io.use(passportSocketIo.authorize({
     store: sessionStore,
     success: (data, accept) => {
         console.log("successful connection to socket.io");
+        console.log(data.user.userid);
         accept(null, true);
     },
     fail: (data, message, error, accept) => {
@@ -149,5 +156,7 @@ io.use(passportSocketIo.authorize({
     },
 }));
 
-import handleWsEvent from "./wsEventHandler";
-handleWsEvent(io);
+import handleAppEvent from "./handleAppEvent";
+handleAppEvent(io);
+
+lobby.handleLobbyEvent(io);

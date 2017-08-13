@@ -52,21 +52,18 @@ http://jxck.hatenablog.com/entry/20110730/1312042603
 http://hrsh7th.hatenablog.com/entry/20120810/1344630748
 
 チャットルームサンプル
-http://www.sitepoint.com/chat-application-using-socket-io/
+https://github.com/raineroviir/react-redux-socketio-chat
 
 ゲームサンプル
 http://wise9.jp/archives/3930
 
-HTML5 Canvasの入力処理
-http://www.ibm.com/developerworks/jp/web/library/wa-games/
-
 Twitter認証したくなったら、Socket.io-Express3.x-session
-https://gist.github.com/pxsta/3931831
+http://qiita.com/noenoe/items/04cc16b6835d349374f9
 http://jxck.hatenablog.com/entry/20110809/1312847290
 書籍「サーバサイドJavaScript　Node.js入門」
 http://creator.cotapon.org/articles/node-js/node_js-oauth-twitter
 
-
+https://www.codementor.io/tips/0217388244/sharing-passport-js-sessions-with-both-express-and-socket-io
 
 # Acknowledgement
 http://en.soundeffect-lab.info

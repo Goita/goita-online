@@ -1,6 +1,6 @@
 import * as Facebook from "passport-facebook";
-
 // import * as Local from "passport-local";
+
 import { User } from "../models/User";
 // import * as store from "store";
 import * as p from "passport";
@@ -27,13 +27,13 @@ export function SetupPassport(passport: p.Passport) {
         profileFields: ["id", "displayName", "photos", "email"],
     },
         (accessToken, refreshToken, profile, done) => {
-            const id = "fb@" + profile.id;
+            const id = "fb" + profile.id;
             User.findOne({ userid: id }, (err, user) => {
                 if (err) { console.log(err); }
                 if (!err && user !== null) {
                     done(null, user);
                 } else {
-                    const newUser = new User({ userid: id, authtype: "facebook", username: profile.displayName, email: profile.emails[0].value, photos: profile.photos[0].value });
+                    const newUser = new User({ userid: id, authtype: "facebook", name: profile.displayName, email: profile.emails[0].value, icon: profile.photos[0].value });
                     newUser.save((e, u) => {
                         if (e) {
                             console.log(e);

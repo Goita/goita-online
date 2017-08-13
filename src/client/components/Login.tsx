@@ -1,18 +1,15 @@
 import * as React from "react";
-import { LoginState } from "./module";
-import { ActionDispatcher } from "./Container";
+import { RouteComponentProps } from "react-router";
 
-interface Props {
-    value: LoginState;
-    actions: ActionDispatcher;
+interface LoginProps extends RouteComponentProps<any> {
+    isAuthenticated: boolean;
 }
-
-export class Login extends React.Component<Props, {}> {
+export default class Login extends React.Component<LoginProps, {}> {
 
     public render() {
         return (
             <div>
-                {this.props.value.isAuthenticated
+                {this.props.isAuthenticated
                     ?
                     <p>You're already logged in.</p>
                     :
@@ -20,7 +17,6 @@ export class Login extends React.Component<Props, {}> {
                         Login With Facebook
                     </a>
                 }
-
             </div>
         );
     }
