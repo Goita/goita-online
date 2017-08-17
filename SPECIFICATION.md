@@ -166,6 +166,7 @@ namespace | event | description | direction
 ## Server message
 namespace | event | description | direction
 ---------|----------|---------|---------
+ | login info | login information | -> client
  | unauthorized | not logged in | -> client
  | invalid action | server recieved an invalid message | -> client
 

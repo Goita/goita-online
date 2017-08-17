@@ -1,7 +1,7 @@
 import { App } from "./App";
 import { connect, MapDispatchToPropsParam, MapStateToPropsParam } from "react-redux";
 import { Dispatch } from "redux";
-import { AppState, requestLogin } from "./module";
+import { AppState, LoginInfo, requestLogin, loginSuccess, updateLoginInfo } from "./module";
 import { ReduxAction, ReduxState } from "../store";
 import { RouteComponentProps } from "react-router";
 
@@ -16,6 +16,14 @@ export class ActionDispatcher {
 
     public requestLogin(): void {
         this.dispatch(requestLogin());
+    }
+
+    public loginSuccessed(): void {
+        this.dispatch(loginSuccess());
+    }
+
+    public updateLoginInfo(info: LoginInfo): void {
+        this.dispatch(updateLoginInfo(info));
     }
 }
 

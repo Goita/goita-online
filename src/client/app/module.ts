@@ -1,8 +1,9 @@
 import { Action } from "redux";
 
 enum ActionNames {
-    LOGIN_REQUEST = "app/login/request",
-    LOGIN_SUCCESS = "app/login/success",
+    LOGIN_REQUEST = "LOGIN_REQUEST",
+    LOGIN_SUCCESS = "LOGIN_SUCCESS",
+    UPDATE_LOGIN_INFO = "UPDATE_LOGIN_INFO",
 }
 
 interface RequestLoginAction extends Action {
@@ -14,26 +15,42 @@ export const requestLogin = (): RequestLoginAction => ({
     type: ActionNames.LOGIN_REQUEST,
 });
 
-interface RecieveLoginAction extends Action {
+interface LoginSuccessAction extends Action {
     type: ActionNames.LOGIN_SUCCESS;
 }
 
-export const login = (): RecieveLoginAction => ({
+export const loginSuccess = (): LoginSuccessAction => ({
     type: ActionNames.LOGIN_SUCCESS,
 });
+
+interface UpdateLoginInfoAction extends Action {
+    type: ActionNames.UPDATE_LOGIN_INFO;
+    info: LoginInfo;
+}
+
+export const updateLoginInfo = (info: LoginInfo): UpdateLoginInfoAction => ({
+    type: ActionNames.UPDATE_LOGIN_INFO,
+    info,
+});
+
+export interface LoginInfo {
+    id: string;
+    name: string;
+    icon: string;
+}
 
 export interface AppState {
     isAuthenticated: boolean;
     isFetching: boolean;
-    socket: SocketIOClient.Socket;
+    loginInfo: LoginInfo;
 }
 
-export type AppActions = RecieveLoginAction | RequestLoginAction;
+export type AppActions = LoginSuccessAction | RequestLoginAction | UpdateLoginInfoAction;
 
 const initialState: AppState = {
     isAuthenticated: false,
     isFetching: false,
-    socket: null,
+    loginInfo: { id: null, name: null, icon: null },
 };
 
 export default function reducer(state: AppState = initialState, action: AppActions): AppState {
@@ -43,6 +60,8 @@ export default function reducer(state: AppState = initialState, action: AppActio
         case ActionNames.LOGIN_SUCCESS:
             console.log("login successed");
             return { ...state, isFetching: false, isAuthenticated: true };
+        case ActionNames.UPDATE_LOGIN_INFO:
+            return { ...state, loginInfo: action.info };
         default:
             return state;
     }

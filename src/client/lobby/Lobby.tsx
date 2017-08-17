@@ -1,6 +1,6 @@
 import * as React from "react";
 import { AppState } from "../app/module";
-import { LobbyState } from "./module";
+import { LobbyState, Room, User, ChatMessage } from "./module";
 import { ActionDispatcher } from "./Container";
 
 import * as io from "socket.io-client";
@@ -19,14 +19,22 @@ export class Lobby extends React.Component<Props, State> {
     componentDidMount() {
         this.socket = io.connect("/lobby");
         const socket = this.socket;
-        socket.on("welcome", (msg: string) => {
-            console.log(msg);
+        socket.on("info", (info: { rooms: { [key: number]: Room }, users: { [key: string]: User } }) => {
+            const users = [] as User[];
+            for (const key of Object.keys(info.users)) {
+                users.push(info.users[key]);
+            }
+            const rooms = [] as Room[];
+            for (const key of Object.keys(info.rooms)) {
+                rooms.push(info.rooms[Number(key)]);
+            }
+            this.props.actions.updateInfo({ users, rooms });
         });
         socket.on("unauthorized", (msg: string) => {
             console.log(msg);
             location.href = "/login";
         });
-        socket.on("recieve msg", (msg) => {
+        socket.on("recieve msg", (msg: ChatMessage) => {
             this.props.actions.reciveMessage(msg);
         });
     }
@@ -42,7 +50,7 @@ export class Lobby extends React.Component<Props, State> {
 
     public render() {
         const rooms = this.props.value.rooms.map((r) => <div>room #{r.no}</div>);
-        const list = this.props.value.users.map((u, i) => <div key={u.id}>no.{i} name: {u}</div>);
+        const list = this.props.value.users.map((u, i) => <div key={u.id}>no.{i} name: {u.name}</div>);
         const messages = this.props.value.messages.map((m) => <div key={m.id}>{m.user}: {m.text}</div>);
         return (
             <div>

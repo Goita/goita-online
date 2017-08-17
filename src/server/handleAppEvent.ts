@@ -6,6 +6,7 @@ export default function handleAppEvent(io: SocketIO.Server) {
             socket.emit("unauthorized", "Not logged in");
             return;
         }
-        socket.emit("welcome", "welcome to chat server");
+        const user = socket.request.user;
+        socket.emit("login info", { id: user.userid, name: user.name, icon: user.icon });
     });
 }
