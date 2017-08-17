@@ -1,7 +1,9 @@
 import * as Facebook from "passport-facebook";
+import * as Google from "passport-google-oauth";
+import * as Twitter from "passport-twitter";
 // import * as Local from "passport-local";
 
-import { User } from "../models/User";
+import { User, UserModel } from "../models/User";
 // import * as store from "store";
 import * as p from "passport";
 
@@ -27,22 +29,48 @@ export function SetupPassport(passport: p.Passport) {
         profileFields: ["id", "displayName", "photos", "email"],
     },
         (accessToken, refreshToken, profile, done) => {
-            const id = "fb" + profile.id;
-            User.findOne({ userid: id }, (err, user) => {
-                if (err) { console.log(err); }
-                if (!err && user !== null) {
-                    done(null, user);
-                } else {
-                    const newUser = new User({ userid: id, authtype: "facebook", name: profile.displayName, email: profile.emails[0].value, icon: profile.photos[0].value });
-                    newUser.save((e, u) => {
-                        if (e) {
-                            console.log(e);
-                        } else {
-                            done(null, u);
-                        }
-                    });
-                }
-            });
+            findAndUpdateUser("fb", "facebook", profile, done);
         },
     ));
+
+    passport.use(new Google.OAuth2Strategy({
+        clientID: process.env.GOOGLE_ID,
+        clientSecret: process.env.GOOGLE_SECRET,
+        callbackURL: "http://" + host + "/auth/google/callback",
+    }, (accessToken, refreshToken, profile, done) => {
+        findAndUpdateUser("gl", "google", profile, done);
+    }));
+
+    passport.use(new Twitter.Strategy({
+        consumerKey: process.env.TWITTER_KEY,
+        consumerSecret: process.env.TWITTER_SECRET,
+        callbackURL: "http://" + host + "/auth/twitter/callback",
+    }, (token, tokenSecret, profile, done) => {
+        findAndUpdateUser("tw", "twitter", profile, done);
+    }));
+}
+
+function findAndUpdateUser(idPrefix: string, authtype: string, profile: p.Profile, done: (error: any, user?: any, info?: any) => void): void {
+    const id = idPrefix + profile.id;
+    const name = profile.displayName;
+    const email = profile.emails ? profile.emails[0].value : ""; // twitter doesn't provide emails
+    const icon = profile.photos[0].value;
+
+    User.findOneAndUpdate(
+        { userid: id },
+        {
+            $set: {
+                id, name, email, icon,
+            },
+        },
+        { upsert: true },
+        (err, user) => {
+            if (err) { console.log(err); }
+            if (!err && user !== null) {
+                done(null, user);
+            } else {
+                console.log("Failed to update user information from auth");
+            }
+        },
+    );
 }

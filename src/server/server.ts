@@ -90,14 +90,25 @@ app.use("/", express.static(path.join(__dirname, "public"), { maxAge: 3155760000
 app.get("/auth/facebook", passport.authenticate("facebook", { scope: ["email", "public_profile"] }));
 app.get("/auth/facebook/callback", passport.authenticate("facebook", { failureRedirect: "/login" }), (req, res) => {
     const rd = req.session.returnTo || "/";
-    console.log("REDIRECT TO: " + rd);
+    res.redirect(rd);
+});
+
+app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), (req, res) => {
+    const rd = req.session.returnTo || "/";
+    res.redirect(rd);
+});
+
+app.get("/auth/twitter", passport.authenticate("twitter"));
+app.get("/auth/twitter/callback", passport.authenticate("twitter", { failureRedirect: "/login" }), (req, res) => {
+    const rd = req.session.returnTo || "/";
     res.redirect(rd);
 });
 
 /** just check http status code (OK:200 / BAD:401)  */
 app.get("/auth/check", (req, res) => {
     if (req.isAuthenticated()) {
-        res.contentType("application/json")
+        res.status(200).contentType("application/json")
             .json("you are authenticated!!");
     } else {
         res.status(401).json("not authenticated..."); // authentication fail
