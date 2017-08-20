@@ -1,5 +1,7 @@
 import * as React from "react";
 import { RouteComponentProps } from "react-router";
+import RaisedButton from "material-ui/RaisedButton";
+import FontIcon from "material-ui/FontIcon";
 
 interface LoginProps extends RouteComponentProps<any> {
     isAuthenticated: boolean;
@@ -39,16 +41,25 @@ export default class Login extends React.Component<LoginProps, LoginState> {
     public notLoginRender() {
         return (
             <div>
-                <a href="/auth/twitter">
-                    Login With Twitter
-                </a>
-                <a href="/auth/facebook">
-                    Login With Facebook
-                </a>
-                <a href="/auth/google">
-                    Login With Google+
-                </a>
-            </div>
+                <RaisedButton
+                    href="/auth/twitter"
+                    target="_blank"
+                    label="Twitterでログイン"
+                    primary={true}
+                    style={{ margin: 12 }}
+                    icon={<FontIcon className="muidocs-icon-custom-github" />}
+                />
+                <div>
+                    <a href="/auth/facebook">
+                        Login With Facebook
+                    </a>
+                </div>
+                <div>
+                    <a href="/auth/google">
+                        Login With Google+
+                    </a>
+                </div>
+            </div >
         );
     }
 
