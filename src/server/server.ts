@@ -64,7 +64,7 @@ const sessionStore = new MongoStore({
     autoReconnect: true,
 });
 app.use(session({
-    // key: "connect.sid",
+    name: "session.sid",
     resave: true,
     saveUninitialized: true,
     secret: process.env.SESSION_SECRET,
@@ -154,7 +154,7 @@ import * as cookieParser from "cookie-parser";
 io.use(passportSocketIo.authorize({
     passport,
     cookieParser,
-    key: "connect.sid",
+    key: "session.sid", // should be same as session options name
     secret: process.env.SESSION_SECRET,
     store: sessionStore,
     success: (data, accept) => {
