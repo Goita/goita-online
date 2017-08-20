@@ -3,6 +3,8 @@ import { RouteComponentProps } from "react-router";
 import RaisedButton from "material-ui/RaisedButton";
 import FontIcon from "material-ui/FontIcon";
 
+import "./Login.css";
+
 interface LoginProps extends RouteComponentProps<any> {
     isAuthenticated: boolean;
 }
@@ -45,20 +47,32 @@ export default class Login extends React.Component<LoginProps, LoginState> {
                     href="/auth/twitter"
                     target="_blank"
                     label="Twitterでログイン"
-                    primary={true}
+                    backgroundColor="#1ab7ea"
+                    labelColor="#FFFFFF"
+                    labelStyle={{ textTransform: "none" }}
                     style={{ margin: 12 }}
-                    icon={<FontIcon className="muidocs-icon-custom-github" />}
+                    icon={<FontIcon className="fa fa-twitter" />}
                 />
-                <div>
-                    <a href="/auth/facebook">
-                        Login With Facebook
-                    </a>
-                </div>
-                <div>
-                    <a href="/auth/google">
-                        Login With Google+
-                    </a>
-                </div>
+                <RaisedButton
+                    href="/auth/facebook"
+                    target="_blank"
+                    label="Facebookでログイン"
+                    backgroundColor="#3b5998"
+                    labelColor="#FFFFFF"
+                    labelStyle={{ textTransform: "none" }}
+                    style={{ margin: 12 }}
+                    icon={<FontIcon className="fa fa-facebook" />}
+                />
+                <RaisedButton
+                    href="/auth/google"
+                    target="_blank"
+                    label="Google+でログイン"
+                    backgroundColor="#dd4b39"
+                    labelColor="#FFFFFF"
+                    labelStyle={{ textTransform: "none" }}
+                    style={{ margin: 12 }}
+                    icon={<FontIcon className="fa fa-google-plus" />}
+                />
             </div >
         );
     }

@@ -11,7 +11,7 @@ module.exports = {
     },
     devtool: "source-map",
     resolve: {
-        extensions: [".ts", ".tsx", ".js", ".jsx"]
+        extensions: [".ts", ".tsx", ".js", ".jsx", ".css"]
     },
     module: {
         rules: [{
@@ -20,6 +20,13 @@ module.exports = {
                 options: {
                     configFileName: "tsconfig.webpack.json"
                 },
+            },
+            {
+                test: /\.css$/,
+                loaders: ["style-loader", "css-loader?modules&importLoaders=1&localIdentName=[path]___[name]__[local]___[hash:base64:5],typed-css-modules-loader"]
+                // test: /\.css$/,
+                // include: /node_modules/,
+                // loaders: ['style-loader', 'css-loader'],
             },
             {
                 enforce: "pre",
