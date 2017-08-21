@@ -3,7 +3,7 @@ import { RouteComponentProps } from "react-router";
 import RaisedButton from "material-ui/RaisedButton";
 import FontIcon from "material-ui/FontIcon";
 
-import "./Login.css";
+import * as styles from "./Login.css";
 
 interface LoginProps extends RouteComponentProps<any> {
     isAuthenticated: boolean;
@@ -43,6 +43,7 @@ export default class Login extends React.Component<LoginProps, LoginState> {
     public notLoginRender() {
         return (
             <div>
+                <h1 className={styles.title} > ログイン方法を選択してください</h1>
                 <RaisedButton
                     href="/auth/twitter"
                     target="_blank"
@@ -50,7 +51,7 @@ export default class Login extends React.Component<LoginProps, LoginState> {
                     backgroundColor="#1ab7ea"
                     labelColor="#FFFFFF"
                     labelStyle={{ textTransform: "none" }}
-                    style={{ margin: 12 }}
+                    className={styles.snsBtn}
                     icon={<FontIcon className="fa fa-twitter" />}
                 />
                 <RaisedButton
@@ -60,7 +61,7 @@ export default class Login extends React.Component<LoginProps, LoginState> {
                     backgroundColor="#3b5998"
                     labelColor="#FFFFFF"
                     labelStyle={{ textTransform: "none" }}
-                    style={{ margin: 12 }}
+                    className={styles.snsBtn}
                     icon={<FontIcon className="fa fa-facebook" />}
                 />
                 <RaisedButton
@@ -70,7 +71,7 @@ export default class Login extends React.Component<LoginProps, LoginState> {
                     backgroundColor="#dd4b39"
                     labelColor="#FFFFFF"
                     labelStyle={{ textTransform: "none" }}
-                    style={{ margin: 12 }}
+                    className={styles.snsBtn}
                     icon={<FontIcon className="fa fa-google-plus" />}
                 />
             </div >

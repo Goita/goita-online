@@ -1,4 +1,4 @@
-FROM node:8.1.3
+FROM node:8.4.0
 
 MAINTAINER yoskeoka <yoske.oka@gmail.com>
 

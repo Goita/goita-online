@@ -16,6 +16,12 @@ interface State {
 
 export class Lobby extends React.Component<Props, State> {
     socket: SocketIOClient.Socket;
+
+    constructor() {
+        super();
+        this.state = { msg: "" };
+    }
+
     componentDidMount() {
         this.socket = io.connect("/lobby");
         const socket = this.socket;
@@ -39,12 +45,18 @@ export class Lobby extends React.Component<Props, State> {
         });
     }
 
-    public handleClickSend = () => {
-        const msg = this.state.msg;
-        this.socket.emit("send msg", msg);
+    public handleSend = () => {
+        this.socket.emit("send msg", this.state.msg);
+        this.setState({ msg: "" });
+        const input = this.refs.chatMessage as HTMLInputElement;
+        input.value = "";
     }
 
-    public handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    public handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") { this.handleSend(); }
+    }
+
+    public handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({ msg: e.target.value });
     }
 
@@ -63,8 +75,9 @@ export class Lobby extends React.Component<Props, State> {
                 <div>{messages}</div>
                 <hr />
                 <div className="input-pane">
-                    <textarea id="lobby-chat-msg" cols={30} rows={10} placeholder="input message here..." onChange={this.handleMessageChange}></textarea>
-                    <button onClick={this.handleClickSend}>SEND</button>
+                    <input type="text" ref="chatMessage" placeholder="メッセージを入力してください..." size={30}
+                        onChange={this.handleMessageChange} onKeyDown={this.handleEnter} />
+                    <button onClick={this.handleSend}>送信</button>
                 </div>
             </div>
         );
