@@ -6,8 +6,42 @@ import * as Twitter from "passport-twitter";
 import { User, UserModel } from "../models/User";
 // import * as store from "store";
 import * as p from "passport";
+import { Request, Response, NextFunction } from "express";
 
 const host = process.env.NODE_ENV !== "production" ? "localhost:3000" : "goita.net";
+
+/**
+ * Login Required middleware. Redirects to login when not authenticated.
+ */
+export let isGameAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect("/login");
+};
+
+/**
+ * Login Required middleware. Returns 401 code when not authenticated.
+ */
+export let isApiAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.status(401).contentType("application/json").json("not authenticated");
+};
+
+/**
+ * Authorization of provider Required middleware.
+ */
+export let isAuthorized = (req: Request, res: Response, next: NextFunction) => {
+    const provider = req.path.split("/").slice(-1)[0];
+
+    if (req.user.authprovider === provider) {
+        next();
+    } else {
+        res.redirect("/login");
+    }
+};
 
 export function SetupPassport(passport: p.Passport) {
 
@@ -50,19 +84,17 @@ export function SetupPassport(passport: p.Passport) {
     }));
 }
 
-function findAndUpdateUser(idPrefix: string, authtype: string, profile: p.Profile, done: (error: any, user?: any, info?: any) => void): void {
+function findAndUpdateUser(idPrefix: string, authprovider: string, profile: p.Profile, done: (error: any, user?: any, info?: any) => void): void {
     const id = idPrefix + profile.id;
     const name = profile.displayName;
     const email = profile.emails ? profile.emails[0].value : ""; // twitter doesn't provide emails
     const icon = profile.photos[0].value;
 
+    const setData = { id, authprovider, name, email, icon };
+
     User.findOneAndUpdate(
         { userid: id },
-        {
-            $set: {
-                id, name, email, icon,
-            },
-        },
+        { $set: setData },
         { upsert: true },
         (err, user) => {
             if (err) { console.log(err); }

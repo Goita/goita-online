@@ -2255,13 +2255,13 @@ globule@^1.0.0:
     lodash "~4.17.4"
     minimatch "~3.0.2"
 
-goita-core@^0.1.10:
-  version "0.1.10"
-  resolved "https://registry.yarnpkg.com/goita-core/-/goita-core-0.1.10.tgz#e5604ee3a2233025d9931c8a1173f4a5d809f0d9"
+goita-core@^0.2.3:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/goita-core/-/goita-core-0.2.3.tgz#e254529e0460c39f70568aba42113585e509027e"
   dependencies:
     "@types/random-js" "^1.0.28"
     random-js "^1.0.8"
-    tslib "^1.2.0"
+    tslib "^1.7.1"
 
 got@^3.2.0:
   version "3.3.1"
@@ -5417,7 +5417,7 @@ ts-loader@^2.3.2:
     loader-utils "^1.0.2"
     semver "^5.0.1"
 
-tslib@^1.0.0, tslib@^1.2.0, tslib@^1.7.1:
+tslib@^1.0.0, tslib@^1.7.1:
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.7.1.tgz#bc8004164691923a79fe8378bbeb3da2017538ec"
 

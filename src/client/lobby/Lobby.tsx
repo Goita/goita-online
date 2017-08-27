@@ -60,18 +60,48 @@ export class Lobby extends React.Component<Props, State> {
         this.setState({ msg: e.target.value });
     }
 
+    public handleCreateRoom = () => {
+        const descriptionInput = this.refs.description as HTMLInputElement;
+        const formData = {
+            description: descriptionInput.value,
+        };
+
+        fetch("/api/game/room", {
+            method: "post", body: JSON.stringify(formData),
+            headers: new Headers({
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            }),
+            credentials: "same-origin", // auto send cookies
+        })
+            .then((res) => {
+                if (res.status === 200) {
+                    return res.json();
+                } else {
+                    console.log("error on creating room... -> " + res.statusText);
+                }
+            }).then((data) => {
+                console.log("room #" + data.no + " has created");
+                location.href = "/game/room/" + data.no;
+            });
+    }
+
     public render() {
-        const rooms = this.props.value.rooms.map((r) => <div>room #{r.no}</div>);
-        const list = this.props.value.users.map((u, i) => <div key={u.id}>no.{i} name: {u.name}</div>);
+        const rooms = this.props.value.rooms.map((r) => <div key={r.no}>room #{r.no} description: {r.description}</div>);
+        const users = this.props.value.users.map((u, i) => <div key={u.id}>no.{i} name: {u.name}</div>);
         const messages = this.props.value.messages.map((m) => <div key={m.id}>{m.user}: {m.text}</div>);
         return (
             <div>
+                <h2>部屋一覧</h2>
                 <div>{rooms}</div>
                 <hr />
+                <h2>ユーザー</h2>
                 <div>
-                    {list}
+                    {users}
                 </div>
                 <hr />
+                <h2>メッセージ</h2>
                 <div>{messages}</div>
                 <hr />
                 <div className="input-pane">
@@ -79,6 +109,18 @@ export class Lobby extends React.Component<Props, State> {
                         onChange={this.handleMessageChange} onKeyDown={this.handleEnter} />
                     <button onClick={this.handleSend}>送信</button>
                 </div>
+                <form action="" onSubmit={this.handleCreateRoom} >
+                    <h2>ルームの作成</h2>
+                    <label>
+                        <span>ルーム説明</span>
+                        <input type="text" ref="description" placeholder="ルームの説明を入れてください..." size={20} />
+                    </label>
+                    <label>
+                        <span>ルーム設定</span>
+                        <input type="text" disabled placeholder="仮実装のため無効" />
+                    </label>
+                    <button type="submit">ルーム作成</button>
+                </form>
             </div>
         );
     }

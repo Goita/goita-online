@@ -92,6 +92,7 @@ export interface User {
 
 export interface Room {
     no: number;
+    description: string;
 }
 
 export interface LobbyState {

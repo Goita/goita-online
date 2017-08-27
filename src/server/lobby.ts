@@ -5,10 +5,12 @@ import { Room, RoomOptions } from "./room";
 /** game lobby */
 export default class Lobby {
 
-    public io: SocketIO.Namespace;
     public msgID: number;
     public users: { [key: string]: UserData };
     public rooms: { [key: number]: Room };
+
+    private io: SocketIO.Server;
+    private ioLobby: SocketIO.Namespace;
 
     public constructor() {
         this.users = {};
@@ -24,23 +26,27 @@ export default class Lobby {
         delete this.users[userid];
     }
 
-    public createRoom(opt?: RoomOptions): Room {
+    public createRoom(description: string, opt?: RoomOptions): Room {
         let no = 1;
         while (this.rooms[no]) { no++; }
-        const room = new Room(no, opt);
+        const room = new Room(this.io, this, no, description, opt);
         this.rooms[no] = room;
         return room;
     }
 
     public removeRoom(no: number) {
         delete this.rooms[no];
-        this.io.emit("room removed", no);
+        this.ioLobby.emit("room removed", no);
+    }
+
+    public inviteToRoom(no: number, userid: string, fromUser: UserData) {
+        this.ioLobby.to(userid).emit("recieved invitation", this.rooms[no]);
     }
 
     public handleLobbyEvent(io: SocketIO.Server): void {
 
-        this.io = io.of("/lobby");
-        this.io.on("connection", (socket: SocketIO.Socket) => {
+        this.ioLobby = io.of("/lobby");
+        this.ioLobby.on("connection", (socket: SocketIO.Socket) => {
             if (!socket.request.user || !socket.request.user.logged_in) {
                 console.log("not authorized access");
                 socket.emit("unauthorized", "Not logged in to lobby");
@@ -48,6 +54,10 @@ export default class Lobby {
             }
             const user = new UserData(socket.request.user);
             this.addUser(user);
+
+            // join user room for private invitation
+            socket.join(user.id);
+
             socket.broadcast.emit("user joined", user);
 
             socket.emit("info", { users: this.users, rooms: this.rooms });
@@ -57,32 +67,18 @@ export default class Lobby {
             });
 
             socket.on("send msg", (text: string) => {
-                this.io.emit("recieve msg", { text, user: user.name, id: this.msgID });
+                this.ioLobby.emit("recieve msg", { text, user: user.name, id: this.msgID });
                 this.msgID++;
                 console.log("recieved msg: " + text);
             });
 
-            socket.on("new room", (opt?: RoomOptions) => {
-                const room = this.createRoom(opt);
+            socket.on("new room", (data: { description: string, opt?: RoomOptions }) => {
+                const room = this.createRoom(data.description, data.opt);
                 socket.emit("move to room", room.no);
                 socket.broadcast.emit("room created", room);
             });
 
             socket.on("disconnect", () => {
-                // remove user from room
-                if (user.isInRoom) {
-                    const room = this.rooms[user.roomNo];
-                    if (user.sitting && !room.game.isEnd) {
-                        const no = room.players.findIndex((p) => p.user.id === user.id);
-                        room.leaveAccidentally(no);
-                    } else if (user.sitting) {
-                        const no = room.players.findIndex((p) => p.user.id === user.id);
-                        room.standUp(no);
-                    } else {
-                        room.removeUser(user.id);
-                    }
-                }
-
                 // remove user from lobby
                 this.removeUser(user.id);
                 socket.broadcast.emit("user left", user.id);

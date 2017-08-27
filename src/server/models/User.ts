@@ -4,16 +4,15 @@ import * as mongoose from "mongoose";
 export type UserModel = mongoose.Document & {
     userid: string,
     public: boolean,
-    authtype: string,
-    password: string,
-    passwordResetToken: string,
-    passwordResetExpires: Date,
+    authprovider: string,
 
     name: string,
     email: string,
     icon: string,
-    useicon: boolean,
-    gravatar: string,
+    settings: {
+        displayname: string,
+        gravatar: string,
+    },
     token: string,
     rate: number,
     generateHash: (password: string) => string,
@@ -23,16 +22,15 @@ export type UserModel = mongoose.Document & {
 const UserSchema = new mongoose.Schema({
     userid: { type: String, unique: true, index: true },
     public: Boolean,
-    authtype: String,
-    password: String,
-    passwordResetToken: String,
-    passwordResetExpires: Date,
+    authprovider: String,
 
     name: String,
     email: String,
     icon: String,
-    useicon: { type: Boolean, default: false },
-    gravatar: String,
+    settings: {
+        displayname: String,
+        gravatar: String,
+    },
     token: String,
     rate: { type: Number, default: 1300 },
 }, {

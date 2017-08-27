@@ -185,25 +185,24 @@ lobby | new room | create a new room | -> server
 lobby | room created | done creating a room | -> client
 lobby | room removed | done creating a room | -> client
 lobby | move to room | request to move to a room | -> client
+lobby | join room | request to join to the room | -> server
+lobby | recieved invitation | an invitation to a room | -> client
 lobby | unauthorized | not logged in | -> client
 lobby | invalid action | invalid lobby action | -> client 
 
 ## Room message
 namespace | message | description | direction
 ---------|----------|---------|---------
-room | recieved invitation | an invitation to a room | -> client
 room | send invitation | send an invitation to the room | -> server
-room | join | request to join to the room | -> server
-room | leave | request to leave the room | -> server
 room | req info | request the room information | -> server
-room | joined | successed to join to the room | -> client
-room | failed to join | failure to join to the room | -> client
 room | info | the room information without table information | -> client
 room | user joined | a user joined to the room | -> client
 room | user left | a user left room | -> client
 room | send msg | send a chat message in the room | -> server
 room | recieve msg | recieved a chat message in the room | -> client
 room | change config | request to change the room config | -> server
+room | info updated | the room config has changed | -> client
+room | invalid action | invalid room action | -> client 
 
 ## Table message
 namespace | message | description | direction
@@ -216,42 +215,18 @@ room | cancel ready | cancel the ready state | -> server
 room | swap seats | request to swap the players' seat | -> server
 
 ** 各情報毎に分割して、変化した部分の情報のみ送信する。(通信量削減案)
-<!-- room user list
-room ready info
-room player info
-room field info
-game point info 
-game history info -->
 
-## Game event
-
-〈ゲーム進行〉
-◆To サーバー
-req game info   ゲーム状態情報を要求　※必要ないかもしれないけど、使うかはクライアント実装者に任せる
-play  駒を出す。ゲーム状況で自動的に出し方を判断させる。ゲーム終了処理まで行って結果を返す。
-pass    'なし
-
-goshi proceed 'ごしのまま続行
-goshi deal again '配りなおし
-
-** tsuigoshi '対５しが発生したことを通知
-** tsuigoshi checked '対５しが発生したことを確認して、配り直しOKを通知
-
-◆To クライアント
-game started    全員がreadyするとゲーム開始したことが通知される
-private game info ゲーム状態情報通知（各プレイヤーの秘匿情報を渡す。公開情報はとりあえずRoomInfoで渡す）
-error command   '無効なプレイを受け取ったときの通知
-game finished     規定点数に達した時に終了を通知
-played          プレイヤーの手を通知
-passed      パス
-req play    手番プレイヤーへの通知（処理しなくてもいい）
-time up     手番プレイヤーが時間切れ（ランダムで処理される）（未実装）
-round started   次ラウンド開始の通知（一定時間で次ラウンド強制開始もありかも）
-round finished  場の非公開情報もついでに送る。//ろくし、ななし、はちし、相ごし、対ごしを含む
-deal again 配りなおし
-goshi ごしの決断を求める（その他のプレイヤーにはgoshi waitを送る)
-goshi wait ごしの決断をしないその他のプレイヤーは判断を待つ
-kifu  ラウンド終了ごとに対戦の棋譜を通知（未実装）
-
-
+## Game message
+namespace | message | description | direction
+---------|----------|---------|---------
+room | game history info | game history | -> client
+room | board info | board history | -> client
+room | play | send a play move (include a pass move) | -> server
+room | private board info | private hidden hand and hidden komas | -> client 
+room | goshi proceed | decided to proceed with goshi | -> server
+room | goshi deal again | decided to deal again | -> server
+room | goshi decision | request to decide to proceed/deal | -> client
+room | goshi wait | notify other player has goshi | -> client
+room | timer info | game timer info | -> client
+room | ready timer | auto-ready timer info | -> client
 

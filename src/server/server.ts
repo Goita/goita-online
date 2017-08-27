@@ -123,8 +123,12 @@ app.get("/logout", (req, res) => {
     req.logout();
     res.redirect("/login");
 });
-import * as apiController from "./controllers/api";
-app.get("/api/user/:id", apiController.getUser);
+import * as apiUserController from "./controllers/apiUser";
+app.get("/api/user/:id", apiUserController.getUser);
+
+import { RoomController } from "./controllers/apiRoom";
+const roomController = new RoomController(lobby);
+app.post("/api/game/room", passportConfig.isApiAuthenticated, roomController.postRoom.bind(roomController)); // override this
 
 /**
  * React-Router parses undefined path
