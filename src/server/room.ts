@@ -10,7 +10,6 @@ export class Room {
 
     public no: number;
     public description: string;
-    public lobby: Lobby;
     public users: { [key: string]: UserData };
     public userCount: number;
     public options: RoomOptions;
@@ -20,13 +19,15 @@ export class Room {
     public createdTime: Date;
     public owner: UserData;
 
+    /** fires when this room is removed */
+    public onRemove: (room: Room) => void;
+
     private msgID: number;
     private ioRoom: SocketIO.Namespace;
 
-    public constructor(io: SocketIO.Server, lobby: Lobby, no: number, description: string, opt?: RoomOptions) {
+    public constructor(no: number, description: string, opt?: RoomOptions) {
         this.no = no;
         this.description = description;
-        this.lobby = lobby;
         this.msgID = 0;
         this.game = goita.Factory.createGame();
         this.users = {};
@@ -38,15 +39,33 @@ export class Room {
         const o = opt ? opt : defaultRoomOptions;
         this.setOptions(o);
         this.createdTime = new Date(Date.now());
-        this.handleRoomEvent(io);
     }
+
+    public get info(): RoomInfo {
+        return { no: this.no, users: this.users, players: this.players, description: this.description, opt: this.options };
+    }
+
+    public get histories(): GameHistory[] {
+        const histories = [] as GameHistory[];
+        for (const b of this.game.history) {
+            const fs = b.getFinishState();
+            if (fs.wonScore > 0) {
+                histories.push({ wonUser: this.players[fs.nextDealerNo].user, wonTeam: fs.nextDealerNo % 2, wonScore: fs.wonScore });
+            }
+        }
+        return histories;
+    }
+
     public addUser(user: UserData): void {
         this.users[user.id] = user;
         this.userCount++;
+        user.roomNo = this.no;
         user.joinedTime = new Date(Date.now());
     }
 
     public removeUser(userid: string): void {
+        const user = this.users[userid];
+        user.roomNo = 0;
         delete this.users[userid];
         this.userCount--;
     }
@@ -86,7 +105,7 @@ export class Room {
         }
     }
 
-    public handleRoomEvent(io: SocketIO.Server): void {
+    public handleRoomEvent(io: SocketIO.Server, lobby: Lobby): void {
 
         this.ioRoom = io.of("/room/" + this.no);
         this.ioRoom.on("connection", (socket: SocketIO.Socket) => {
@@ -97,17 +116,18 @@ export class Room {
             }
             const user = new UserData(socket.request.user);
             this.addUser(user);
-
+            console.log(user.id + " joined room #" + this.no);
             // for private information message
             socket.join(user.id);
 
             // Room message
             socket.broadcast.emit("user joined", user);
+            socket.emit("account", user);
 
-            socket.emit("info", this);
+            socket.emit("info", this.info);
 
             socket.on("req info", () => {
-                socket.emit("info", this);
+                socket.emit("info", this.info);
             });
 
             socket.on("send msg", (text: string) => {
@@ -117,12 +137,12 @@ export class Room {
             });
 
             socket.on("send invitation", (userid: string) => {
-                this.lobby.inviteToRoom(this.no, userid, user);
+                lobby.inviteToRoom(this.no, userid, user);
             });
 
             socket.on("change config", (opt: RoomOptions) => {
                 this.setOptions(opt);
-                this.ioRoom.emit("info updated");
+                this.ioRoom.emit("config updated", opt);
             });
 
             // Table message
@@ -221,8 +241,7 @@ export class Room {
             };
 
             const sendGameHistoryInfoToAll = () => {
-                const histories = this.game.history.map((h) => h.toHistoryString());
-                this.ioRoom.emit("game history info", histories);
+                this.ioRoom.emit("game history info", this.histories);
             };
 
             socket.on("play", (move: string) => {
@@ -256,26 +275,39 @@ export class Room {
 
             socket.on("disconnect", () => {
                 // remove user from room
-                if (user.isInRoom) {
-                    if (user.sitting && !this.game.isEnd) {
+                if (user.sitting) {
+                    if (!this.game.isEnd) {
                         const no = this.players.findIndex((p) => p.user.id === user.id);
                         this.leaveAccidentally(no);
-                    } else if (user.sitting) {
+                    } else {
                         const no = this.players.findIndex((p) => p.user.id === user.id);
                         this.standUp(no);
-                    } else {
-                        this.removeUser(user.id);
                     }
                 }
 
-                // remove user from lobby
                 this.removeUser(user.id);
-                socket.broadcast.emit("user left", user.id);
+                console.log("user left room #" + this.no);
+
+                if (this.userCount > 0) {
+                    socket.broadcast.emit("user left", user.id);
+                } else {
+                    if (this.onRemove) {
+                        this.onRemove(this);
+                    }
+                }
+
             });
         });
     }
 }
 
+export interface RoomInfo {
+    no: number;
+    description: string;
+    users: { [key: string]: UserData };
+    players: Player[];
+    opt: RoomOptions;
+}
 export interface RoomOptions {
     rateUpperLimit?: number;
     rateLowerLimit?: number;
@@ -299,3 +331,9 @@ export const defaultRoomOptions: RoomOptions = {
     noYaku: false,
     score: 150,
 };
+
+export interface GameHistory {
+    wonUser: UserData;
+    wonTeam: number;
+    wonScore: number;
+}

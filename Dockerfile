@@ -7,6 +7,9 @@ ENV HOME=/home/node
 COPY package.json yarn.lock .yarnclean $HOME/goita-online/
 RUN chown -R node:node $HOME/*
 
+ENV TZ=Asia/Tokyo
+# RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # use user 'node'(UID:1000) which is created in node docker image
 USER node
 WORKDIR $HOME/goita-online

@@ -1,9 +1,10 @@
 import { Lobby } from "./Lobby";
 import { connect, MapDispatchToPropsParam, MapStateToPropsParam } from "react-redux";
 import { Dispatch } from "redux";
-import { LobbyState, ChatMessage, User, Room, updateInfo, recieveMessage, userJoined, userLeft, roomCreated, roomRemoved } from "./module";
+import { LobbyState, updateAccount, updateInfo, userJoined, userLeft, roomCreated, roomRemoved } from "./module";
 import { ReduxAction, ReduxState } from "../store";
 import { RouteComponentProps } from "react-router";
+import { IUser, IRoom, IChatMessage } from "../types";
 
 export class ActionDispatcher {
     private myHeaders = new Headers({
@@ -14,15 +15,14 @@ export class ActionDispatcher {
 
     constructor(private dispatch: (action: ReduxAction) => void) { }
 
-    public updateInfo(info: { users: User[], rooms: Room[] }): void {
+    public updateAccount(user: IUser): void {
+        this.dispatch(updateAccount(user));
+    }
+    public updateInfo(info: { users: IUser[], rooms: IRoom[] }): void {
         this.dispatch(updateInfo(info));
     }
 
-    public reciveMessage(msg: ChatMessage): void {
-        this.dispatch(recieveMessage(msg));
-    }
-
-    public userJoined(user: User): void {
+    public userJoined(user: IUser): void {
         this.dispatch(userJoined(user));
     }
 
@@ -30,7 +30,7 @@ export class ActionDispatcher {
         this.dispatch(userLeft(userid));
     }
 
-    public roomCreated(room: Room): void {
+    public roomCreated(room: IRoom): void {
         this.dispatch(roomCreated(room));
     }
     public roomRemoved(no: number): void {

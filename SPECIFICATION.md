@@ -176,6 +176,7 @@ namespace | event | description | direction
 namespace | event | description | direction
 ---------|----------|---------|---------
 lobby | req info | request lobby information | -> server
+lobby | account | send login user info | -> client
 lobby | info | lobby information | -> client
 lobby | user joined | a user joined to lobby | -> client
 lobby | user left | a user left lobby | -> client
@@ -183,9 +184,8 @@ lobby | send msg | send a chat message in lobby | -> server
 lobby | recieve msg | recieve a chat message in lobby | -> client
 lobby | new room | create a new room | -> server
 lobby | room created | done creating a room | -> client
-lobby | room removed | done creating a room | -> client
+lobby | room removed | done remove a room | -> client
 lobby | move to room | request to move to a room | -> client
-lobby | join room | request to join to the room | -> server
 lobby | recieved invitation | an invitation to a room | -> client
 lobby | unauthorized | not logged in | -> client
 lobby | invalid action | invalid lobby action | -> client 
@@ -201,7 +201,7 @@ room | user left | a user left room | -> client
 room | send msg | send a chat message in the room | -> server
 room | recieve msg | recieved a chat message in the room | -> client
 room | change config | request to change the room config | -> server
-room | info updated | the room config has changed | -> client
+room | config updated | the room config has changed | -> client
 room | invalid action | invalid room action | -> client 
 
 ## Table message
@@ -227,6 +227,6 @@ room | goshi proceed | decided to proceed with goshi | -> server
 room | goshi deal again | decided to deal again | -> server
 room | goshi decision | request to decide to proceed/deal | -> client
 room | goshi wait | notify other player has goshi | -> client
-room | timer info | game timer info | -> client
+room | goshi solve | solve goshi wait state | -> client
 room | ready timer | auto-ready timer info | -> client
 

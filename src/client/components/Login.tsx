@@ -1,6 +1,6 @@
 import * as React from "react";
 import { RouteComponentProps } from "react-router";
-import Avatar from "material-ui/Avatar";
+
 import LockIcon from "material-ui/svg-icons/action/lock-outline";
 import { Card, CardTitle, CardText, CardActions } from "material-ui/Card";
 import RaisedButton from "material-ui/RaisedButton";

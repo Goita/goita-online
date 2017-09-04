@@ -1,10 +1,12 @@
+var path = require("path");
+var webpack = require("webpack");
 var CopyWebpackPlugin = require("copy-webpack-plugin");
 // var commonsPlugin = new webpack.optimize.CommonsChunkPlugin("common.js");
-// var webpack = require("webpack");
-var path = require("path");
 
 module.exports = {
-    entry: "./src/client/index.tsx",
+    entry: {
+        main: "./src/client/index.tsx",
+    },
     output: {
         path: path.resolve(__dirname, "dist/public"),
         filename: "bundle.js"
@@ -42,13 +44,30 @@ module.exports = {
             }
         ],
     },
-    // externals: {
-    //     "pixi.js": "PIXI"
-    // },
+    externals: {
+        "pixi.js": "PIXI",
+        "react": "React",
+        "react-dom": "ReactDOM"
+    },
     plugins: [
         new CopyWebpackPlugin([{
-            from: "src/public",
-            ignore: ["*.scss"]
-        }])
+                from: "src/public",
+                ignore: ["*.scss"]
+            },
+            {
+                from: "node_modules/pixi.js/dist/pixi.js"
+            },
+            {
+                from: "node_modules/react/dist/react.js"
+            },
+            {
+                from: "node_modules/react-dom/dist/react-dom.js"
+            }
+        ]),
+        new webpack.optimize.UglifyJsPlugin({
+            minimize: true,
+            sourceMap: true,
+            include: /\.min\.js$/,
+        })
     ]
 }

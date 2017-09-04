@@ -7,7 +7,7 @@ export default class Home extends React.Component<RouteComponentProps<any>, {}> 
             <div>
                 <h1>ごいたオンラインへようこそ！</h1>
                 <p>ゲームを開始する場合はこちら</p>
-                <a href="/game/lobby">F</a>
+                <a href="/lobby">ロビーへ移動</a>
             </div>
         );
     }

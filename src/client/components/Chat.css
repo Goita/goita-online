@@ -1,0 +1,10 @@
+.scroll {
+    max-height: 80%;
+    height: 80%;
+    overflow-y: auto;
+    border: solid 1px red;
+}
+
+.height {
+    height: 80vh;
+}

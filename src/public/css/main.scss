@@ -10,9 +10,12 @@ html {
 }
 
 body {
-    padding-top: 60px;
-    margin-bottom: 75px;
     font-family: 'Roboto', sans-serif;
+    height: 100vh;
+}
+
+#react>div {
+    height: 100%;
 }
 
 footer {

@@ -126,10 +126,6 @@ app.get("/logout", (req, res) => {
 import * as apiUserController from "./controllers/apiUser";
 app.get("/api/user/:id", apiUserController.getUser);
 
-import { RoomController } from "./controllers/apiRoom";
-const roomController = new RoomController(lobby);
-app.post("/api/game/room", passportConfig.isApiAuthenticated, roomController.postRoom.bind(roomController)); // override this
-
 /**
  * React-Router parses undefined path
  */
@@ -146,6 +142,8 @@ app.use(errorHandler());
  * Start Express server.
  */
 const server = app.listen(app.get("port"), () => {
+    console.log(new Date(Date.now()).toString());
+    console.log(new Date(Date.now()).toLocaleString());
     console.log(("  App is running at http://localhost:%d in %s mode"), app.get("port"), app.get("env"));
     console.log("  Press CTRL-C to stop\n");
 });
@@ -162,8 +160,7 @@ io.use(passportSocketIo.authorize({
     secret: process.env.SESSION_SECRET,
     store: sessionStore,
     success: (data, accept) => {
-        console.log("successful connection to socket.io");
-        console.log(data.user.userid);
+        console.log(data.user.userid + " has made a successful connection to socket.io");
         accept(null, true);
     },
     fail: (data, message, error, accept) => {

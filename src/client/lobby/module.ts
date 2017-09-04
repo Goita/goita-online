@@ -1,35 +1,45 @@
 import { Action } from "redux";
+import { IUser, IRoom, IChatMessage } from "../types";
 
 enum ActionNames {
+    UPDATE_ACCOUNT = "UPDATE_ACCOUNT",
     UPDATE_INFO = "UPDATE_INFO",
     USER_JOINED = "USER_JOINED",
     USER_LEFT = "USER_LEFT",
-    // SEND_MESSAGE = "SEND_MESSAGE",
-    RECIEVE_MESSAGE = "RECIEVE_MESSAGE",
     ROOM_CREATED = "ROOM_CREATED",
     ROOM_REMOVED = "ROOM_REMOVED",
 }
+
+interface UpdateAccountAction extends Action {
+    type: ActionNames.UPDATE_ACCOUNT;
+    user: IUser;
+}
+
+export const updateAccount = (user: IUser): UpdateAccountAction => ({
+    type: ActionNames.UPDATE_ACCOUNT,
+    user,
+});
 
 interface UpdateInfoAction extends Action {
     type: ActionNames.UPDATE_INFO;
     // add an optional flag to avoid typecheck error
     info?: {
-        users: User[],
-        rooms: Room[],
+        users: IUser[],
+        rooms: IRoom[],
     };
 }
 
-export const updateInfo = (info: { users: User[], rooms: Room[] }): UpdateInfoAction => ({
+export const updateInfo = (info: { users: IUser[], rooms: IRoom[] }): UpdateInfoAction => ({
     type: ActionNames.UPDATE_INFO,
     info,
 });
 
 interface UserJoinedAction extends Action {
     type: ActionNames.USER_JOINED;
-    user: User;
+    user: IUser;
 }
 
-export const userJoined = (user: User): UserJoinedAction => ({
+export const userJoined = (user: IUser): UserJoinedAction => ({
     type: ActionNames.USER_JOINED,
     user,
 });
@@ -44,22 +54,12 @@ export const userLeft = (userid: string): UserLeftAction => ({
     userid,
 });
 
-interface RecieveMessageAction extends Action {
-    type: ActionNames.RECIEVE_MESSAGE;
-    msg: ChatMessage;
-}
-
-export const recieveMessage = (msg: ChatMessage): RecieveMessageAction => ({
-    type: ActionNames.RECIEVE_MESSAGE,
-    msg,
-});
-
 interface RoomCreatedAction extends Action {
     type: ActionNames.ROOM_CREATED;
-    room: Room;
+    room: IRoom;
 }
 
-export const roomCreated = (room: Room): RoomCreatedAction => ({
+export const roomCreated = (room: IRoom): RoomCreatedAction => ({
     type: ActionNames.ROOM_CREATED,
     room,
 });
@@ -74,47 +74,26 @@ export const roomRemoved = (no: number): RoomRemovedAction => ({
     no,
 });
 
-export interface ChatMessage {
-    id: number;
-    user: string;
-    text: string;
-}
-
-export interface User {
-    id: string;
-    name: string;
-    rate: number;
-    icon: string;
-    roomNo: number;
-    sitting: boolean;
-    joinedTime: Date;
-}
-
-export interface Room {
-    no: number;
-    description: string;
-}
-
 export interface LobbyState {
-    rooms: Room[];
-    users: User[];
-    messages: ChatMessage[];
+    account: IUser;
+    rooms: IRoom[];
+    users: IUser[];
 }
 
-export type LobbyActions = UpdateInfoAction | RecieveMessageAction | UserJoinedAction | UserLeftAction | RoomCreatedAction | RoomRemovedAction;
+export type LobbyActions = UpdateAccountAction | UpdateInfoAction | UserJoinedAction | UserLeftAction | RoomCreatedAction | RoomRemovedAction;
 
 const initialState: LobbyState = {
+    account: { id: null, name: null, rate: 0, icon: null, roomNo: -1, sitting: false, joinedTime: new Date(Date.now()) },
     rooms: [],
     users: [],
-    messages: [],
 };
 
 export default function reducer(state: LobbyState = initialState, action: LobbyActions): LobbyState {
     switch (action.type) {
+        case ActionNames.UPDATE_ACCOUNT:
+            return { ...state, account: action.user };
         case ActionNames.UPDATE_INFO:
             return { ...state, users: action.info.users, rooms: action.info.rooms };
-        case ActionNames.RECIEVE_MESSAGE:
-            return { ...state, messages: [...state.messages, action.msg] };
         case ActionNames.USER_JOINED:
             return { ...state, users: [...state.users, action.user] };
         case ActionNames.USER_LEFT:

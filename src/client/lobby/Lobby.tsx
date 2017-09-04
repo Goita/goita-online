@@ -1,9 +1,22 @@
 import * as React from "react";
-import { AppState } from "../app/module";
-import { LobbyState, Room, User, ChatMessage } from "./module";
+import { IRoom, IUser, IChatMessage, IRoomOptions } from "../types";
+import { LobbyState } from "./module";
 import { ActionDispatcher } from "./Container";
+import { Redirect } from "react-router-dom";
+import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from "material-ui/Toolbar";
+import NavigationMenu from "material-ui/svg-icons/navigation/menu";
+import IconButton from "material-ui/IconButton";
+import Avatar from "material-ui/Avatar";
+import Divider from "material-ui/Divider";
+import { Tabs, Tab } from "material-ui/Tabs";
+import IconMenu from "material-ui/IconMenu";
+import MenuItem from "material-ui/MenuItem";
 
 import * as io from "socket.io-client";
+
+import RoomList from "../components/RoomList";
+import Chat from "../components/Chat";
+import AccountMenu from "../components/AccountMenu";
 
 interface Props {
     value: LobbyState;
@@ -11,7 +24,10 @@ interface Props {
 }
 
 interface State {
-    msg: string;
+    redirectToRoom: number;
+    selectedTab: string;
+    readMsg: number;
+    messages: IChatMessage[];
 }
 
 export class Lobby extends React.Component<Props, State> {
@@ -19,108 +35,101 @@ export class Lobby extends React.Component<Props, State> {
 
     constructor() {
         super();
-        this.state = { msg: "" };
+        this.state = { redirectToRoom: -1, selectedTab: "room", readMsg: -1, messages: [] };
     }
 
     componentDidMount() {
         this.socket = io.connect("/lobby");
         const socket = this.socket;
-        socket.on("info", (info: { rooms: { [key: number]: Room }, users: { [key: string]: User } }) => {
-            const users = [] as User[];
-            for (const key of Object.keys(info.users)) {
-                users.push(info.users[key]);
-            }
-            const rooms = [] as Room[];
-            for (const key of Object.keys(info.rooms)) {
-                rooms.push(info.rooms[Number(key)]);
-            }
-            this.props.actions.updateInfo({ users, rooms });
-        });
         socket.on("unauthorized", (msg: string) => {
             console.log(msg);
             location.href = "/login";
         });
-        socket.on("recieve msg", (msg: ChatMessage) => {
-            this.props.actions.reciveMessage(msg);
+        socket.on("account", (user: IUser) => {
+            this.props.actions.updateAccount(user);
+        });
+        socket.on("info", (info: { rooms: IRoom[], users: { [key: string]: IUser } }) => {
+            const users = [] as IUser[];
+            for (const key of Object.keys(info.users)) {
+                users.push(info.users[key]);
+            }
+
+            this.props.actions.updateInfo({ users, rooms: info.rooms });
+            console.log("lobby info");
+        });
+
+        socket.on("recieve msg", (msg: IChatMessage) => {
+            this.setState({ messages: [...this.state.messages, msg] });
+        });
+
+        socket.on("user joined", (user: IUser) => {
+            this.props.actions.userJoined(user);
+            console.log("user joined");
+        });
+        socket.on("user left", (id: string) => {
+            this.props.actions.userLeft(id);
+        });
+
+        socket.on("room created", (room: IRoom) => {
+            this.props.actions.roomCreated(room);
+        });
+        socket.on("room removed", (no: number) => {
+            this.props.actions.roomRemoved(no);
+        });
+        socket.on("move to room", (no: number) => {
+            this.setState({ redirectToRoom: no });
+            this.socket.close();
         });
     }
 
-    public handleSend = () => {
-        this.socket.emit("send msg", this.state.msg);
-        this.setState({ msg: "" });
-        const input = this.refs.chatMessage as HTMLInputElement;
-        input.value = "";
+    public handleSend = (msg: string) => {
+        this.socket.emit("send msg", msg);
     }
 
-    public handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") { this.handleSend(); }
+    public handleTabChange = (value: string) => {
+        this.setState({
+            selectedTab: value,
+        });
     }
 
-    public handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ msg: e.target.value });
-    }
-
-    public handleCreateRoom = () => {
-        const descriptionInput = this.refs.description as HTMLInputElement;
-        const formData = {
-            description: descriptionInput.value,
-        };
-
-        fetch("/api/game/room", {
-            method: "post", body: JSON.stringify(formData),
-            headers: new Headers({
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "X-Requested-With": "XMLHttpRequest",
-            }),
-            credentials: "same-origin", // auto send cookies
-        })
-            .then((res) => {
-                if (res.status === 200) {
-                    return res.json();
-                } else {
-                    console.log("error on creating room... -> " + res.statusText);
-                }
-            }).then((data) => {
-                console.log("room #" + data.no + " has created");
-                location.href = "/game/room/" + data.no;
-            });
+    public handleCreateRoom = (description: string, opt: IRoomOptions) => {
+        this.socket.emit("new room", { description, opt });
     }
 
     public render() {
-        const rooms = this.props.value.rooms.map((r) => <div key={r.no}>room #{r.no} description: {r.description}</div>);
-        const users = this.props.value.users.map((u, i) => <div key={u.id}>no.{i} name: {u.name}</div>);
-        const messages = this.props.value.messages.map((m) => <div key={m.id}>{m.user}: {m.text}</div>);
+        if (this.state.redirectToRoom > 0) {
+            return <Redirect to={"/room/" + this.state.redirectToRoom} />;
+        }
+
         return (
             <div>
-                <h2>部屋一覧</h2>
-                <div>{rooms}</div>
-                <hr />
-                <h2>ユーザー</h2>
-                <div>
-                    {users}
-                </div>
-                <hr />
-                <h2>メッセージ</h2>
-                <div>{messages}</div>
-                <hr />
-                <div className="input-pane">
-                    <input type="text" ref="chatMessage" placeholder="メッセージを入力してください..." size={30}
-                        onChange={this.handleMessageChange} onKeyDown={this.handleEnter} />
-                    <button onClick={this.handleSend}>送信</button>
-                </div>
-                <form action="" onSubmit={this.handleCreateRoom} >
-                    <h2>ルームの作成</h2>
-                    <label>
-                        <span>ルーム説明</span>
-                        <input type="text" ref="description" placeholder="ルームの説明を入れてください..." size={20} />
-                    </label>
-                    <label>
-                        <span>ルーム設定</span>
-                        <input type="text" disabled placeholder="仮実装のため無効" />
-                    </label>
-                    <button type="submit">ルーム作成</button>
-                </form>
+                <Toolbar>
+                    <ToolbarGroup>
+                        <IconMenu
+                            iconButtonElement={<IconButton><NavigationMenu /></IconButton>}
+                            anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
+                            targetOrigin={{ horizontal: "left", vertical: "top" }}
+                        >
+                            <MenuItem primaryText="部屋" onClick={() => this.setState({ selectedTab: "room" })} />
+                            <MenuItem primaryText="チャット" onClick={() => this.setState({ selectedTab: "chat" })} />
+                        </IconMenu>
+                        <ToolbarTitle text="ごいたオンライン" />
+                    </ToolbarGroup>
+                    <ToolbarGroup>
+                        <Avatar src={this.props.value.account.icon} />
+                        {this.props.value.account.name + " R" + this.props.value.account.rate}
+                        <AccountMenu />
+                    </ToolbarGroup>
+                </Toolbar>
+                <Tabs value={this.state.selectedTab}
+                    onChange={this.handleTabChange}>
+                    <Tab label="部屋" value="room">
+                        <RoomList rooms={this.props.value.rooms} onCreateNewRoom={this.handleCreateRoom} />
+                    </Tab>
+                    <Tab label="チャット" value="chat">
+                        <Chat onSend={this.handleSend} users={this.props.value.users} messages={this.state.messages} />
+                    </Tab>
+                </Tabs>
             </div>
         );
     }
