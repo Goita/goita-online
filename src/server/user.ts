@@ -16,9 +16,6 @@ export default class UserData {
     /** room No. */
     public roomNo: number;
 
-    /** sitting as a player */
-    public sitting: boolean;
-
     /** datetime for joined room */
     public joinedTime: Date;
 
@@ -28,7 +25,6 @@ export default class UserData {
         this.rate = model.rate;
         this.icon = model.icon;
         this.joinedTime = new Date(Date.now());
-        this.sitting = false;
         this.roomNo = 0;
     }
 

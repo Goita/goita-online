@@ -83,6 +83,10 @@ export class Room extends React.Component<Props, State> {
             this.props.actions.userLeft(id);
         });
 
+        socket.on("user updated", (user: IUser) => {
+            this.props.actions.updateUser(user);
+        });
+
         socket.on("config updated", (opt: IRoomOptions) => {
             this.props.actions.updateRoomConfig(opt);
         });
@@ -136,6 +140,11 @@ export class Room extends React.Component<Props, State> {
                 return <Redirect push to="/lobby" />;
             default:
         }
+        const user = this.props.value.account;
+        let playerNo = this.props.value.room.players.findIndex((p) => p.user && p.user.id === user.id);
+        const board = playerNo < 0 ? this.props.value.board : this.props.value.privateBoard;
+        const observer = (playerNo < 0);
+        playerNo = observer ? 0 : playerNo;
 
         return (
             <div>
@@ -161,10 +170,10 @@ export class Room extends React.Component<Props, State> {
                 <Tabs value={this.state.selectedTab}
                     onChange={this.handleTabChange}>
                     <Tab label="ゲーム" value="game">
-                        <Game room={this.props.value.room} board={this.props.value.board} privateBoard={this.props.value.privateBoard} />
+                        <Game room={this.props.value.room} board={board} playerNo={playerNo} observer={observer} />
                     </Tab>
                     <Tab label="ゲーム履歴" value="history">
-                        <GameHistory histories={this.props.value.histories} />
+                        <GameHistory playerNo={playerNo} current={board} histories={this.props.value.histories} />
                     </Tab>
                     <Tab label="チャット" value="chat">
                         <Chat onSend={this.handleSend} users={this.props.value.users} messages={this.state.messages} />

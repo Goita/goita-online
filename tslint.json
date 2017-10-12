@@ -18,6 +18,7 @@
         "member-access": [
             false
         ],
-        "max-classes-per-file": [false]
+        "max-classes-per-file": [false],
+        "no-submodule-imports": false
     }
 }

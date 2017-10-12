@@ -1,6 +1,6 @@
-FROM node:8.4.0
+FROM node:8.6.0
 
-MAINTAINER yoskeoka <yoske.oka@gmail.com>
+LABEL yoskeoka <yoske.oka@gmail.com>
 
 ENV HOME=/home/node
 

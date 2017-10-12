@@ -198,6 +198,7 @@ room | req info | request the room information | -> server
 room | info | the room information without table information | -> client
 room | user joined | a user joined to the room | -> client
 room | user left | a user left room | -> client
+room | user updated | a user info has updated | -> client
 room | send msg | send a chat message in the room | -> server
 room | recieve msg | recieved a chat message in the room | -> client
 room | change config | request to change the room config | -> server

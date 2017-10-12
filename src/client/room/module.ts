@@ -6,6 +6,7 @@ enum ActionNames {
     UPDATE_ROOM_INFO = "UPDATE_ROOM_INFO",
     USER_JOINED = "USER_JOINED",
     USER_LEFT = "USER_LEFT",
+    UPDATE_USER = "USER_UPDATED",
     UPDATE_ROOM_CONFIG = "UPDATE_ROOM_CONFIG",
     UPDATE_BOARD_INFO = "UPDATE_BOARD_INFO",
     UPDATE_PLAYER_INFO = "UPDATE_PLAYER_INFO",
@@ -107,6 +108,16 @@ export const userLeft = (userid: string): UserLeftAction => ({
     userid,
 });
 
+interface UpdateUserAction extends Action {
+    type: ActionNames.UPDATE_USER;
+    user: IUser;
+}
+
+export const updateUser = (user: IUser): UpdateUserAction => ({
+    type: ActionNames.UPDATE_USER,
+    user,
+});
+
 interface WaitGoshiAction extends Action {
     type: ActionNames.WAIT_GOSHI;
 }
@@ -142,12 +153,12 @@ export interface RoomState {
     goshiDecision: boolean;
 }
 
-export type RoomActions = UpdateAccountAction | UpdateRoomInfoAction | UserJoinedAction | UserLeftAction | UpdateBoardInfoAction | UpdatePlayerInfoAction | UpdatePrivateBoardInfoAction | UpdateRoomConfigAction | UpdateGameHistoryAction | WaitGoshiAction | SolveGoshiAction | DecideGoshiAction;
+export type RoomActions = UpdateAccountAction | UpdateRoomInfoAction | UserJoinedAction | UserLeftAction | UpdateUserAction | UpdateBoardInfoAction | UpdatePlayerInfoAction | UpdatePrivateBoardInfoAction | UpdateRoomConfigAction | UpdateGameHistoryAction | WaitGoshiAction | SolveGoshiAction | DecideGoshiAction;
 
 const initialBoard = "xxxxxxxx,xxxxxxxx,xxxxxxxx,xxxxxxxx,s1";
 
 const initialState: RoomState = {
-    account: { id: null, name: null, rate: 0, icon: null, roomNo: -1, sitting: false, joinedTime: new Date(Date.now()) }, room: { no: 0, description: "", users: {}, players: [], opt: null },
+    account: { id: null, name: null, rate: 0, icon: null, roomNo: -1, joinedTime: new Date(Date.now()) }, room: { no: 0, description: "", users: {}, players: [], opt: null },
     users: [], board: initialBoard, privateBoard: initialBoard, histories: [], goshiDecision: false, goshiWait: false,
 };
 
@@ -165,6 +176,14 @@ export default function reducer(state: RoomState = initialState, action: RoomAct
             return { ...state, users: [...state.users, action.user] };
         case ActionNames.USER_LEFT:
             return { ...state, users: state.users.filter((u) => u.id !== action.userid) };
+        case ActionNames.UPDATE_USER:
+            const newUsers = state.users.slice();
+            const i = newUsers.findIndex((u) => u.id === action.user.id);
+            if (i < 0) {
+                return state;
+            }
+            newUsers[i] = action.user;
+            return { ...state, users: newUsers };
         case ActionNames.UPDATE_ROOM_CONFIG:
             return { ...state, room: { ...state.room, opt: action.opt } };
         case ActionNames.UPDATE_PLAYER_INFO:

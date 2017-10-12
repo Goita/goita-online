@@ -11,7 +11,16 @@ import {
 import FloatingActionButton from "material-ui/FloatingActionButton";
 import ContentAdd from "material-ui/svg-icons/content/add";
 import NewRoomDialog from "./NewRoomDialog";
-import * as styles from "./RoomList.css";
+
+import { withStyles, WithStyles } from "material-ui-next";
+
+const styles = {
+    create: {
+        float: "right",
+    },
+};
+
+type ClassNames = keyof typeof styles;
 
 interface Props {
     rooms: IRoom[];
@@ -22,9 +31,9 @@ interface State {
     newRoomDialogOpen: boolean;
 }
 
-export default class RoomList extends React.Component<Props, State> {
+class RoomList extends React.Component<Props & WithStyles<ClassNames>, State> {
 
-    constructor(props: Props) {
+    constructor(props: Props & WithStyles<ClassNames>) {
         super(props);
         this.state = { newRoomDialogOpen: false };
     }
@@ -46,6 +55,7 @@ export default class RoomList extends React.Component<Props, State> {
     }
 
     render() {
+        const classes = this.props.classes;
         const items = this.props.rooms.map((room) => {
             return (
                 <TableRow key={room.no}>
@@ -58,7 +68,7 @@ export default class RoomList extends React.Component<Props, State> {
         });
         return (
             <div>
-                <FloatingActionButton className={styles.create} onClick={this.handleOpen}>
+                <FloatingActionButton className={classes.create} onClick={this.handleOpen}>
                     <ContentAdd />
                 </FloatingActionButton>
                 <Table onCellClick={this.handleCellClick}>
@@ -79,3 +89,5 @@ export default class RoomList extends React.Component<Props, State> {
         );
     }
 }
+
+export default withStyles(styles)(RoomList);

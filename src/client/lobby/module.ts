@@ -83,7 +83,7 @@ export interface LobbyState {
 export type LobbyActions = UpdateAccountAction | UpdateInfoAction | UserJoinedAction | UserLeftAction | RoomCreatedAction | RoomRemovedAction;
 
 const initialState: LobbyState = {
-    account: { id: null, name: null, rate: 0, icon: null, roomNo: -1, sitting: false, joinedTime: new Date(Date.now()) },
+    account: { id: null, name: null, rate: 0, icon: null, roomNo: -1, joinedTime: new Date(Date.now()) },
     rooms: [],
     users: [],
 };

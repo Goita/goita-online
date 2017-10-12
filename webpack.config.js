@@ -22,16 +22,17 @@ module.exports = {
                 options: {
                     configFileName: "tsconfig.webpack.json"
                 },
-            }, {
-                test: /\.css$/,
-                exclude: /node_modules/,
-                loader: "typed-css-modules-loader?searchDir=src",
-                enforce: "pre",
             },
-            {
-                test: /\.css$/,
-                loaders: ["style-loader", "css-loader?modules&importLoaders=1&localIdentName=[path]___[name]__[local]___[hash:base64:5],typed-css-modules-loader"]
-            },
+            // {
+            //     test: /\.css$/,
+            //     exclude: /node_modules/,
+            //     loader: "typed-css-modules-loader?searchDir=src",
+            //     enforce: "pre",
+            // },
+            // {
+            //     test: /\.css$/,
+            //     loaders: ["style-loader", "css-loader?modules&importLoaders=1&localIdentName=[path]___[name]__[local]___[hash:base64:5],typed-css-modules-loader"]
+            // },
             {
                 enforce: "pre",
                 test: /\.(ts|tsx)$/,
@@ -46,8 +47,8 @@ module.exports = {
     },
     externals: {
         "pixi.js": "PIXI",
-        "react": "React",
-        "react-dom": "ReactDOM"
+        // "react": "React",
+        // "react-dom": "ReactDOM"
     },
     plugins: [
         new CopyWebpackPlugin([{
@@ -57,12 +58,13 @@ module.exports = {
             {
                 from: "node_modules/pixi.js/dist/pixi.js"
             },
-            {
-                from: "node_modules/react/dist/react.js"
-            },
-            {
-                from: "node_modules/react-dom/dist/react-dom.js"
-            }
+            // {
+            //     from: "node_modules/react/cjs/react.development.js"
+            // },
+            // {
+            //     from: "node_modules/react-dom/cjs/react-dom.development.js",
+            //     to: ""
+            // }
         ]),
         new webpack.optimize.UglifyJsPlugin({
             minimize: true,

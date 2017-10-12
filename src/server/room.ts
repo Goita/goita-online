@@ -21,6 +21,8 @@ export class Room {
 
     /** fires when this room is removed */
     public onRemove: (room: Room) => void;
+    /** fires when user data is updated */
+    public onUpdatedUserData: (user: UserData) => void;
 
     private msgID: number;
     private ioRoom: SocketIO.Namespace;
@@ -165,26 +167,25 @@ export class Room {
                 this.ioRoom.emit("player info", this.players);
             });
 
-            const sittingCheck = (no: number): boolean => {
-                if (!user.sitting) {
-                    socket.emit("invalid action", "cannot change ready status because of not sitting on");
-                    return false;
-                }
+            const sittingCheck = (): boolean => {
                 if (!this.game.board.isEndOfDeal) {
                     socket.emit("invalid action", "cannot change ready status because match in progress");
                     return false;
                 }
-                if (!this.players[no].user || this.players[no].user.id !== user.id) {
-                    socket.emit("invalid action", "cannot change ready status because of wrong information");
-                    return false;
+                for (let i = 0; i < 4; i++) {
+                    if (this.players[i].user && this.players[i].user.id === user.id) {
+                        return true;
+                    }
                 }
-                return true;
+                socket.emit("invalid action", "cannot change ready status because of wrong information");
+                return false;
             };
 
-            socket.on("set ready", (no: number) => {
-                if (sittingCheck(no)) {
+            socket.on("set ready", () => {
+                if (sittingCheck()) {
                     return;
                 }
+                const no = this.players.findIndex((p) => p.user && p.user.id === user.id);
                 this.players[no].ready = true;
                 this.ioRoom.emit("player info", this.players);
                 if (this.players.every((p) => p.ready)) {
@@ -196,10 +197,11 @@ export class Room {
                 }
             });
 
-            socket.on("cancel ready", (no: number) => {
-                if (sittingCheck(no)) {
+            socket.on("cancel ready", () => {
+                if (sittingCheck()) {
                     return;
                 }
+                const no = this.players.findIndex((p) => p.user && p.user.id === user.id);
                 this.players[no].ready = false;
                 this.ioRoom.emit("player info", this.players);
             });
@@ -210,7 +212,7 @@ export class Room {
                     socket.emit("invalid action", "cannot change ready status because of not sitting on");
                     return;
                 }
-                if (sittingCheck(no)) {
+                if (sittingCheck()) {
                     return;
                 }
                 // swap players
@@ -244,6 +246,25 @@ export class Room {
                 this.ioRoom.emit("game history info", this.histories);
             };
 
+            const updatedUserRate = (userdata: UserData, newRate: number) => {
+                userdata.rate = newRate;
+                User.findOneAndUpdate(
+                    { userid: userdata.id },
+                    { $set: { rate: newRate } },
+                    { upsert: true },
+                    (err) => {
+                        if (err) { console.log(err); }
+                        if (err) {
+                            console.log("Failed to update user rate");
+                        }
+                    },
+                );
+                this.ioRoom.emit("user updated", userdata);
+                if (this.onUpdatedUserData) {
+                    this.onUpdatedUserData(userdata);
+                }
+            };
+
             socket.on("play", (move: string) => {
                 const m = goita.Move.fromStr(move);
                 if (!this.game.board.canPlayMove(m)) {
@@ -275,12 +296,11 @@ export class Room {
 
             socket.on("disconnect", () => {
                 // remove user from room
-                if (user.sitting) {
+                const no = this.players.findIndex((p) => p.user && p.user.id === user.id);
+                if (no >= 0) {
                     if (!this.game.isEnd) {
-                        const no = this.players.findIndex((p) => p.user.id === user.id);
                         this.leaveAccidentally(no);
                     } else {
-                        const no = this.players.findIndex((p) => p.user.id === user.id);
                         this.standUp(no);
                     }
                 }

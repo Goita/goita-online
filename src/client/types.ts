@@ -15,7 +15,6 @@ export interface IUser {
     rate: number;
     icon: string;
     roomNo: number;
-    sitting: boolean;
     joinedTime: Date;
 }
 

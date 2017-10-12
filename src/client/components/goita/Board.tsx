@@ -4,26 +4,29 @@ import * as goita from "goita-core";
 
 import { IDictionary } from "../../types";
 
-const contentWidth = 600;
-const contentHeight = 600;
+const contentWidth = 560;
+const contentHeight = 560;
 const komaWidth = 48;
 const komaHeight = 48;
 
-interface GoitaBoardProps {
+interface BoardProps {
     board: goita.Board;
-    playerNo: number;
+    frontPlayerNo: number;
+    showFrontHand: boolean;
     showHidden: boolean;
     width: number;
     height: number;
 }
 
-export default class GoitaBoard extends React.Component<GoitaBoardProps, {}> {
+export default class Board extends React.Component<BoardProps, {}> {
     private app: Pixi.Application;
     private graphics = new PIXI.Graphics();
     private textures: IDictionary<PIXI.Texture> = {};
     private hiddenSpriteList = new Array<PIXI.Sprite>();
     private textStyles: IDictionary<PIXI.TextStyle> = {};
     private gameCanvas: HTMLDivElement;
+
+    private cropHeight: number;
 
     constructor() {
         super();
@@ -40,16 +43,18 @@ export default class GoitaBoard extends React.Component<GoitaBoardProps, {}> {
      * After mounting, add the Pixi Renderer to the div and start the Application.
      */
     public componentDidMount() {
-        this.app = new Pixi.Application(contentWidth, contentHeight, { antialias: false, backgroundColor: 0xccffaa });
+        this.cropHeight = this.props.showFrontHand ? 0 : 50;
+
+        this.app = new Pixi.Application(contentWidth, contentHeight - this.cropHeight, { antialias: false, backgroundColor: 0xccffaa });
         this.gameCanvas.appendChild(this.app.view);
         this.app.start();
 
         this.loadTextures();
-        this.setupTextStyles();
 
         this.setStaticContent();
         this.updateBoard();
         this.resize();
+
     }
 
     /**
@@ -57,9 +62,10 @@ export default class GoitaBoard extends React.Component<GoitaBoardProps, {}> {
      */
     public componentWillUnmount() {
         this.app.stop();
+
     }
 
-    public componentDidUpdate(prevProps: GoitaBoardProps, prevState: {}) {
+    public componentDidUpdate(prevProps: BoardProps, prevState: {}) {
         this.update();
         if (prevProps.width !== this.props.width || prevProps.height !== this.props.height) {
             this.resize();
@@ -79,37 +85,39 @@ export default class GoitaBoard extends React.Component<GoitaBoardProps, {}> {
 
     private setStaticContent() {
         // board
-        const scale = 0.7;
-        const boardScaleX = scale;
-        const boardScaleY = scale * 600 / 640;
+        const scale = 0.75;
 
         const boardBg = new PIXI.Sprite(this.textures["board-bg"]);
-        boardBg.pivot.x = 600 / 2;
-        boardBg.pivot.y = 640 / 2;
-        boardBg.x = contentWidth / 2;
-        boardBg.y = contentHeight / 2;
-        boardBg.scale.set(boardScaleX, boardScaleY);
+        boardBg.texture.on("update", () => {
+            boardBg.pivot.x = boardBg.width / 2;
+            boardBg.pivot.y = boardBg.height / 2;
+            boardBg.x = contentWidth / 2;
+            boardBg.y = contentHeight / 2;
+            boardBg.scale.set(scale, scale);
+        });
         this.app.stage.addChild(boardBg);
 
         const boardLines = new PIXI.Sprite(this.textures["board-line"]);
-        boardLines.pivot.x = 551 / 2;
-        boardLines.pivot.y = 589 / 2;
-        boardLines.x = contentWidth / 2;
-        boardLines.y = contentHeight / 2;
-        boardLines.scale.set(boardScaleX, boardScaleY);
+        boardLines.texture.on("update", () => {
+            boardLines.pivot.x = boardLines.width / 2;
+            boardLines.pivot.y = boardLines.height / 2;
+            boardLines.x = contentWidth / 2;
+            boardLines.y = contentHeight / 2;
+            boardLines.scale.set(scale, scale);
+        });
         this.app.stage.addChild(boardLines);
     }
 
     private updateBoard() {
         const poslist = [[0, 1], [1, 0], [0, -1], [-1, 0]];
-        const rf = 135;
-        const rh = 235;
+        const rf = 140;
+        const rh = 250;
         const cx = contentWidth / 2;
         const cy = contentHeight / 2;
         for (let i = 0; i < 4; i++) {
             // show field
             const p = this.props.board.players[i];
-            const vi = goita.Util.shiftTurn(i, -this.props.playerNo);
+            const vi = goita.Util.shiftTurn(i, -this.props.frontPlayerNo);
             const field = this.createFieldContainer(p.field, p.hiddenfield);
             // degree to radius
             field.rotation = (-90 * vi) / 180 * Math.PI;
@@ -118,7 +126,10 @@ export default class GoitaBoard extends React.Component<GoitaBoardProps, {}> {
             this.app.stage.addChild(field);
 
             // show hand
-            const hand = this.createHandConainer(p.hand, i !== this.props.playerNo);
+            if (i === this.props.frontPlayerNo && !this.props.showFrontHand) {
+                continue;
+            }
+            const hand = this.createHandConainer(p.hand, i !== this.props.frontPlayerNo);
             hand.rotation = (-90 * vi) / 180 * Math.PI;
             hand.x = cx + poslist[vi][0] * rh;
             hand.y = cy + poslist[vi][1] * rh;
@@ -247,7 +258,7 @@ export default class GoitaBoard extends React.Component<GoitaBoardProps, {}> {
         const width = this.props.width;
         const height = this.props.height;
         const ratio = Math.min(width / contentWidth, height / contentHeight);
-        this.app.renderer.resize(contentWidth * ratio, contentHeight * ratio);
+        this.app.renderer.resize(contentWidth * ratio, (contentHeight - this.cropHeight) * ratio);
         this.app.stage.scale.set(ratio);
     }
 

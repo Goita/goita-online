@@ -1,7 +1,7 @@
 import { Room } from "./Room";
 import { connect, MapDispatchToPropsParam, MapStateToPropsParam } from "react-redux";
 import { Dispatch } from "redux";
-import { RoomState, updateAccount, updateRoomInfo, userJoined, userLeft, updateBoardInfo, updatePlayerInfo, updatePrivateBoardInfo, updateRoomConfig, updateGameHistory, decideGoshi, waitGoshi, solveGoshi } from "./module";
+import { RoomState, updateAccount, updateRoomInfo, userJoined, userLeft, updateUser, updateBoardInfo, updatePlayerInfo, updatePrivateBoardInfo, updateRoomConfig, updateGameHistory, decideGoshi, waitGoshi, solveGoshi } from "./module";
 import { ReduxAction, ReduxState } from "../store";
 import { RouteComponentProps } from "react-router";
 import { IUser, IRoom, IChatMessage, IRoomOptions, IPlayer, IGameHistory } from "../types";
@@ -29,6 +29,10 @@ export class ActionDispatcher {
 
     public userLeft(userid: string): void {
         this.dispatch(userLeft(userid));
+    }
+
+    public updateUser(user: IUser): void {
+        this.dispatch(updateUser(user));
     }
 
     public updateRoomConfig(opt: IRoomOptions): void {

@@ -7,13 +7,36 @@ import RaisedButton from "material-ui/RaisedButton";
 import FontIcon from "material-ui/FontIcon";
 import { cyan500, pinkA200 } from "material-ui/styles/colors";
 
-import * as styles from "./Login.css";
+import { withStyles, WithStyles } from "material-ui-next";
+
+const styles = {
+    main: {
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    title: {
+        color: "yellow",
+        backgroundColor: "skyblue",
+    },
+    text: {
+        maxWidth: "400px",
+    },
+    snsBtn: {
+        width: "70%!important",
+        margin: "12px auto !important",
+    },
+};
+
+type ClassNames = keyof typeof styles;
 
 interface LoginState {
     fetching: boolean;
 }
 
-export default class Login extends React.Component<RouteComponentProps<any>, LoginState> {
+class Login extends React.Component<RouteComponentProps<any> & WithStyles<ClassNames>, LoginState> {
 
     constructor() {
         super();
@@ -40,8 +63,9 @@ export default class Login extends React.Component<RouteComponentProps<any>, Log
     }
 
     public render() {
+        const classes = this.props.classes;
         return (
-            <div className={styles.main} style={{ backgroundColor: cyan500 }}>
+            <div className={classes.main} style={{ backgroundColor: cyan500 }}>
                 {this.state.fetching ? this.fetching() : this.login()}
             </div >
         );
@@ -59,13 +83,14 @@ export default class Login extends React.Component<RouteComponentProps<any>, Log
     }
 
     private login(): JSX.Element {
+        const classes = this.props.classes;
         return (
             <Card>
                 <CardTitle title="ログイン" subtitle="ごいたオンライン認証画面" />
-                <CardText className={styles.text}>
+                <CardText className={classes.text}>
                     いずれかのSNSアカウントでログインしてください。
                 </CardText>
-                <CardText className={styles.text}>
+                <CardText className={classes.text}>
                     SNSアカウントの登録IDが他のユーザに表示されることはありませんが、ユーザ名と画像アイコンは初期状態でログインに使用したSNSアカウントのものが使用されます。この設定はログイン後に変更することが可能です。
                 </CardText>
                 <CardActions>
@@ -76,7 +101,7 @@ export default class Login extends React.Component<RouteComponentProps<any>, Log
                         backgroundColor="#1ab7ea"
                         labelColor="#FFFFFF"
                         labelStyle={{ textTransform: "none" }}
-                        className={styles.snsBtn}
+                        className={classes.snsBtn}
                         style={{ display: "block" }}
                         icon={<FontIcon className="fa fa-twitter" />}
                     />
@@ -87,7 +112,7 @@ export default class Login extends React.Component<RouteComponentProps<any>, Log
                         backgroundColor="#3b5998"
                         labelColor="#FFFFFF"
                         labelStyle={{ textTransform: "none" }}
-                        className={styles.snsBtn}
+                        className={classes.snsBtn}
                         style={{ display: "block" }}
                         icon={<FontIcon className="fa fa-facebook" />}
                     />
@@ -98,7 +123,7 @@ export default class Login extends React.Component<RouteComponentProps<any>, Log
                         backgroundColor="#dd4b39"
                         labelColor="#FFFFFF"
                         labelStyle={{ textTransform: "none" }}
-                        className={styles.snsBtn}
+                        className={classes.snsBtn}
                         style={{ display: "block" }}
                         icon={<FontIcon className="fa fa-google" />}
                     />
@@ -107,3 +132,5 @@ export default class Login extends React.Component<RouteComponentProps<any>, Log
         );
     }
 }
+
+export default withStyles<{} & ClassNames>(styles)<{}>(Login);
