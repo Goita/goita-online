@@ -24,7 +24,7 @@ const lobby = new Lobby();
 const MongoStore = mongo(session);
 
 /**
- * Load environment variables from .env file into process.env, where API keys and passwords are configured.
+ * Load environment variables from .env file into process.env.
  */
 dotenv.config({ path: ".env.dev" });
 

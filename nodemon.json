@@ -1,0 +1,5 @@
+{
+    "verbose": true,
+    "ignore": ["/dist/public", "/src/public", "/src/client", "/db_mongo"],
+    "delay": "5000"
+}

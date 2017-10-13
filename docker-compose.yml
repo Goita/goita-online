@@ -23,4 +23,4 @@ services:
       - .:/home/node/goita-online
       - ./db_mongo:/home/node/goita-online/db_mongo
       #- /home/node/goita-online/node_modules
-    command: yarn run watch # yarn docker-watch # for Node Sass binding error
+    command: yarn run watch

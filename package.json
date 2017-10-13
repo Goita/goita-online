@@ -8,7 +8,7 @@
         "start": "node dist/server.js",
         "debug": "nodemon --inspect=0.0.0.0:9229 dist/server.js",
         "build": "npm run clean && npm run build-css && npm run build-ts && npm run webpack",
-        "watch": "npm run clean && concurrently -k -p \"[{name}]\" -n \"CSS,TypeScript,Webpack,Node\" -c \"yellow.bold,cyan.bold,blue,green.bold\" \"npm run watch-css\" \"npm run watch-ts\" \"npm run watch-webpack\" \"npm run debug\"",
+        "watch": "npm run clean && concurrently -k -p \"[{name}]\" -n \"CSS,TypeScript,Webpack,Node\" -c \"yellow.bold,cyan.bold,blue,green.bold\" \"npm run watch-css\" \"npm run watch-ts\" \"npm run watch-webpack\" \"npm run delay && npm run debug\"",
         "build-ts": "tsc",
         "watch-ts": "tsc -w",
         "build-css": "node-sass src/public/css/main.scss dist/public/css/main.css",
@@ -16,7 +16,8 @@
         "webpack": "webpack",
         "watch-webpack": "webpack -w",
         "test": "jest --forceExit",
-        "watch-test": "karma start --no-single-run --auto-watch"
+        "watch-test": "karma start --no-single-run --auto-watch",
+        "delay": "node ./node_modules/npm-delay 20000"
     },
     "repository": {
         "type": "git",
@@ -106,6 +107,7 @@
         "json-loader": "^0.5.4",
         "node-sass": "^4.5.3",
         "nodemon": "^1.11.0",
+        "npm-delay": "^1.0.4",
         "source-map-loader": "^0.2.0",
         "style-loader": "^0.18.2",
         "transform-loader": "^0.2.4",

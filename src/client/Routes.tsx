@@ -2,7 +2,7 @@ import * as React from "react";
 import { Switch } from "react-router";
 import { Link, Route } from "react-router-dom";
 import Home from "./Home";
-import Login from "./components/Login";
+import Login from "./Login";
 import Lobby from "./lobby/Container";
 import Room from "./room/Container";
 
