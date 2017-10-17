@@ -1,12 +1,14 @@
 import * as React from "react";
 import { RouteComponentProps } from "react-router";
 
-import LockIcon from "material-ui/svg-icons/action/lock-outline";
-import { Card, CardTitle, CardText, CardActions } from "material-ui/Card";
-import RaisedButton from "material-ui/RaisedButton";
-import FontIcon from "material-ui/FontIcon";
-
+import Typography from "material-ui-next/Typography";
+import Card, { CardContent, CardActions } from "material-ui-next/Card";
+import Button from "material-ui-next/Button";
+import Grid from "material-ui-next/Grid";
+import LoginButton from "./LoginButton";
 import { withStyles, WithStyles } from "material-ui-next";
+
+import * as FontAwesome from "react-fontawesome";
 
 const styles = {
     title: {
@@ -15,10 +17,7 @@ const styles = {
     },
     text: {
         maxWidth: "400px",
-    },
-    snsBtn: {
-        width: "70%!important",
-        margin: "12px auto !important",
+        margin: "20px 0",
     },
 };
 
@@ -30,48 +29,33 @@ class LoginForm extends React.Component<{} & WithStyles<ClassNames>, {}> {
         const classes = this.props.classes;
         return (
             <Card>
-                <CardTitle title="ログイン" subtitle="ごいたオンライン認証画面" />
-                <CardText className={classes.text}>
-                    いずれかのSNSアカウントでログインしてください。
-                </CardText>
-                <CardText className={classes.text}>
-                    SNSアカウントの登録IDが他のユーザに表示されることはありませんが、ユーザ名と画像アイコンは初期状態でログインに使用したSNSアカウントのものが使用されます。この設定はログイン後に変更することが可能です。
-                </CardText>
-                <CardActions>
-                    <RaisedButton
-                        href="/auth/twitter"
-                        target="_blank"
-                        label="Twitter"
-                        backgroundColor="#1ab7ea"
-                        labelColor="#FFFFFF"
-                        labelStyle={{ textTransform: "none" }}
-                        className={classes.snsBtn}
-                        style={{ display: "block" }}
-                        icon={<FontIcon className="fa fa-twitter" />}
-                    />
-                    <RaisedButton
-                        href="/auth/facebook"
-                        target="_blank"
-                        label="Facebook"
-                        backgroundColor="#3b5998"
-                        labelColor="#FFFFFF"
-                        labelStyle={{ textTransform: "none" }}
-                        className={classes.snsBtn}
-                        style={{ display: "block" }}
-                        icon={<FontIcon className="fa fa-facebook" />}
-                    />
-                    <RaisedButton
-                        href="/auth/google"
-                        target="_blank"
-                        label="Google"
-                        backgroundColor="#dd4b39"
-                        labelColor="#FFFFFF"
-                        labelStyle={{ textTransform: "none" }}
-                        className={classes.snsBtn}
-                        style={{ display: "block" }}
-                        icon={<FontIcon className="fa fa-google" />}
-                    />
-                </CardActions>
+                <CardContent>
+                    <Typography type="headline">
+                        ログイン
+                    </Typography>
+                    <Typography type="subheading">
+                        ごいたオンライン認証画面
+                    </Typography>
+                    <Typography className={classes.text}>
+                        いずれかのSNSアカウントでログインしてください。
+                    </Typography>
+                    <Typography className={classes.text}>
+                        SNSアカウントの登録IDが他のユーザに表示されることはありませんが、ユーザ名と画像アイコンは初期状態でログインに使用したSNSアカウントのものが使用されます。この設定はログイン後に変更することが可能です。
+                    </Typography>
+                </CardContent>
+                <CardContent>
+                    <Grid container direction="column" alignItems="center" justify="center" spacing={16}>
+                        <Grid item xs={6}>
+                            <LoginButton backgroundColor="#1ab7ea" fa="twitter" text="Twitter" href="/auth/twitter" />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <LoginButton backgroundColor="#3b5998" fa="facebook" text="Facebook" href="/auth/facebook" />
+                        </Grid>
+                        <Grid item xs={6}>
+                            <LoginButton backgroundColor="#dd4b39" fa="google" text="Google" href="/auth/google" />
+                        </Grid>
+                    </Grid>
+                </CardContent>
             </Card>
         );
     }

@@ -1,11 +1,9 @@
 import * as React from "react";
 import { RouteComponentProps } from "react-router";
 
-import LockIcon from "material-ui/svg-icons/action/lock-outline";
-import { Card, CardTitle, CardText, CardActions } from "material-ui/Card";
-import RaisedButton from "material-ui/RaisedButton";
-import FontIcon from "material-ui/FontIcon";
-import { cyan500, pinkA200 } from "material-ui/styles/colors";
+import Typography from "material-ui-next/Typography";
+import Card, { CardContent, CardActions } from "material-ui-next/Card";
+import { blue } from "material-ui-next/colors";
 
 import LoginForm from "./components/LoginForm";
 
@@ -56,7 +54,7 @@ class Login extends React.Component<RouteComponentProps<any> & WithStyles<ClassN
     public render() {
         const classes = this.props.classes;
         return (
-            <div className={classes.main} style={{ backgroundColor: cyan500 }}>
+            <div className={classes.main} style={{ backgroundColor: blue[100] }}>
                 {this.state.fetching ? this.fetching() : <LoginForm />}
             </div >
         );
@@ -65,10 +63,17 @@ class Login extends React.Component<RouteComponentProps<any> & WithStyles<ClassN
     private fetching(): JSX.Element {
         return (
             <Card>
-                <CardTitle title="ログイン" subtitle="ごいたオンライン認証画面" />
-                <CardText>
-                    ログイン状況を確認中・・・
-                </CardText>
+                <CardContent title="ログイン">
+                    <Typography type="headline">
+                        ログイン
+                    </Typography>
+                    <Typography type="subheading">
+                        ごいたオンライン認証画面
+                    </Typography>
+                    <Typography component="p">
+                        ログイン状況を確認中・・・
+                    </Typography>
+                </CardContent>
             </Card>
         );
     }
