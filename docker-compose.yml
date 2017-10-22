@@ -15,12 +15,16 @@ services:
       PORT: 3000
       MONGODB_URI: mongodb://mongodb:27017/test
     ports:
-      - 3000:3000
-      - 9229:9229
-    links:
+      - 3000:3000 # application
+      - 9229:9229 # debug
+    depends_on:
       - mongodb
+    # [DEPRECATED] link option will be removed. 
+    # goitaonline_default network will automatically be created.
+    # links:
+    #   - mongodb
     volumes:
       - .:/home/node/goita-online
       - ./db_mongo:/home/node/goita-online/db_mongo
-      #- /home/node/goita-online/node_modules
+      # - /home/node/goita-online/node_modules # app will crash
     command: yarn run watch
