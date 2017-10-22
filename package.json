@@ -6,9 +6,10 @@
     "scripts": {
         "clean": "rimraf dist",
         "start": "node dist/server.js",
-        "debug": "nodemon --inspect=0.0.0.0:9229 dist/server.js",
+        "debug": "NODE_ENV=development nodemon --inspect=0.0.0.0:9229 dist/server.js",
         "build": "npm run clean && npm run build-css && npm run build-ts && npm run webpack",
-        "watch": "npm run clean && concurrently -k -p \"[{name}]\" -n \"CSS,TypeScript,Webpack,Node\" -c \"yellow.bold,cyan.bold,blue,green.bold\" \"npm run watch-css\" \"npm run watch-ts\" \"npm run watch-webpack\" \"npm run delay && npm run debug\"",
+        "watch":
+            "npm run clean && concurrently -k -p \"[{name}]\" -n \"CSS,TypeScript,Webpack,Node\" -c \"yellow.bold,cyan.bold,blue,green.bold\" \"npm run watch-css\" \"npm run watch-ts\" \"npm run watch-webpack\" \"npm run delay && npm run debug\"",
         "build-ts": "tsc",
         "watch-ts": "tsc -w",
         "build-css": "node-sass src/public/css/main.scss dist/public/css/main.css",
@@ -23,9 +24,7 @@
         "type": "git",
         "url": "git://github.com/Goita/goita-online.git"
     },
-    "keywords": [
-        "goita"
-    ],
+    "keywords": ["goita"],
     "author": "yoskeoka",
     "license": "MIT",
     "bugs": {
