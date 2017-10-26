@@ -2,7 +2,7 @@
  * Express-Socket.io-Mongo-React-Redux game server
  */
 import * as express from "express";
-import * as compression from "compression";  // compresses requests
+import * as compression from "compression"; // compresses requests
 import * as session from "express-session";
 import * as bodyParser from "body-parser";
 import * as logger from "morgan";
@@ -17,6 +17,14 @@ import * as passport from "passport";
 import expressValidator = require("express-validator");
 import nochace = require("nocache");
 import * as SocketIo from "socket.io";
+import * as chokidar from "chokidar";
+import * as webpack from "webpack";
+import * as webpackDevMiddleware from "webpack-dev-middleware";
+import * as webpackHotMiddleware from "webpack-hot-middleware";
+import * as history from "connect-history-api-fallback";
+
+import config from "./webpack.config";
+const compiler = webpack(config);
 
 import Lobby from "./lobby";
 const lobby = new Lobby();
@@ -63,16 +71,75 @@ const sessionStore = new MongoStore({
     url: process.env.MONGODB_URI || process.env.MONGOLAB_URI,
     autoReconnect: true,
 });
-app.use(session({
-    name: "session.sid",
-    resave: true,
-    saveUninitialized: true,
-    secret: process.env.SESSION_SECRET,
-    store: sessionStore,
-}));
+app.use(
+    session({
+        name: "session.sid",
+        resave: true,
+        saveUninitialized: true,
+        secret: process.env.SESSION_SECRET,
+        store: sessionStore,
+    }),
+);
+
+// Development config
 if (app.get("env") === "development") {
     console.log("  No Cacheing Mode");
     app.use(nochace());
+
+    // rewrite unmatched access path to /index.html
+    app.use(
+        history({
+            verbose: true,
+            index: "index.html",
+            // specify api path
+            rewrites: [
+                { from: /^\/logout/, to: "/logout" },
+                {
+                    from: /^\/(auth|api)\/.+$/,
+                    to: context => {
+                        return context.parsedUrl.pathname;
+                    },
+                },
+            ],
+        }),
+    );
+    // Serve hot-reloading bundle to client
+    app.use(
+        webpackDevMiddleware(compiler, {
+            noInfo: false,
+            publicPath: config.output.publicPath,
+        }),
+    );
+    app.use(webpackHotMiddleware(compiler));
+    console.log("[HRM] Serve hot-reloading bundle to client");
+
+    // Do "hot-reloading" of express stuff on the server
+    // Throw away cached modules and re-require next time
+    // Ensure there's no important state in there!
+    // const watcher = chokidar.watch("./dist");
+
+    // watcher.on("ready", () => {
+    //     watcher.on("all", () => {
+    //         console.log("Clearing /server/ module cache from server");
+    //         Object.keys(require.cache).forEach(id => {
+    //             if (/[\/\\]server[\/\\]/.test(id)) {
+    //                 delete require.cache[id];
+    //             }
+    //         });
+    //     });
+    // });
+
+    // Do "hot-reloading" of react stuff on the server
+    // Throw away the cached client modules and let them be re-required next time
+    compiler.plugin("done", () => {
+        console.log("Clearing /dist/public/ module cache from server");
+        Object.keys(require.cache).forEach(id => {
+            if (/[\/\\]dist[\/\\]public[\/\\]/.test(id)) {
+                console.log("[CLEAR CACHE]: " + id);
+                delete require.cache[id];
+            }
+        });
+    });
 }
 
 app.use(passport.initialize());
@@ -112,7 +179,9 @@ app.get("/auth/twitter/callback", passport.authenticate("twitter", { failureRedi
 /** just check http status code (OK:200 / BAD:401)  */
 app.get("/auth/check", (req, res) => {
     if (req.isAuthenticated()) {
-        res.status(200).contentType("application/json")
+        res
+            .status(200)
+            .contentType("application/json")
             .json("you are authenticated!!");
     } else {
         res.status(401).json("not authenticated..."); // authentication fail
@@ -144,7 +213,7 @@ app.use(errorHandler());
 const server = app.listen(app.get("port"), () => {
     console.log(new Date(Date.now()).toString());
     console.log(new Date(Date.now()).toLocaleString());
-    console.log(("  App is running at http://localhost:%d in %s mode"), app.get("port"), app.get("env"));
+    console.log("  App is running at http://localhost:%d in %s mode", app.get("port"), app.get("env"));
     console.log("  Press CTRL-C to stop\n");
 });
 
@@ -153,26 +222,32 @@ const io = SocketIo(server, {});
 // share session with express
 import * as passportSocketIo from "passport.socketio";
 import * as cookieParser from "cookie-parser";
-io.use(passportSocketIo.authorize({
-    passport,
-    cookieParser,
-    key: "session.sid", // should be same as session options name
-    secret: process.env.SESSION_SECRET,
-    store: sessionStore,
-    success: (data, accept) => {
-        console.log(data.user.userid + " has made a successful connection to socket.io");
-        accept(null, true);
-    },
-    fail: (data, message, error, accept) => {
-        if (error) {
-            throw new Error(message);
-        }
-        console.log("failed connection to socket.io:", message);
-        accept(null, false);
-    },
-}));
+io.use(
+    passportSocketIo.authorize({
+        passport,
+        cookieParser,
+        key: "session.sid", // should be same as session options name
+        secret: process.env.SESSION_SECRET,
+        store: sessionStore,
+        success: (data, accept) => {
+            console.log(data.user.userid + " has made a successful connection to socket.io");
+            accept(null, true);
+        },
+        fail: (data, message, error, accept) => {
+            if (error) {
+                throw new Error(message);
+            }
+            console.log("failed connection to socket.io:", message);
+            accept(null, false);
+        },
+    }),
+);
 
 import handleAppEvent from "./handleAppEvent";
 handleAppEvent(io);
 
 lobby.handleLobbyEvent(io);
+
+server.on("close", () => {
+    io.close();
+});

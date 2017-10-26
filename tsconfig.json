@@ -13,19 +13,10 @@
         "importHelpers": true,
         "baseUrl": ".",
         "paths": {
-            "*": [
-                "node_modules/@types/*",
-                "src/types/*",
-                "*"
-            ]
-        }
+            "*": ["node_modules/@types/*", "src/types/*", "*"]
+        },
+        "types": ["webpack-env", "node"]
     },
-    "include": [
-        "src/server/**/*"
-    ],
-    "exclude": [
-        "node_modules",
-        "src/public",
-        "**/*.spec.ts"
-    ]
+    "include": ["src/server/**/*"],
+    "exclude": ["node_modules", "src/public", "**/*.spec.ts"]
 }

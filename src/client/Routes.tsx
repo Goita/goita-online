@@ -8,7 +8,7 @@ import Room from "./room/Container";
 
 import NotFound from "./NotFound";
 
-export class Routes extends React.Component<{}, {}> {
+export default class Routes extends React.Component {
     render() {
         return (
             <Switch>

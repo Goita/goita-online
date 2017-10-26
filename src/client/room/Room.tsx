@@ -1,28 +1,45 @@
 import * as React from "react";
 import { IRoom, IUser, IChatMessage, IRoomOptions, IPlayer, IGameHistory } from "../types";
-
+import { withStyles, WithStyles } from "material-ui-next/styles";
 import { RoomState } from "./module";
 import { ActionDispatcher } from "./Container";
 import { Link, Redirect } from "react-router-dom";
-import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from "material-ui/Toolbar";
-import NavigationMenu from "material-ui/svg-icons/navigation/menu";
-import IconButton from "material-ui/IconButton";
-import Avatar from "material-ui/Avatar";
-import Divider from "material-ui/Divider";
-import { Tabs, Tab } from "material-ui/Tabs";
-import IconMenu from "material-ui/IconMenu";
-import MenuItem from "material-ui/MenuItem";
+import AppBar from "material-ui-next/AppBar";
+import Toolbar from "material-ui-next/Toolbar";
+import Typography from "material-ui-next/Typography";
+import MenuIcon from "material-ui-icons/Menu";
+import IconButton from "material-ui-next/IconButton";
+import Avatar from "material-ui-next/Avatar";
+import Divider from "material-ui-next/Divider";
+import Tabs, { Tab } from "material-ui-next/Tabs";
 import Chat from "../components/Chat";
 import Game from "../components/Game";
 import GameHistory from "../components/GameHistory";
-
 import * as io from "socket.io-client";
+
+// TODO: considering the replacement
+import IconMenu from "material-ui/IconMenu";
+import MenuItem from "material-ui/MenuItem";
 
 enum RedirectLocation {
     none,
     lobby,
     login,
 }
+
+enum TabNames {
+    game,
+    history,
+    chat,
+}
+
+const styles = {
+    flex: {
+        flex: 1,
+    },
+};
+
+type Styles = keyof typeof styles;
 
 interface Props {
     value: RoomState;
@@ -32,16 +49,16 @@ interface Props {
 
 interface State {
     redirect: RedirectLocation;
-    selectedTab: string;
+    selectedTab: number;
     messages: IChatMessage[];
 }
 
-export class Room extends React.Component<Props, State> {
+class Room extends React.Component<Props & WithStyles<Styles>, State> {
     socket: SocketIOClient.Socket;
 
     constructor() {
         super();
-        this.state = { redirect: RedirectLocation.none, selectedTab: "game", messages: [] };
+        this.state = { redirect: RedirectLocation.none, selectedTab: 0, messages: [] };
     }
 
     componentDidMount() {
@@ -123,7 +140,7 @@ export class Room extends React.Component<Props, State> {
         this.socket.emit("send msg", msg);
     }
 
-    public handleTabChange = (value: string) => {
+    public handleTabChange = (event: object, value: TabNames) => {
         this.setState({
             selectedTab: value,
         });
@@ -148,34 +165,38 @@ export class Room extends React.Component<Props, State> {
 
         return (
             <div>
-                <Toolbar>
-                    <ToolbarGroup>
+                <AppBar position="static">
+                    <Toolbar>
                         <IconMenu
-                            iconButtonElement={<IconButton><NavigationMenu /></IconButton>}
+                            iconButtonElement={<IconButton><MenuIcon /></IconButton>}
                             anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
                             targetOrigin={{ horizontal: "left", vertical: "top" }}
                         >
-                            <MenuItem primaryText="ゲーム" onClick={() => this.setState({ selectedTab: "game" })} />
-                            <MenuItem primaryText="チャット" onClick={() => this.setState({ selectedTab: "chat" })} />
+                            <MenuItem primaryText="ゲーム" onClick={() => this.setState({ selectedTab: TabNames.game })} />
+                            <MenuItem primaryText="履歴" onClick={() => this.setState({ selectedTab: TabNames.history })} />
+                            <MenuItem primaryText="チャット" onClick={() => this.setState({ selectedTab: TabNames.chat })} />
                             <Divider />
                             <MenuItem primaryText="ロビーに戻る" onClick={() => this.setState({ redirect: RedirectLocation.lobby })} />
                         </IconMenu>
-                        <ToolbarTitle text={"部屋 #" + this.props.no + " : " + this.props.value.room.description} />
-                    </ToolbarGroup>
-                    <ToolbarGroup>
-                        <Avatar src={this.props.value.account.icon} />
-                        {this.props.value.account.name + " R" + this.props.value.account.rate}
-                    </ToolbarGroup>
-                </Toolbar>
+                        <Typography className={this.props.classes.flex}>
+                            {"部屋 #" + this.props.no + " : " + this.props.value.room.description}
+                        </Typography>
+                        <div>
+                            <Avatar src={this.props.value.account.icon} />
+                            {this.props.value.account.name + " R" + this.props.value.account.rate}
+                        </div>
+
+                    </Toolbar>
+                </AppBar>
                 <Tabs value={this.state.selectedTab}
                     onChange={this.handleTabChange}>
-                    <Tab label="ゲーム" value="game">
+                    <Tab label="ゲーム" value={TabNames.game}>
                         <Game room={this.props.value.room} board={board} playerNo={playerNo} observer={observer} />
                     </Tab>
-                    <Tab label="ゲーム履歴" value="history">
+                    <Tab label="ゲーム履歴" value={TabNames.history}>
                         <GameHistory playerNo={playerNo} current={board} histories={this.props.value.histories} />
                     </Tab>
-                    <Tab label="チャット" value="chat">
+                    <Tab label="チャット" value={TabNames.chat}>
                         <Chat onSend={this.handleSend} users={this.props.value.users} messages={this.state.messages} />
                     </Tab>
                 </Tabs>
@@ -183,3 +204,5 @@ export class Room extends React.Component<Props, State> {
         );
     }
 }
+
+export default withStyles(styles)<Props>(Room);

@@ -24,12 +24,12 @@ interface UpdateInfoAction extends Action {
     type: ActionNames.UPDATE_INFO;
     // add an optional flag to avoid typecheck error
     info?: {
-        users: IUser[],
-        rooms: IRoom[],
+        users: IUser[];
+        rooms: IRoom[];
     };
 }
 
-export const updateInfo = (info: { users: IUser[], rooms: IRoom[] }): UpdateInfoAction => ({
+export const updateInfo = (info: { users: IUser[]; rooms: IRoom[] }): UpdateInfoAction => ({
     type: ActionNames.UPDATE_INFO,
     info,
 });
@@ -80,7 +80,13 @@ export interface LobbyState {
     users: IUser[];
 }
 
-export type LobbyActions = UpdateAccountAction | UpdateInfoAction | UserJoinedAction | UserLeftAction | RoomCreatedAction | RoomRemovedAction;
+export type LobbyActions =
+    | UpdateAccountAction
+    | UpdateInfoAction
+    | UserJoinedAction
+    | UserLeftAction
+    | RoomCreatedAction
+    | RoomRemovedAction;
 
 const initialState: LobbyState = {
     account: { id: null, name: null, rate: 0, icon: null, roomNo: -1, joinedTime: new Date(Date.now()) },
@@ -97,11 +103,11 @@ export default function reducer(state: LobbyState = initialState, action: LobbyA
         case ActionNames.USER_JOINED:
             return { ...state, users: [...state.users, action.user] };
         case ActionNames.USER_LEFT:
-            return { ...state, users: state.users.filter((u) => u.id !== action.userid) };
+            return { ...state, users: state.users.filter(u => u.id !== action.userid) };
         case ActionNames.ROOM_CREATED:
             return { ...state, rooms: [...state.rooms, action.room] };
         case ActionNames.ROOM_REMOVED:
-            return { ...state, rooms: state.rooms.filter((r) => r.no !== action.no) };
+            return { ...state, rooms: state.rooms.filter(r => r.no !== action.no) };
         default:
             return state;
     }

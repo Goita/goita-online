@@ -12,14 +12,8 @@
         "jsx": "react",
         "baseUrl": ".",
         "paths": {
-            "*": [
-                "node_modules/@types/*",
-                "src/types/*",
-                "*"
-            ]
-        }
-    },
-    "include": [
-        "src/client/**/*"
-    ]
+            "*": ["node_modules/@types/*", "src/types/*", "*"]
+        },
+        "lib": ["es6", "dom"]
+    }
 }

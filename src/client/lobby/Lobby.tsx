@@ -48,14 +48,13 @@ export class Lobby extends React.Component<Props, State> {
         socket.on("account", (user: IUser) => {
             this.props.actions.updateAccount(user);
         });
-        socket.on("info", (info: { rooms: IRoom[], users: { [key: string]: IUser } }) => {
+        socket.on("info", (info: { rooms: IRoom[]; users: { [key: string]: IUser } }) => {
             const users = [] as IUser[];
             for (const key of Object.keys(info.users)) {
                 users.push(info.users[key]);
             }
 
             this.props.actions.updateInfo({ users, rooms: info.rooms });
-            console.log("lobby info");
         });
 
         socket.on("recieve msg", (msg: IChatMessage) => {
@@ -84,17 +83,17 @@ export class Lobby extends React.Component<Props, State> {
 
     public handleSend = (msg: string) => {
         this.socket.emit("send msg", msg);
-    }
+    };
 
     public handleTabChange = (value: string) => {
         this.setState({
             selectedTab: value,
         });
-    }
+    };
 
     public handleCreateRoom = (description: string, opt: IRoomOptions) => {
         this.socket.emit("new room", { description, opt });
-    }
+    };
 
     public render() {
         if (this.state.redirectToRoom > 0) {
@@ -106,10 +105,13 @@ export class Lobby extends React.Component<Props, State> {
                 <Toolbar>
                     <ToolbarGroup>
                         <IconMenu
-                            iconButtonElement={<IconButton><NavigationMenu /></IconButton>}
+                            iconButtonElement={
+                                <IconButton>
+                                    <NavigationMenu />
+                                </IconButton>
+                            }
                             anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
-                            targetOrigin={{ horizontal: "left", vertical: "top" }}
-                        >
+                            targetOrigin={{ horizontal: "left", vertical: "top" }}>
                             <MenuItem primaryText="部屋" onClick={() => this.setState({ selectedTab: "room" })} />
                             <MenuItem primaryText="チャット" onClick={() => this.setState({ selectedTab: "chat" })} />
                         </IconMenu>
@@ -121,8 +123,7 @@ export class Lobby extends React.Component<Props, State> {
                         <AccountMenu />
                     </ToolbarGroup>
                 </Toolbar>
-                <Tabs value={this.state.selectedTab}
-                    onChange={this.handleTabChange}>
+                <Tabs value={this.state.selectedTab} onChange={this.handleTabChange}>
                     <Tab label="部屋" value="room">
                         <RoomList rooms={this.props.value.rooms} onCreateNewRoom={this.handleCreateRoom} />
                     </Tab>

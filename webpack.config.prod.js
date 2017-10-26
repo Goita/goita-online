@@ -9,40 +9,31 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, "dist/public"),
-        filename: "bundle.js"
+        filename: "bundle.js",
     },
     devtool: "source-map",
     resolve: {
-        extensions: [".ts", ".tsx", ".js", ".jsx", ".css"]
+        extensions: [".ts", ".tsx", ".js", ".jsx", ".css"],
     },
     module: {
-        rules: [{
+        rules: [
+            {
                 test: /\.tsx?$/,
                 loader: "awesome-typescript-loader",
                 options: {
-                    configFileName: "tsconfig.webpack.json"
+                    configFileName: "tsconfig.webpack.json",
                 },
             },
-            // {
-            //     test: /\.css$/,
-            //     exclude: /node_modules/,
-            //     loader: "typed-css-modules-loader?searchDir=src",
-            //     enforce: "pre",
-            // },
-            // {
-            //     test: /\.css$/,
-            //     loaders: ["style-loader", "css-loader?modules&importLoaders=1&localIdentName=[path]___[name]__[local]___[hash:base64:5],typed-css-modules-loader"]
-            // },
             {
                 enforce: "pre",
                 test: /\.(ts|tsx)$/,
-                loader: "tslint-loader"
+                loader: "tslint-loader",
             },
             {
                 enforce: "pre",
                 test: /\.js$/,
-                loader: "source-map-loader"
-            }
+                loader: "source-map-loader",
+            },
         ],
     },
     externals: {
@@ -51,12 +42,12 @@ module.exports = {
         // "react-dom": "ReactDOM"
     },
     plugins: [
-        new CopyWebpackPlugin([{
+        new CopyWebpackPlugin([
+            {
                 from: "src/public",
-                ignore: ["*.scss"]
             },
             {
-                from: "node_modules/pixi.js/dist/pixi.js"
+                from: "node_modules/pixi.js/dist/pixi.js",
             },
             // {
             //     from: "node_modules/react/cjs/react.development.js"
@@ -67,9 +58,11 @@ module.exports = {
             // }
         ]),
         new webpack.optimize.UglifyJsPlugin({
-            minimize: true,
+            compress: {
+                warnings: false,
+            },
             sourceMap: true,
             include: /\.min\.js$/,
-        })
-    ]
-}
+        }),
+    ],
+};

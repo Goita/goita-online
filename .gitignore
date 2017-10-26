@@ -7,6 +7,7 @@ logs
 results
 tmp
 lib-cov
+.awcache
 
 # Debugger for Chrome cache
 .vscode/chrome

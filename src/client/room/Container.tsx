@@ -1,4 +1,4 @@
-import { Room } from "./Room";
+import Room from "./Room";
 import { connect, MapDispatchToPropsParam, MapStateToPropsParam } from "react-redux";
 import { Dispatch } from "redux";
 import { RoomState, updateAccount, updateRoomInfo, userJoined, userLeft, updateUser, updateBoardInfo, updatePlayerInfo, updatePrivateBoardInfo, updateRoomConfig, updateGameHistory, decideGoshi, waitGoshi, solveGoshi } from "./module";

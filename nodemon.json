@@ -1,5 +1,7 @@
 {
-    "verbose": true,
-    "ignore": ["/dist/public", "/src/public", "/src/client", "/db_mongo"],
-    "delay": "5000"
+    "watch": ["dist"],
+    "ext": "js",
+    "verbose": false,
+    "ignore": ["/src", "/db_mongo", "/dist/public"],
+    "delay": "2000"
 }

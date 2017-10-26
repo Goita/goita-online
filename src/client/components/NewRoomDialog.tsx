@@ -1,8 +1,8 @@
 import * as React from "react";
 import { IRoom, IUser, IRoomOptions } from "../types";
-import Dialog from "material-ui/Dialog";
-import FlatButton from "material-ui/FlatButton";
-import TextField from "material-ui/TextField";
+import Dialog, { DialogActions, DialogContent, DialogContentText, DialogTitle } from "material-ui-next/Dialog";
+import Button from "material-ui-next/Button";
+import TextField from "material-ui-next/TextField";
 
 interface Props {
     open: boolean;
@@ -28,11 +28,13 @@ export default class NewRoomDialog extends React.Component<Props, State> {
 
     verifyInput = (): boolean => {
         return this.state.description ? true : false;
-    }
+    };
 
     public handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") { this.handleCreate(); }
-    }
+        if (e.key === "Enter") {
+            this.handleCreate();
+        }
+    };
 
     handleCreate = () => {
         if (!this.state.description) {
@@ -41,7 +43,7 @@ export default class NewRoomDialog extends React.Component<Props, State> {
         }
 
         this.props.onCreateNewRoom(this.state.description, this.state.opt);
-    }
+    };
 
     public handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.value !== this.state.description) {
@@ -50,37 +52,35 @@ export default class NewRoomDialog extends React.Component<Props, State> {
                 this.setState({ descError: "" });
             }
         }
-    }
+    };
 
     render() {
         const isOptionVerified = this.verifyInput();
-        const actions = [
-            <FlatButton
-                label="キャンセル"
-                primary={true}
-                onClick={this.props.onClose}
-            />,
-            <FlatButton
-                label="作成"
-                primary={true}
-                keyboardFocused={true}
-                disabled={!isOptionVerified}
-                onClick={this.handleCreate}
-            />,
-        ];
-
         return (
-            <Dialog title="部屋の作成"
-                actions={actions}
-                modal={false}
-                open={this.props.open}
-                onRequestClose={this.props.onClose}
-            >
-                <div>
-                    <TextField value={this.state.description} errorText={this.state.descError} onChange={this.handleDescriptionChange} floatingLabelText="部屋の説明を入力" onKeyDown={this.handleKeyDown} />
+            <Dialog open={this.props.open} onRequestClose={this.props.onClose}>
+                <DialogTitle>部屋の作成</DialogTitle>
+                <DialogContent>
+                    {/* errorText={this.state.descError} */}
+                    {/* onKeyDown={this.handleKeyDown} */}
+                    <TextField
+                        id="description"
+                        autoFocus
+                        margin="dense"
+                        label="部屋の説明を入力"
+                        value={this.state.description}
+                        onChange={this.handleDescriptionChange}
+                    />
                     <hr />
-                    <TextField floatingLabelText="ルーム設定" hintText="そのうち実装" disabled={true} />
-                </div>
+                    <TextField id="settings" label="ルーム設定" helperText="そのうち実装" disabled={true} />
+                </DialogContent>
+                <DialogActions>
+                    <Button color="primary" onClick={this.props.onClose}>
+                        キャンセル
+                    </Button>,
+                    <Button color="primary" disabled={!isOptionVerified} onClick={this.handleCreate}>
+                        作成
+                    </Button>,
+                </DialogActions>
             </Dialog>
         );
     }

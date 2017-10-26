@@ -1,6 +1,6 @@
 {
     "prettier.typescriptEnable": ["typescript", "typescriptreact"],
-    "prettier.eslintIntegration": false,
+    "prettier.eslintIntegration": false, // not work now
     "tslint.autoFixOnSave": true,
     "eslint.autoFixOnSave": true,
     "editor.formatOnSave": true

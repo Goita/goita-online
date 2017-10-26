@@ -2,14 +2,16 @@ version: "2"
 
 services:
   mongodb:
-    image: mongo:3.4.6
+    image: mongo:3.4.9
     command: -smallfiles -nojournal
     ports:
       - 27017:27017
     volumes:
       - ./db_mongo:/data/db
   goita-online:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
       NODE_ENV: development
       PORT: 3000
@@ -19,12 +21,7 @@ services:
       - 9229:9229 # debug
     depends_on:
       - mongodb
-    # [DEPRECATED] link option will be removed. 
-    # goitaonline_default network will automatically be created.
-    # links:
-    #   - mongodb
     volumes:
       - .:/home/node/goita-online
       - ./db_mongo:/home/node/goita-online/db_mongo
-      # - /home/node/goita-online/node_modules # app will crash
-    command: yarn run watch
+    command: yarn watch:start
