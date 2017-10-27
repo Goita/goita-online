@@ -1,5 +1,5 @@
 import * as React from "react";
-import { JssProvider } from "react-jss/lib";
+import JssProvider from "react-jss/lib/JssProvider";
 import { withStyles, MuiThemeProvider, Theme } from "material-ui-next/styles";
 import * as recompose from "recompose";
 import createContext from "./createContext";
@@ -18,10 +18,6 @@ const styles = (theme: Theme) => ({
     },
 });
 
-const AppWrapperFn = (props: any) => props.children;
-
-const AppWrapper = withStyles(styles)(AppWrapperFn);
-
 const context = createContext();
 
 function withRoot(BaseComponent: any) {
@@ -38,9 +34,7 @@ function withRoot(BaseComponent: any) {
             return (
                 <JssProvider registry={context.sheetsRegistry} jss={context.jss}>
                     <MuiThemeProvider theme={context.theme} sheetsManager={context.sheetsManager}>
-                        <AppWrapper>
-                            <BaseComponent />
-                        </AppWrapper>
+                        <BaseComponent />
                     </MuiThemeProvider>
                 </JssProvider>
             );

@@ -2,7 +2,7 @@ import { create } from "jss";
 import preset from "jss-preset-default";
 import { SheetsRegistry } from "react-jss/lib/jss";
 import { createMuiTheme } from "material-ui-next/styles";
-import { pink, indigo } from "material-ui-next/colors";
+import { indigo, pink } from "material-ui-next/colors";
 import createGenerateClassName from "material-ui-next/styles/createGenerateClassName";
 
 const theme = createMuiTheme({

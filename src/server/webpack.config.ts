@@ -31,8 +31,7 @@ const config: webpack.Configuration = {
                 // option #2 ts-loader
 
                 // loaders: ["react-hot-loader/webpack", "awesome-typescript-loader?configFileName=tsconfig.webpack.json"],
-
-                exclude: path.join(__dirname, "src/server"),
+                exclude: [path.resolve(__dirname, "node_modules"), path.join(__dirname, "src/server")],
             },
             {
                 enforce: "pre",

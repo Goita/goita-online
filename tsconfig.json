@@ -5,7 +5,7 @@
         "outDir": "./dist",
         "moduleResolution": "node",
         "noImplicitAny": true,
-        "declaration": true,
+        "declaration": false,
         "sourceMap": true,
         "newLine": "LF",
         "preserveConstEnums": true,
