@@ -1,4 +1,4 @@
-import { Lobby } from "./Lobby";
+import Lobby from "./Lobby";
 import { connect, MapDispatchToPropsParam, MapStateToPropsParam } from "react-redux";
 import { Dispatch } from "redux";
 import { LobbyState, updateAccount, updateInfo, userJoined, userLeft, roomCreated, roomRemoved } from "./module";
@@ -9,16 +9,16 @@ import { IUser, IRoom, IChatMessage } from "../types";
 export class ActionDispatcher {
     private myHeaders = new Headers({
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
         "X-Requested-With": "XMLHttpRequest",
     });
 
-    constructor(private dispatch: (action: ReduxAction) => void) { }
+    constructor(private dispatch: (action: ReduxAction) => void) {}
 
     public updateAccount(user: IUser): void {
         this.dispatch(updateAccount(user));
     }
-    public updateInfo(info: { users: IUser[], rooms: IRoom[] }): void {
+    public updateInfo(info: { users: IUser[]; rooms: IRoom[] }): void {
         this.dispatch(updateInfo(info));
     }
 
@@ -38,10 +38,15 @@ export class ActionDispatcher {
     }
 }
 
-const mapStateToProps: MapStateToPropsParam<{ value: LobbyState }, any> = (state: ReduxState, ownProps: RouteComponentProps<{}>) => {
+const mapStateToProps: MapStateToPropsParam<{ value: LobbyState }, any> = (
+    state: ReduxState,
+    ownProps: RouteComponentProps<{}>,
+) => {
     return { value: state.lobby };
 };
 
-const mapDispatchToProps: MapDispatchToPropsParam<{ actions: ActionDispatcher }, {}> = (dispatch: Dispatch<ReduxAction>) => ({ actions: new ActionDispatcher(dispatch) });
+const mapDispatchToProps: MapDispatchToPropsParam<{ actions: ActionDispatcher }, {}> = (
+    dispatch: Dispatch<ReduxAction>,
+) => ({ actions: new ActionDispatcher(dispatch) });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Lobby);

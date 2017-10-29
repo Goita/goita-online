@@ -1,8 +1,8 @@
 import * as React from "react";
 import { IRoom, IUser, IRoomOptions } from "../types";
-import Dialog, { DialogActions, DialogContent, DialogContentText, DialogTitle } from "material-ui-next/Dialog";
-import Button from "material-ui-next/Button";
-import TextField from "material-ui-next/TextField";
+import Dialog, { DialogActions, DialogContent, DialogContentText, DialogTitle } from "material-ui/Dialog";
+import Button from "material-ui/Button";
+import TextField from "material-ui/TextField";
 
 interface Props {
     open: boolean;

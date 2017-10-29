@@ -89,7 +89,7 @@ if (app.get("env") === "development") {
     // rewrite unmatched access path to /index.html
     app.use(
         history({
-            verbose: true,
+            verbose: false,
             index: "index.html",
             // specify api path
             rewrites: [

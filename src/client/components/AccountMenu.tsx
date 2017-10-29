@@ -1,13 +1,16 @@
 import * as React from "react";
 
-import { withStyles, WithStyles } from "material-ui-next/styles";
+import { withStyles, WithStyles } from "material-ui/styles";
 import AccountBox from "material-ui-icons/AccountBox";
-import IconButton from "material-ui-next/IconButton";
-import Menu, { MenuItem } from "material-ui-next/Menu";
+import IconButton from "material-ui/IconButton";
+import Menu, { MenuItem } from "material-ui/Menu";
 
 const styles = {
     root: {
         margin: 4,
+    },
+    fillWhite: {
+        fill: "white",
     },
 };
 const decorate = withStyles(styles);
@@ -18,7 +21,9 @@ interface State {
 }
 
 type ST = keyof typeof styles;
-interface Props { }
+interface Props {
+    className: string;
+}
 
 const AccountMenu = decorate(
     class extends React.Component<Props & WithStyles<ST>, State> {
@@ -32,33 +37,33 @@ const AccountMenu = decorate(
 
         handleClick = (event: React.MouseEvent<HTMLElement>) => {
             this.setState({ open: true, anchorEl: event.currentTarget });
-        }
+        };
 
         handleRequestClose = () => {
             this.setState({ open: false });
-        }
+        };
 
         render() {
             return (
                 <div className={this.props.classes.root}>
-                    <IconButton aria-owns={this.state.open ? "account-menu" : null} aria-haspopup="true" onClick={this.handleClick}>
-                        <AccountBox />
+                    <IconButton
+                        aria-owns={this.state.open ? "account-menu" : null}
+                        aria-haspopup="true"
+                        onClick={this.handleClick}>
+                        <AccountBox className={this.props.classes.fillWhite} />
                     </IconButton>
-                    <Menu id="account-menu"
+                    <Menu
+                        id="account-menu"
                         anchorEl={this.state.anchorEl}
-                        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                         open={this.state.open}
                         onRequestClose={this.handleRequestClose}>
-                        <MenuItem onClick={() => location.href = "/account"}>
-                            ユーザ設定
-                        </MenuItem>
-                        <MenuItem onClick={() => location.href = "/logout"}>
-                            ログアウト
-                        </MenuItem>
+                        <MenuItem onClick={() => (location.href = "/account")}>ユーザ設定</MenuItem>
+                        <MenuItem onClick={() => (location.href = "/logout")}>ログアウト</MenuItem>
                     </Menu>
                 </div>
             );
         }
-    });
+    },
+);
 
 export default AccountMenu;

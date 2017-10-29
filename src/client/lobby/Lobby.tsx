@@ -1,22 +1,40 @@
 import * as React from "react";
+import { withStyles, WithStyles } from "material-ui/styles";
 import { IRoom, IUser, IChatMessage, IRoomOptions } from "../types";
 import { LobbyState } from "./module";
 import { ActionDispatcher } from "./Container";
 import { Redirect } from "react-router-dom";
-import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from "material-ui/Toolbar";
-import NavigationMenu from "material-ui/svg-icons/navigation/menu";
+import AppBar from "material-ui/AppBar";
+import Toolbar from "material-ui/Toolbar";
+import Typography from "material-ui/Typography";
+import NavigationMenu from "material-ui-icons/Menu";
 import IconButton from "material-ui/IconButton";
 import Avatar from "material-ui/Avatar";
 import Divider from "material-ui/Divider";
-import { Tabs, Tab } from "material-ui/Tabs";
-import IconMenu from "material-ui/IconMenu";
-import MenuItem from "material-ui/MenuItem";
+import Tabs, { Tab } from "material-ui/Tabs";
+import Menu, { MenuItem } from "material-ui/Menu";
 
 import * as io from "socket.io-client";
 
 import RoomList from "../components/RoomList";
 import Chat from "../components/Chat";
-import AccountMenu from "../components/AccountMenu";
+import UserStatus from "../components/UserStatus";
+
+const styles = {
+    appIcon: {
+        fill: "white",
+    },
+    title: {
+        flex: 1,
+    },
+};
+
+type ClassNames = keyof typeof styles;
+
+enum TabNames {
+    room = 1,
+    chat = 2,
+}
 
 interface Props {
     value: LobbyState;
@@ -25,17 +43,26 @@ interface Props {
 
 interface State {
     redirectToRoom: number;
-    selectedTab: string;
+    selectedTab: TabNames;
     readMsg: number;
     messages: IChatMessage[];
+    open: boolean;
+    anchorEl: HTMLElement;
 }
 
-export class Lobby extends React.Component<Props, State> {
+class Lobby extends React.Component<Props & WithStyles<ClassNames>, State> {
     socket: SocketIOClient.Socket;
 
     constructor() {
         super();
-        this.state = { redirectToRoom: -1, selectedTab: "room", readMsg: -1, messages: [] };
+        this.state = {
+            redirectToRoom: -1,
+            selectedTab: TabNames.room,
+            readMsg: -1,
+            messages: [],
+            open: false,
+            anchorEl: null,
+        };
     }
 
     componentDidMount() {
@@ -85,7 +112,7 @@ export class Lobby extends React.Component<Props, State> {
         this.socket.emit("send msg", msg);
     };
 
-    public handleTabChange = (value: string) => {
+    public handleTabChange = (event: object, value: TabNames) => {
         this.setState({
             selectedTab: value,
         });
@@ -95,43 +122,63 @@ export class Lobby extends React.Component<Props, State> {
         this.socket.emit("new room", { description, opt });
     };
 
+    handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+        this.setState({ open: true, anchorEl: event.currentTarget });
+    };
+
+    handleRequestClose = () => {
+        this.setState({ open: false });
+    };
+
+    selectTab = (menu: TabNames) => {
+        this.setState({ selectedTab: menu });
+        this.handleRequestClose();
+    };
+
     public render() {
         if (this.state.redirectToRoom > 0) {
             return <Redirect to={"/room/" + this.state.redirectToRoom} />;
         }
 
+        const classes = this.props.classes;
+
         return (
             <div>
-                <Toolbar>
-                    <ToolbarGroup>
-                        <IconMenu
-                            iconButtonElement={
-                                <IconButton>
-                                    <NavigationMenu />
-                                </IconButton>
-                            }
-                            anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
-                            targetOrigin={{ horizontal: "left", vertical: "top" }}>
-                            <MenuItem primaryText="部屋" onClick={() => this.setState({ selectedTab: "room" })} />
-                            <MenuItem primaryText="チャット" onClick={() => this.setState({ selectedTab: "chat" })} />
-                        </IconMenu>
-                        <ToolbarTitle text="ごいたオンライン" />
-                    </ToolbarGroup>
-                    <ToolbarGroup>
-                        <Avatar src={this.props.value.account.icon} />
-                        {this.props.value.account.name + " R" + this.props.value.account.rate}
-                        <AccountMenu />
-                    </ToolbarGroup>
-                </Toolbar>
-                <Tabs value={this.state.selectedTab} onChange={this.handleTabChange}>
-                    <Tab label="部屋" value="room">
-                        <RoomList rooms={this.props.value.rooms} onCreateNewRoom={this.handleCreateRoom} />
-                    </Tab>
-                    <Tab label="チャット" value="chat">
-                        <Chat onSend={this.handleSend} users={this.props.value.users} messages={this.state.messages} />
-                    </Tab>
-                </Tabs>
+                <AppBar position="fixed">
+                    <Toolbar>
+                        <IconButton
+                            aria-owns={this.state.open ? "lobby-menu" : null}
+                            aria-haspopup="true"
+                            onClick={this.handleMenuClick}>
+                            <NavigationMenu className={classes.appIcon} />
+                        </IconButton>
+                        <Typography color="inherit" type="display1" className={classes.title}>
+                            ごいたオンライン
+                        </Typography>
+                        <UserStatus account={this.props.value.account} />
+                    </Toolbar>
+                    <Tabs value={this.state.selectedTab} onChange={this.handleTabChange}>
+                        <Tab label="部屋" value={TabNames.room} />
+                        <Tab label="チャット" value={TabNames.chat} />
+                    </Tabs>
+                </AppBar>
+                {this.state.selectedTab === TabNames.room && (
+                    <RoomList rooms={this.props.value.rooms} onCreateNewRoom={this.handleCreateRoom} />
+                )}
+                {this.state.selectedTab === TabNames.chat && (
+                    <Chat onSend={this.handleSend} users={this.props.value.users} messages={this.state.messages} />
+                )}
+                <Menu
+                    id="lobby-menu"
+                    open={this.state.open}
+                    onRequestClose={this.handleRequestClose}
+                    anchorEl={this.state.anchorEl}>
+                    <MenuItem onClick={() => this.selectTab(TabNames.room)}>部屋</MenuItem>
+                    <MenuItem onClick={() => this.selectTab(TabNames.chat)}>チャット</MenuItem>
+                </Menu>
             </div>
         );
     }
 }
+
+export default withStyles(styles)(Lobby);

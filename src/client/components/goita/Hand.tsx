@@ -1,10 +1,10 @@
 import * as React from "react";
 import * as goita from "goita-core";
 
-import RaisedButton from "material-ui/RaisedButton";
+import Button from "material-ui/Button";
 import Badge from "material-ui/Badge";
 
-import { withStyles, WithStyles } from "material-ui-next";
+import { withStyles, WithStyles } from "material-ui";
 
 const styles = {
     block: {
@@ -30,7 +30,6 @@ interface State {
 }
 
 class Hand extends React.Component<Props & WithStyles<ClassNames>, State> {
-
     public constructor() {
         super();
         this.state = { block: null, attack: null };
@@ -45,12 +44,14 @@ class Hand extends React.Component<Props & WithStyles<ClassNames>, State> {
 
     public render() {
         const classes = this.props.classes;
-        const list = this.removeHand(this.props.hand, this.state.block, this.state.attack).map((k, i) => <RaisedButton disabled={!this.props.canPlay} key={k.value + i} onClick={() => this.stagePlayKoma(k)}>
-            <div className={classes.abs}>
-                <img src={"/images/koma.png"} />
-                <img src={"/images/koma" + k.value + ".png"} />
-            </div>
-        </RaisedButton>);
+        const list = this.removeHand(this.props.hand, this.state.block, this.state.attack).map((k, i) => (
+            <Button raised disabled={!this.props.canPlay} key={k.value + i} onClick={() => this.stagePlayKoma(k)}>
+                <div className={classes.abs}>
+                    <img src={"/images/koma.png"} />
+                    <img src={"/images/koma" + k.value + ".png"} />
+                </div>
+            </Button>
+        ));
 
         const blockPreview = this.previewKoma("受", this.state.block);
         const attackPreview = this.previewKoma("攻", this.state.attack);
@@ -62,13 +63,20 @@ class Hand extends React.Component<Props & WithStyles<ClassNames>, State> {
                 <div className={classes.block}>
                     {blockPreview}
                     {attackPreview}
-                    {this.state.block && <RaisedButton onClick={() => this.resetPlayKoma()}>リセット</RaisedButton>}
-                    {this.state.block && this.state.attack && <RaisedButton disabled={disabledPlay} onClick={() => this.play()}>打つ</RaisedButton>}
+                    {this.state.block && (
+                        <Button raised onClick={() => this.resetPlayKoma()}>
+                            リセット
+                        </Button>
+                    )}
+                    {this.state.block &&
+                        this.state.attack && (
+                            <Button raised disabled={disabledPlay} onClick={() => this.play()}>
+                                打つ
+                            </Button>
+                        )}
                 </div>
-                <div className={classes.block}>
-                    {list}
-                </div>
-            </div >
+                <div className={classes.block}>{list}</div>
+            </div>
         );
     }
 
@@ -96,14 +104,16 @@ class Hand extends React.Component<Props & WithStyles<ClassNames>, State> {
     private previewKoma(type: string, koma: goita.Koma): JSX.Element {
         return (
             <Badge badgeContent={type}>
-                {koma ?
-                    (<div>
+                {koma ? (
+                    <div>
                         <img src={"/images/koma.png"} />
                         <img src={"/images/koma" + koma.value + ".png"} />
-                    </div>) :
-                    (<div>
+                    </div>
+                ) : (
+                    <div>
                         <img src={"/images/koma0.png"} />
-                    </div>)}
+                    </div>
+                )}
             </Badge>
         );
     }
@@ -112,7 +122,9 @@ class Hand extends React.Component<Props & WithStyles<ClassNames>, State> {
         const removeList = [block, attack];
         const retList = hand.slice();
         for (const koma of removeList) {
-            if (!koma) { continue; }
+            if (!koma) {
+                continue;
+            }
             const i = goita.KomaArray.findIndexExact(retList, koma);
             retList.splice(i, 1);
         }

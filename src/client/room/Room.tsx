@@ -1,25 +1,23 @@
 import * as React from "react";
 import { IRoom, IUser, IChatMessage, IRoomOptions, IPlayer, IGameHistory } from "../types";
-import { withStyles, WithStyles } from "material-ui-next/styles";
+import { withStyles, WithStyles } from "material-ui/styles";
 import { RoomState } from "./module";
 import { ActionDispatcher } from "./Container";
 import { Link, Redirect } from "react-router-dom";
-import AppBar from "material-ui-next/AppBar";
-import Toolbar from "material-ui-next/Toolbar";
-import Typography from "material-ui-next/Typography";
+import AppBar from "material-ui/AppBar";
+import Toolbar from "material-ui/Toolbar";
+import Typography from "material-ui/Typography";
 import MenuIcon from "material-ui-icons/Menu";
-import IconButton from "material-ui-next/IconButton";
-import Avatar from "material-ui-next/Avatar";
-import Divider from "material-ui-next/Divider";
-import Tabs, { Tab } from "material-ui-next/Tabs";
+import IconButton from "material-ui/IconButton";
+import Avatar from "material-ui/Avatar";
+import Divider from "material-ui/Divider";
+import Tabs, { Tab } from "material-ui/Tabs";
 import Chat from "../components/Chat";
 import Game from "../components/Game";
 import GameHistory from "../components/GameHistory";
 import * as io from "socket.io-client";
-
-// TODO: considering the replacement
-import IconMenu from "material-ui/IconMenu";
-import MenuItem from "material-ui/MenuItem";
+import Menu, { MenuItem } from "material-ui/Menu";
+import UserStatus from "../components/UserStatus";
 
 enum RedirectLocation {
     none,
@@ -51,6 +49,8 @@ interface State {
     redirect: RedirectLocation;
     selectedTab: number;
     messages: IChatMessage[];
+    open: boolean;
+    anchorEl: HTMLElement;
 }
 
 class Room extends React.Component<Props & WithStyles<Styles>, State> {
@@ -58,7 +58,13 @@ class Room extends React.Component<Props & WithStyles<Styles>, State> {
 
     constructor() {
         super();
-        this.state = { redirect: RedirectLocation.none, selectedTab: 0, messages: [] };
+        this.state = {
+            redirect: RedirectLocation.none,
+            selectedTab: 0,
+            messages: [],
+            open: false,
+            anchorEl: null,
+        };
     }
 
     componentDidMount() {
@@ -138,13 +144,26 @@ class Room extends React.Component<Props & WithStyles<Styles>, State> {
 
     public handleSend = (msg: string) => {
         this.socket.emit("send msg", msg);
-    }
+    };
 
     public handleTabChange = (event: object, value: TabNames) => {
         this.setState({
             selectedTab: value,
         });
-    }
+    };
+
+    selectTab = (menu: TabNames) => {
+        this.setState({ selectedTab: menu });
+        this.handleRequestClose();
+    };
+
+    handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+        this.setState({ open: true, anchorEl: event.currentTarget });
+    };
+
+    handleRequestClose = () => {
+        this.setState({ open: false });
+    };
 
     public render() {
         switch (this.state.redirect) {
@@ -158,38 +177,35 @@ class Room extends React.Component<Props & WithStyles<Styles>, State> {
             default:
         }
         const user = this.props.value.account;
-        let playerNo = this.props.value.room.players.findIndex((p) => p.user && p.user.id === user.id);
+        let playerNo = this.props.value.room.players.findIndex(p => p.user && p.user.id === user.id);
         const board = playerNo < 0 ? this.props.value.board : this.props.value.privateBoard;
-        const observer = (playerNo < 0);
+        const observer = playerNo < 0;
         playerNo = observer ? 0 : playerNo;
 
         return (
             <div>
                 <AppBar position="static">
                     <Toolbar>
-                        <IconMenu
-                            iconButtonElement={<IconButton><MenuIcon /></IconButton>}
-                            anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
-                            targetOrigin={{ horizontal: "left", vertical: "top" }}
-                        >
-                            <MenuItem primaryText="ゲーム" onClick={() => this.setState({ selectedTab: TabNames.game })} />
-                            <MenuItem primaryText="履歴" onClick={() => this.setState({ selectedTab: TabNames.history })} />
-                            <MenuItem primaryText="チャット" onClick={() => this.setState({ selectedTab: TabNames.chat })} />
+                        <IconButton
+                            aria-owns={this.state.open ? "lobby-menu" : null}
+                            aria-haspopup="true"
+                            onClick={this.handleMenuClick}>
+                            <MenuIcon />
+                        </IconButton>
+                        <Menu id="lobby-menu" anchorEl={this.state.anchorEl}>
+                            <MenuItem onClick={() => this.selectTab(TabNames.game)}>ゲーム</MenuItem>
+                            <MenuItem onClick={() => this.selectTab(TabNames.history)}>履歴</MenuItem>
+                            <MenuItem onClick={() => this.selectTab(TabNames.chat)}>チャット</MenuItem>
                             <Divider />
-                            <MenuItem primaryText="ロビーに戻る" onClick={() => this.setState({ redirect: RedirectLocation.lobby })} />
-                        </IconMenu>
+                            <MenuItem onClick={() => (location.href = "/lobby")}>ロビーに戻る</MenuItem>
+                        </Menu>
                         <Typography className={this.props.classes.flex}>
                             {"部屋 #" + this.props.no + " : " + this.props.value.room.description}
                         </Typography>
-                        <div>
-                            <Avatar src={this.props.value.account.icon} />
-                            {this.props.value.account.name + " R" + this.props.value.account.rate}
-                        </div>
-
+                        <UserStatus account={this.props.value.account} />
                     </Toolbar>
                 </AppBar>
-                <Tabs value={this.state.selectedTab}
-                    onChange={this.handleTabChange}>
+                <Tabs value={this.state.selectedTab} onChange={this.handleTabChange}>
                     <Tab label="ゲーム" value={TabNames.game}>
                         <Game room={this.props.value.room} board={board} playerNo={playerNo} observer={observer} />
                     </Tab>

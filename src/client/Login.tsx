@@ -1,13 +1,13 @@
 import * as React from "react";
 import { RouteComponentProps } from "react-router";
 
-import Typography from "material-ui-next/Typography";
-import Card, { CardContent, CardActions } from "material-ui-next/Card";
-import { blue } from "material-ui-next/colors";
+import Typography from "material-ui/Typography";
+import Card, { CardContent, CardActions } from "material-ui/Card";
+import { blue } from "material-ui/colors";
 
 import LoginForm from "./components/LoginForm";
 
-import { withStyles, WithStyles } from "material-ui-next";
+import { withStyles, WithStyles } from "material-ui";
 
 const styles = {
     main: {
@@ -26,7 +26,6 @@ interface LoginState {
 }
 
 class Login extends React.Component<RouteComponentProps<any> & WithStyles<ClassNames>, LoginState> {
-
     constructor() {
         super();
         this.state = { fetching: true };
@@ -35,14 +34,14 @@ class Login extends React.Component<RouteComponentProps<any> & WithStyles<ClassN
     componentDidMount() {
         const myHeaders = new Headers({
             "Content-Type": "application/json",
-            "Accept": "application/json",
+            Accept: "application/json",
             "X-Requested-With": "XMLHttpRequest",
         });
         fetch("/auth/check", {
             method: "GET",
             headers: myHeaders,
             credentials: "same-origin", // auto send cookies
-        }).then((res) => {
+        }).then(res => {
             if (res.status === 200) {
                 location.href = "/";
             } else {
@@ -56,7 +55,7 @@ class Login extends React.Component<RouteComponentProps<any> & WithStyles<ClassN
         return (
             <div className={classes.main} style={{ backgroundColor: blue[100] }}>
                 {this.state.fetching ? this.fetching() : <LoginForm />}
-            </div >
+            </div>
         );
     }
 
@@ -64,15 +63,9 @@ class Login extends React.Component<RouteComponentProps<any> & WithStyles<ClassN
         return (
             <Card>
                 <CardContent title="ログイン">
-                    <Typography type="headline">
-                        ログイン
-                    </Typography>
-                    <Typography type="subheading">
-                        ごいたオンライン認証画面
-                    </Typography>
-                    <Typography component="p">
-                        ログイン状況を確認中・・・
-                    </Typography>
+                    <Typography type="headline">ログイン</Typography>
+                    <Typography type="subheading">ごいたオンライン認証画面</Typography>
+                    <Typography component="p">ログイン状況を確認中・・・</Typography>
                 </CardContent>
             </Card>
         );

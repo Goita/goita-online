@@ -1,6 +1,6 @@
 import * as React from "react";
 import JssProvider from "react-jss/lib/JssProvider";
-import { withStyles, MuiThemeProvider, Theme } from "material-ui-next/styles";
+import { withStyles, MuiThemeProvider, Theme } from "material-ui/styles";
 import * as recompose from "recompose";
 import createContext from "./createContext";
 

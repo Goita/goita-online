@@ -6,7 +6,7 @@ import * as goita from "goita-core";
 
 import Board from "./goita/Board";
 import Hand from "./goita/Hand";
-import RaisedButton from "material-ui/RaisedButton";
+import Button from "material-ui/Button";
 
 interface Props {
     room: IRoom;
@@ -24,14 +24,30 @@ export default class Game extends React.Component<Props, {}> {
         const canPlay = isMyTurn && board.toThinkingInfo().getBlockKomaList().length > 0;
         const playPanel = (
             <div>
-                <Hand hand={frontPlayer.hand} canPlay={canPlay} onPlay={(b, a) => { console.log("play!" + b.Text + a.Text); }} noPreviewAttack={false} />
-                <RaisedButton primary disabled={!canPass} onClick={() => console.log("pass!")}>なし</RaisedButton>
-            </div >
+                <Hand
+                    hand={frontPlayer.hand}
+                    canPlay={canPlay}
+                    onPlay={(b, a) => {
+                        console.log("play!" + b.Text + a.Text);
+                    }}
+                    noPreviewAttack={false}
+                />
+                <Button raised color="primary" disabled={!canPass} onClick={() => console.log("pass!")}>
+                    なし
+                </Button>
+            </div>
         );
 
         return (
             <div>
-                <Board board={board} width={600} height={800} showHidden={true} frontPlayerNo={this.props.playerNo} showFrontHand={this.props.observer}></Board>
+                <Board
+                    board={board}
+                    width={600}
+                    height={800}
+                    showHidden={true}
+                    frontPlayerNo={this.props.playerNo}
+                    showFrontHand={this.props.observer}
+                />
                 {!this.props.observer && playPanel}
             </div>
         );
