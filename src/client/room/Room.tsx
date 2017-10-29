@@ -35,6 +35,9 @@ const styles = {
     flex: {
         flex: 1,
     },
+    fillWhite: {
+        fill: "white",
+    },
 };
 
 type Styles = keyof typeof styles;
@@ -181,7 +184,7 @@ class Room extends React.Component<Props & WithStyles<Styles>, State> {
         const board = playerNo < 0 ? this.props.value.board : this.props.value.privateBoard;
         const observer = playerNo < 0;
         playerNo = observer ? 0 : playerNo;
-
+        const classes = this.props.classes;
         return (
             <div>
                 <AppBar position="static">
@@ -190,7 +193,7 @@ class Room extends React.Component<Props & WithStyles<Styles>, State> {
                             aria-owns={this.state.open ? "lobby-menu" : null}
                             aria-haspopup="true"
                             onClick={this.handleMenuClick}>
-                            <MenuIcon />
+                            <MenuIcon className={classes.fillWhite} />
                         </IconButton>
                         <Menu id="lobby-menu" anchorEl={this.state.anchorEl}>
                             <MenuItem onClick={() => this.selectTab(TabNames.game)}>ゲーム</MenuItem>
@@ -199,23 +202,26 @@ class Room extends React.Component<Props & WithStyles<Styles>, State> {
                             <Divider />
                             <MenuItem onClick={() => (location.href = "/lobby")}>ロビーに戻る</MenuItem>
                         </Menu>
-                        <Typography className={this.props.classes.flex}>
+                        <Typography color="inherit" type="headline" className={this.props.classes.flex}>
                             {"部屋 #" + this.props.no + " : " + this.props.value.room.description}
                         </Typography>
                         <UserStatus account={this.props.value.account} />
                     </Toolbar>
+                    <Tabs value={this.state.selectedTab} onChange={this.handleTabChange}>
+                        <Tab label="ゲーム" value={TabNames.game} />
+                        <Tab label="ゲーム履歴" value={TabNames.history} />
+                        <Tab label="チャット" value={TabNames.chat} />
+                    </Tabs>
                 </AppBar>
-                <Tabs value={this.state.selectedTab} onChange={this.handleTabChange}>
-                    <Tab label="ゲーム" value={TabNames.game}>
-                        <Game room={this.props.value.room} board={board} playerNo={playerNo} observer={observer} />
-                    </Tab>
-                    <Tab label="ゲーム履歴" value={TabNames.history}>
-                        <GameHistory playerNo={playerNo} current={board} histories={this.props.value.histories} />
-                    </Tab>
-                    <Tab label="チャット" value={TabNames.chat}>
-                        <Chat onSend={this.handleSend} users={this.props.value.users} messages={this.state.messages} />
-                    </Tab>
-                </Tabs>
+                {this.state.selectedTab === TabNames.game && (
+                    <Game room={this.props.value.room} board={board} playerNo={playerNo} observer={observer} />
+                )}
+                {this.state.selectedTab === TabNames.history && (
+                    <GameHistory playerNo={playerNo} current={board} histories={this.props.value.histories} />
+                )}
+                {this.state.selectedTab === TabNames.chat && (
+                    <Chat onSend={this.handleSend} users={this.props.value.users} messages={this.state.messages} />
+                )}
             </div>
         );
     }

@@ -144,7 +144,7 @@ class Lobby extends React.Component<Props & WithStyles<ClassNames>, State> {
 
         return (
             <div>
-                <AppBar position="fixed">
+                <AppBar position="static">
                     <Toolbar>
                         <IconButton
                             aria-owns={this.state.open ? "lobby-menu" : null}
@@ -152,7 +152,7 @@ class Lobby extends React.Component<Props & WithStyles<ClassNames>, State> {
                             onClick={this.handleMenuClick}>
                             <NavigationMenu className={classes.appIcon} />
                         </IconButton>
-                        <Typography color="inherit" type="display1" className={classes.title}>
+                        <Typography color="inherit" type="headline" className={classes.title}>
                             ごいたオンライン
                         </Typography>
                         <UserStatus account={this.props.value.account} />
