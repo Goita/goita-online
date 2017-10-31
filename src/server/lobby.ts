@@ -1,10 +1,10 @@
 import * as SocketIO from "socket.io";
 import UserData from "./user";
-import { Room, RoomInfo, RoomOptions } from "./room";
+import { RoomInfo, RoomOptions } from "./types";
+import Room from "./room";
 
 /** game lobby */
 export default class Lobby {
-
     public msgID: number;
     public users: { [key: string]: UserData };
     public rooms: { [key: number]: Room };
@@ -37,10 +37,12 @@ export default class Lobby {
 
     public createRoom(description: string, opt?: RoomOptions): Room {
         let no = 1;
-        while (this.rooms[no]) { no++; }
+        while (this.rooms[no]) {
+            no++;
+        }
         const room = new Room(no, description, opt);
         this.rooms[no] = room;
-        room.onRemove = (r) => {
+        room.onRemove = r => {
             this.removeRoom(r.no);
         };
         return room;
@@ -85,7 +87,7 @@ export default class Lobby {
                 console.log("recieved msg: " + text);
             });
 
-            socket.on("new room", (data: { description: string, opt?: RoomOptions }) => {
+            socket.on("new room", (data: { description: string; opt?: RoomOptions }) => {
                 const room = this.createRoom(data.description, data.opt);
                 room.handleRoomEvent(io, this);
                 socket.emit("move to room", room.no);

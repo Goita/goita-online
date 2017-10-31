@@ -1,6 +1,6 @@
 import UserData from "./user";
 
-export class Player {
+export default class Player {
     public user: UserData;
     /**
      * User has left. But game is in progress.

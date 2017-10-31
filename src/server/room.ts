@@ -1,13 +1,16 @@
 import * as SocketIO from "socket.io";
 import UserData from "./user";
 import { User, UserModel } from "./models/User";
-import { Player } from "./player";
+import Player from "./player";
 import Lobby from "./lobby";
 import * as goita from "goita-core";
+import { GameHistory, RoomOptions, defaultRoomOptions, RoomInfo } from "./types";
+
+const TICK_INTERVAL: number = 1000;
+const TICK_WEIGHT: number = 1;
 
 /** game room */
-export class Room {
-
+export default class Room {
     public no: number;
     public description: string;
     public users: { [key: string]: UserData };
@@ -18,6 +21,7 @@ export class Room {
     public players: Player[];
     public createdTime: Date;
     public owner: UserData;
+    public readyTimer: number;
 
     /** fires when this room is removed */
     public onRemove: (room: Room) => void;
@@ -26,6 +30,7 @@ export class Room {
 
     private msgID: number;
     private ioRoom: SocketIO.Namespace;
+    private isTimerActive: boolean;
 
     public constructor(no: number, description: string, opt?: RoomOptions) {
         this.no = no;
@@ -41,10 +46,19 @@ export class Room {
         const o = opt ? opt : defaultRoomOptions;
         this.setOptions(o);
         this.createdTime = new Date(Date.now());
+
+        this.readyTimer = this.options.autoStartTime;
+        this.startTimer();
     }
 
     public get info(): RoomInfo {
-        return { no: this.no, users: this.users, players: this.players, description: this.description, opt: this.options };
+        return {
+            no: this.no,
+            users: this.users,
+            players: this.players,
+            description: this.description,
+            opt: this.options,
+        };
     }
 
     public get histories(): GameHistory[] {
@@ -52,7 +66,11 @@ export class Room {
         for (const b of this.game.history) {
             const fs = b.getFinishState();
             if (fs.wonScore > 0) {
-                histories.push({ wonUser: this.players[fs.nextDealerNo].user, wonTeam: fs.nextDealerNo % 2, wonScore: fs.wonScore });
+                histories.push({
+                    wonUser: this.players[fs.nextDealerNo].user,
+                    wonTeam: fs.nextDealerNo % 2,
+                    wonScore: fs.wonScore,
+                });
             }
         }
         return histories;
@@ -108,7 +126,6 @@ export class Room {
     }
 
     public handleRoomEvent(io: SocketIO.Server, lobby: Lobby): void {
-
         this.ioRoom = io.of("/room/" + this.no);
         this.ioRoom.on("connection", (socket: SocketIO.Socket) => {
             if (!socket.request.user || !socket.request.user.logged_in) {
@@ -167,7 +184,7 @@ export class Room {
                 this.ioRoom.emit("player info", this.players);
             });
 
-            const sittingCheck = (): boolean => {
+            const canChangeSttingStatus = (): boolean => {
                 if (!this.game.board.isEndOfDeal) {
                     socket.emit("invalid action", "cannot change ready status because match in progress");
                     return false;
@@ -182,37 +199,33 @@ export class Room {
             };
 
             socket.on("set ready", () => {
-                if (sittingCheck()) {
+                if (!canChangeSttingStatus()) {
                     return;
                 }
-                const no = this.players.findIndex((p) => p.user && p.user.id === user.id);
+                const no = this.players.findIndex(p => p.user && p.user.id === user.id);
                 this.players[no].ready = true;
                 this.ioRoom.emit("player info", this.players);
-                if (this.players.every((p) => p.ready)) {
-                    if (!this.isInGame) {
-                        this.game.startNewGame();
-                        this.isInGame = true;
-                    }
-                    this.game.startNewDeal();
+                if (this.players.every(p => p.ready)) {
+                    this.startNextGame();
                 }
             });
 
             socket.on("cancel ready", () => {
-                if (sittingCheck()) {
+                if (!canChangeSttingStatus()) {
                     return;
                 }
-                const no = this.players.findIndex((p) => p.user && p.user.id === user.id);
+                const no = this.players.findIndex(p => p.user && p.user.id === user.id);
                 this.players[no].ready = false;
                 this.ioRoom.emit("player info", this.players);
             });
 
             socket.on("swap seats", () => {
-                const no = this.players.findIndex((p) => p.user && p.user.id === user.id);
+                const no = this.players.findIndex(p => p.user && p.user.id === user.id);
                 if (no < 0) {
                     socket.emit("invalid action", "cannot change ready status because of not sitting on");
                     return;
                 }
-                if (sittingCheck()) {
+                if (!canChangeSttingStatus()) {
                     return;
                 }
                 // swap players
@@ -248,17 +261,12 @@ export class Room {
 
             const updatedUserRate = (userdata: UserData, newRate: number) => {
                 userdata.rate = newRate;
-                User.findOneAndUpdate(
-                    { userid: userdata.id },
-                    { $set: { rate: newRate } },
-                    { upsert: true },
-                    (err) => {
-                        if (err) { console.log(err); }
-                        if (err) {
-                            console.log("Failed to update user rate");
-                        }
-                    },
-                );
+                User.findOneAndUpdate({ userid: userdata.id }, { $set: { rate: newRate } }, { upsert: true }, err => {
+                    if (err) {
+                        console.log(err);
+                        console.log("Failed to update user rate");
+                    }
+                });
                 this.ioRoom.emit("user updated", userdata);
                 if (this.onUpdatedUserData) {
                     this.onUpdatedUserData(userdata);
@@ -275,7 +283,7 @@ export class Room {
                 sendBoardInfoToAll();
                 if (this.game.board.isEndOfDeal) {
                     sendGameHistoryInfoToAll();
-                    this.players.forEach((p) => p.ready = false);
+                    this.players.forEach(p => (p.ready = false));
                     if (this.game.isEnd) {
                         this.isInGame = false;
                     }
@@ -296,7 +304,7 @@ export class Room {
 
             socket.on("disconnect", () => {
                 // remove user from room
-                const no = this.players.findIndex((p) => p.user && p.user.id === user.id);
+                const no = this.players.findIndex(p => p.user && p.user.id === user.id);
                 if (no >= 0) {
                     if (!this.game.isEnd) {
                         this.leaveAccidentally(no);
@@ -315,45 +323,57 @@ export class Room {
                         this.onRemove(this);
                     }
                 }
-
             });
         });
     }
-}
 
-export interface RoomInfo {
-    no: number;
-    description: string;
-    users: { [key: string]: UserData };
-    players: Player[];
-    opt: RoomOptions;
-}
-export interface RoomOptions {
-    rateUpperLimit?: number;
-    rateLowerLimit?: number;
-    noRating: boolean;
-    /** start next round automatically after this time */
-    autoStartTime: number;
-    /** main time */
-    maintime: number;
-    /** byo-yomi time */
-    subtime: number;
-    noYaku: boolean;
-    /** match score */
-    score: number;
-}
+    private startNextGame() {
+        for (const p of this.players) {
+            p.ready = false;
+            p.maintime = this.options.maintime;
+            p.subtime = this.options.subtime;
+        }
+        if (!this.isInGame) {
+            this.game.startNewGame();
+            this.isInGame = true;
+        }
+        this.game.startNewDeal();
+        this.readyTimer = this.options.autoStartTime;
+    }
 
-export const defaultRoomOptions: RoomOptions = {
-    noRating: false,
-    autoStartTime: 60,
-    maintime: 300,
-    subtime: 20,
-    noYaku: false,
-    score: 150,
-};
+    private startTimer() {
+        if (this.isTimerActive) {
+            return;
+        }
+        this.isTimerActive = true;
+        this.tick();
+    }
 
-export interface GameHistory {
-    wonUser: UserData;
-    wonTeam: number;
-    wonScore: number;
+    private stopTimer() {
+        this.isTimerActive = false;
+    }
+
+    private tick() {
+        if (!this.isTimerActive) {
+            return;
+        }
+        // reduce timer count
+        if (!this.game.board.isEndOfDeal) {
+            const turnPlayer = this.players[this.game.board.turnPlayer.no];
+            if (turnPlayer.maintime > 0) {
+                turnPlayer.maintime -= TICK_WEIGHT;
+            } else if (turnPlayer.subtime > 0) {
+                turnPlayer.subtime -= TICK_WEIGHT;
+            } else {
+                this.forceRandomPlay();
+            }
+        } else if (this.players.every(p => !p.absent) && this.players.some(p => p.ready)) {
+            if (this.readyTimer > 0) {
+                this.readyTimer -= TICK_WEIGHT;
+            } else {
+                this.startNextGame();
+            }
+        }
+        setTimeout(this.tick, TICK_INTERVAL);
+    }
 }
