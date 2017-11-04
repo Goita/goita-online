@@ -13,6 +13,7 @@
         "no-submodule-imports": false,
         "no-empty-interface": false,
         "semicolon": false,
-        "arrow-parens": false
+        "arrow-parens": false,
+        "no-implicit-dependencies": false
     }
 }

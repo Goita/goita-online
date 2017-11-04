@@ -358,7 +358,7 @@ export default class Room {
             return;
         }
         // reduce timer count
-        if (!this.game.board.isEndOfDeal) {
+        if (this.game.board && !this.game.board.isEndOfDeal) {
             const turnPlayer = this.players[this.game.board.turnPlayer.no];
             if (turnPlayer.maintime > 0) {
                 turnPlayer.maintime -= TICK_WEIGHT;
@@ -374,6 +374,8 @@ export default class Room {
                 this.startNextGame();
             }
         }
-        setTimeout(this.tick, TICK_INTERVAL);
+        setTimeout(() => {
+            this.tick();
+        }, TICK_INTERVAL);
     }
 }

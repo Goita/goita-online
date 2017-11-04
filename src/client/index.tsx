@@ -1,26 +1,13 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-
-import SvgIcon from "material-ui/SvgIcon";
-declare global {
-    namespace NodeJS {
-        interface Global {
-            __MUI_SvgIcon__: any;
-        }
-    }
-}
-// Tells `material-ui-icons` to use `masterial-ui-next/SvgIcon` module
-// instead of `masterial-ui/SvgIcon`.
-global.__MUI_SvgIcon__ = SvgIcon;
-
-import { AppContainer } from "react-hot-loader";
+import { AppContainer as ReactHotLoaderContainer } from "react-hot-loader";
 import App from "./App";
 
 const render = (Component: any) => {
     ReactDOM.render(
-        <AppContainer>
+        <ReactHotLoaderContainer>
             <Component />
-        </AppContainer>,
+        </ReactHotLoaderContainer>,
         document.getElementById("react"),
     );
 };

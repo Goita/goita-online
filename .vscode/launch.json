@@ -1,16 +1,18 @@
 {
     "version": "0.2.0",
-    "configurations": [{
-        "name": "Attach to Server",
-        "type": "node",
-        "request": "attach",
-        "port": 9229,
-        "address": "localhost",
-        "protocol": "inspector",
-        "localRoot": "${workspaceRoot}",
-        "remoteRoot": "/home/node/goita-online",
-        "outFiles": [
-            "../dist/server.js"
-        ]
-    }]
+    "configurations": [
+        {
+            "name": "Attach to Server 9229",
+            "type": "node",
+            "request": "attach",
+            "port": 9229,
+            "address": "0.0.0.0",
+            "protocol": "inspector",
+            "localRoot": "${workspaceRoot}",
+            "remoteRoot": "/home/node/goita-online",
+            // "outFiles": ["../dist/server.js"],
+            "outFiles": ["${workspaceRoot}/dist/**.js!${workspaceRoot}/dist/public/**.js"],
+            "timeout": 1000
+        }
+    ]
 }

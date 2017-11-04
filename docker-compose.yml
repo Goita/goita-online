@@ -24,4 +24,5 @@ services:
     volumes:
       - .:/home/node/goita-online
       - ./db_mongo:/home/node/goita-online/db_mongo
-    command: yarn watch:start
+    command: yarn watch:debug
+    # command: yarn test

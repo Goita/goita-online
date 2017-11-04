@@ -83,6 +83,18 @@ app.use(
 
 // Development config
 if (app.get("env") === "development") {
+    // hack for webpackDevMiddleware
+    const execArgv = process.execArgv;
+    for (let i = 0; i < execArgv.length; i++) {
+        if (execArgv[i].match(/--inspect=.*:?\d{3,5}/)) {
+            // replace inspect option if it has constant port
+            execArgv[i] = "--inspect";
+        } else if (execArgv[i].match(/--inspect=\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/)) {
+            // replace inspect option if it has constant address
+            execArgv[i] = "--inspect";
+        }
+    }
+
     console.log("  No Cacheing Mode");
     app.use(nochace());
 
@@ -106,12 +118,12 @@ if (app.get("env") === "development") {
     // Serve hot-reloading bundle to client
     app.use(
         webpackDevMiddleware(compiler, {
-            noInfo: false,
+            noInfo: true,
             publicPath: config.output.publicPath,
         }),
     );
     app.use(webpackHotMiddleware(compiler));
-    console.log("[HRM] Serve hot-reloading bundle to client");
+    console.log("[HMR] Serve hot-reloading bundle to client");
 
     // Do "hot-reloading" of express stuff on the server
     // Throw away cached modules and re-require next time
@@ -160,19 +172,19 @@ app.use("/", express.static(path.join(__dirname, "public"), { maxAge: 3155760000
  */
 app.get("/auth/facebook", passport.authenticate("facebook", { scope: ["email", "public_profile"] }));
 app.get("/auth/facebook/callback", passport.authenticate("facebook", { failureRedirect: "/login" }), (req, res) => {
-    const rd = req.session.returnTo || "/";
+    const rd = req.session.returnTo || "/lobby";
     res.redirect(rd);
 });
 
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), (req, res) => {
-    const rd = req.session.returnTo || "/";
+    const rd = req.session.returnTo || "/lobby";
     res.redirect(rd);
 });
 
 app.get("/auth/twitter", passport.authenticate("twitter"));
 app.get("/auth/twitter/callback", passport.authenticate("twitter", { failureRedirect: "/login" }), (req, res) => {
-    const rd = req.session.returnTo || "/";
+    const rd = req.session.returnTo || "/lobby";
     res.redirect(rd);
 });
 

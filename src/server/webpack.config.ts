@@ -2,10 +2,11 @@ import * as path from "path";
 import * as webpack from "webpack";
 import * as CopyWebpackPlugin from "copy-webpack-plugin";
 import { CheckerPlugin } from "awesome-typescript-loader";
+import * as WriteFilePlugin from "write-file-webpack-plugin";
 // var commonsPlugin = new webpack.optimize.CommonsChunkPlugin("common.js");
 
 const config: webpack.Configuration = {
-    entry: ["react-hot-loader/patch", "./src/client/index.tsx"],
+    entry: ["react-hot-loader/patch", "webpack-hot-middleware/client", "./src/client/index.tsx"],
     output: {
         path: path.resolve(__dirname, "public"),
         filename: "bundle.js",
@@ -31,7 +32,6 @@ const config: webpack.Configuration = {
                 // option #2 ts-loader
 
                 // loaders: ["react-hot-loader/webpack", "awesome-typescript-loader?configFileName=tsconfig.webpack.json"],
-                exclude: [path.resolve(__dirname, "node_modules"), path.join(__dirname, "src/server")],
             },
             {
                 enforce: "pre",
@@ -44,7 +44,6 @@ const config: webpack.Configuration = {
                 enforce: "pre",
                 test: /\.js$/,
                 loader: "source-map-loader",
-                include: [path.join(__dirname, "node_modules/pixi.js/dist")],
             },
         ],
     },
@@ -62,17 +61,19 @@ const config: webpack.Configuration = {
                     to: path.resolve(__dirname, "public"),
                 },
                 {
-                    from: "node_modules/pixi.js/dist/pixi.js{,.map}",
+                    from: "node_modules/pixi.js/dist/pixi.js",
                 },
-                // {
-                //     from: "node_modules/{react/cjs/react,react-dom/cjs/react-dom}.development.js",
-                // },
+                {
+                    from: "node_modules/pixi.js/dist/pixi.js.map",
+                },
             ],
             { debug: "warning" },
         ),
         // NamedModulesPlugin to make it easier to see which dependencies are being patched.
         new webpack.NamedModulesPlugin(),
         new webpack.HotModuleReplacementPlugin(),
+        new webpack.NoEmitOnErrorsPlugin(),
+        new WriteFilePlugin(),
     ],
 };
 
