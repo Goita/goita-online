@@ -21,7 +21,7 @@ export default class Room {
     public players: Player[];
     public createdTime: Date;
     public owner: UserData;
-    public readyTimer: number;
+    public readyTimerCountSec: number;
 
     /** fires when this room is removed */
     public onRemove: (room: Room) => void;
@@ -33,21 +33,26 @@ export default class Room {
     private isTimerActive: boolean;
 
     public constructor(no: number, description: string, opt?: RoomOptions) {
+        const o = opt ? opt : defaultRoomOptions;
+
         this.no = no;
         this.description = description;
         this.msgID = 0;
         this.game = goita.Factory.createGame();
+        this.applyOptionsToGame(o);
         this.users = {};
         this.userCount = 0;
         this.players = [];
         for (let i = 0; i < 4; i++) {
-            this.players[i] = new Player();
+            const p = new Player();
+            p.maintime = o.maintime;
+            p.subtime = o.subtime;
+            this.players[i] = p;
         }
-        const o = opt ? opt : defaultRoomOptions;
-        this.setOptions(o);
+
         this.createdTime = new Date(Date.now());
 
-        this.readyTimer = this.options.autoStartTime;
+        this.readyTimerCountSec = this.options.autoStartTime;
         this.startTimer();
     }
 
@@ -85,6 +90,9 @@ export default class Room {
 
     public removeUser(userid: string): void {
         const user = this.users[userid];
+        if (!user) {
+            return;
+        }
         user.roomNo = 0;
         delete this.users[userid];
         this.userCount--;
@@ -108,7 +116,7 @@ export default class Room {
         this.players[no].absent = true;
     }
 
-    public setOptions(opt: RoomOptions) {
+    public applyOptionsToGame(opt: RoomOptions) {
         this.options = opt;
         this.game.dealOptions.noGoshi = opt.noYaku;
         this.game.dealOptions.noYaku = opt.noYaku;
@@ -160,13 +168,13 @@ export default class Room {
             });
 
             socket.on("change config", (opt: RoomOptions) => {
-                this.setOptions(opt);
+                this.applyOptionsToGame(opt);
                 this.ioRoom.emit("config updated", opt);
             });
 
             // Table message
             socket.on("sit on", (no: number) => {
-                if (this.players[no].user) {
+                if (this.players[no].user || this.players.some(p => p.user && p.user.id === user.id)) {
                     socket.emit("invalid action", "cannot sit on");
                     return;
                 }
@@ -174,17 +182,17 @@ export default class Room {
                 this.ioRoom.emit("player info", this.players);
             });
 
-            socket.on("stand up", (no: number) => {
-                const sittingUser = this.players[no].user;
-                if (!sittingUser || sittingUser.id !== user.id) {
+            socket.on("stand up", () => {
+                const index = this.players.findIndex(p => p.user && p.user.id === user.id);
+                if (index < 0) {
                     socket.emit("invalid action", "cannot stand up");
                 }
 
-                this.standUp(no);
+                this.standUp(index);
                 this.ioRoom.emit("player info", this.players);
             });
 
-            const canChangeSttingStatus = (): boolean => {
+            const canChangeSittingStatus = (): boolean => {
                 if (!this.game.board.isEndOfDeal) {
                     socket.emit("invalid action", "cannot change ready status because match in progress");
                     return false;
@@ -199,7 +207,7 @@ export default class Room {
             };
 
             socket.on("set ready", () => {
-                if (!canChangeSttingStatus()) {
+                if (!canChangeSittingStatus()) {
                     return;
                 }
                 const no = this.players.findIndex(p => p.user && p.user.id === user.id);
@@ -207,11 +215,12 @@ export default class Room {
                 this.ioRoom.emit("player info", this.players);
                 if (this.players.every(p => p.ready)) {
                     this.startNextGame();
+                    sendBoardInfoToAll();
                 }
             });
 
             socket.on("cancel ready", () => {
-                if (!canChangeSttingStatus()) {
+                if (!canChangeSittingStatus()) {
                     return;
                 }
                 const no = this.players.findIndex(p => p.user && p.user.id === user.id);
@@ -225,7 +234,7 @@ export default class Room {
                     socket.emit("invalid action", "cannot change ready status because of not sitting on");
                     return;
                 }
-                if (!canChangeSttingStatus()) {
+                if (!canChangeSittingStatus()) {
                     return;
                 }
                 // swap players
@@ -338,7 +347,7 @@ export default class Room {
             this.isInGame = true;
         }
         this.game.startNewDeal();
-        this.readyTimer = this.options.autoStartTime;
+        this.readyTimerCountSec = this.options.autoStartTime;
     }
 
     private startTimer() {
@@ -368,8 +377,8 @@ export default class Room {
                 this.forceRandomPlay();
             }
         } else if (this.players.every(p => !p.absent) && this.players.some(p => p.ready)) {
-            if (this.readyTimer > 0) {
-                this.readyTimer -= TICK_WEIGHT;
+            if (this.readyTimerCountSec > 0) {
+                this.readyTimerCountSec -= TICK_WEIGHT;
             } else {
                 this.startNextGame();
             }

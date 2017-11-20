@@ -1,7 +1,22 @@
 import Room from "./Room";
 import { connect, MapDispatchToPropsParam, MapStateToPropsParam } from "react-redux";
 import { Dispatch } from "redux";
-import { RoomState, updateAccount, updateRoomInfo, userJoined, userLeft, updateUser, updateBoardInfo, updatePlayerInfo, updatePrivateBoardInfo, updateRoomConfig, updateGameHistory, decideGoshi, waitGoshi, solveGoshi } from "./module";
+import {
+    RoomState,
+    updateAccount,
+    updateRoomInfo,
+    userJoined,
+    userLeft,
+    updateUser,
+    updateBoardInfo,
+    updatePlayerInfo,
+    updatePrivateBoardInfo,
+    updateRoomConfig,
+    updateGameHistory,
+    decideGoshi,
+    waitGoshi,
+    solveGoshi,
+} from "./module";
 import { ReduxAction, ReduxState } from "../store";
 import { RouteComponentProps } from "react-router";
 import { IUser, IRoom, IChatMessage, IRoomOptions, IPlayer, IGameHistory } from "../types";
@@ -9,11 +24,11 @@ import { IUser, IRoom, IChatMessage, IRoomOptions, IPlayer, IGameHistory } from 
 export class ActionDispatcher {
     private myHeaders = new Headers({
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
         "X-Requested-With": "XMLHttpRequest",
     });
 
-    constructor(private dispatch: (action: ReduxAction) => void) { }
+    constructor(private dispatch: (action: ReduxAction) => void) {}
 
     public updateAccount(user: IUser): void {
         this.dispatch(updateAccount(user));
@@ -68,10 +83,15 @@ export class ActionDispatcher {
 }
 
 // pass react-router parameter to props
-const mapStateToProps: MapStateToPropsParam<{ value: RoomState, no: number }, any> = (state: ReduxState, ownProps: RouteComponentProps<{ no: number | undefined }>) => {
+const mapStateToProps: MapStateToPropsParam<{ value: RoomState; no: number }, any> = (
+    state: ReduxState,
+    ownProps: RouteComponentProps<{ no: number | undefined }>,
+) => {
     return { value: state.room, no: ownProps.match.params.no };
 };
 
-const mapDispatchToProps: MapDispatchToPropsParam<{ actions: ActionDispatcher }, {}> = (dispatch: Dispatch<ReduxAction>) => ({ actions: new ActionDispatcher(dispatch) });
+const mapDispatchToProps: MapDispatchToPropsParam<{ actions: ActionDispatcher }, {}> = (
+    dispatch: Dispatch<ReduxAction>,
+) => ({ actions: new ActionDispatcher(dispatch) });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Room);

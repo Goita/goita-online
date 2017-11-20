@@ -30,7 +30,7 @@ class RoomList extends React.Component<Props & WithStyles<ClassNames>, State> {
         this.state = { newRoomDialogOpen: false };
     }
 
-    selectRoom = (roomNo: number) => {
+    selectRoom = (roomNo: number) => () => {
         console.log("roomNo :" + roomNo + " selected.");
         return;
     };
@@ -51,7 +51,7 @@ class RoomList extends React.Component<Props & WithStyles<ClassNames>, State> {
         const items = this.props.rooms.map(room => {
             return (
                 <TableRow key={room.no}>
-                    <TableCell onClick={() => this.selectRoom(room.no)}>{"#" + room.no}</TableCell>
+                    <TableCell onClick={this.selectRoom(room.no)}>{"#" + room.no}</TableCell>
                     <TableCell>{room.description}</TableCell>
                     <TableCell>{room.players.join(", ")}</TableCell>
                     <TableCell>{"-----"}</TableCell>

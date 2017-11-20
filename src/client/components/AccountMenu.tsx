@@ -43,6 +43,10 @@ const AccountMenu = decorate(
             this.setState({ open: false });
         };
 
+        handleClickMenuItem = (href: string) => () => {
+            location.href = href;
+        };
+
         render() {
             return (
                 <div className={this.props.classes.root}>
@@ -57,8 +61,8 @@ const AccountMenu = decorate(
                         anchorEl={this.state.anchorEl}
                         open={this.state.open}
                         onRequestClose={this.handleRequestClose}>
-                        <MenuItem onClick={() => (location.href = "/account")}>ユーザ設定</MenuItem>
-                        <MenuItem onClick={() => (location.href = "/logout")}>ログアウト</MenuItem>
+                        <MenuItem onClick={this.handleClickMenuItem("/account")}>ユーザ設定</MenuItem>
+                        <MenuItem onClick={this.handleClickMenuItem("/logout")}>ログアウト</MenuItem>
                     </Menu>
                 </div>
             );

@@ -83,7 +83,7 @@ app.use(
 
 // Development config
 if (app.get("env") === "development") {
-    // hack for webpackDevMiddleware
+    // hack for awesome-typescript-loader
     const execArgv = process.execArgv;
     for (let i = 0; i < execArgv.length; i++) {
         if (execArgv[i].match(/--inspect=.*:?\d{3,5}/)) {
@@ -246,9 +246,9 @@ io.use(
             accept(null, true);
         },
         fail: (data, message, error, accept) => {
-            if (error) {
-                throw new Error(message);
-            }
+            // if (error) {
+            //     throw new Error(message);
+            // }
             console.log("failed connection to socket.io:", message);
             accept(null, false);
         },

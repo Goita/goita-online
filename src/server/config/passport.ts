@@ -1,7 +1,6 @@
 import * as Facebook from "passport-facebook";
 import * as Google from "passport-google-oauth";
 import * as Twitter from "passport-twitter";
-// import * as Local from "passport-local";
 
 import { User, UserModel } from "../models/User";
 // import * as store from "store";
@@ -17,7 +16,7 @@ export let isGameAuthenticated = (req: Request, res: Response, next: NextFunctio
     if (req.isAuthenticated()) {
         return next();
     }
-    res.redirect("/login");
+        res.redirect("/login");
 };
 
 /**

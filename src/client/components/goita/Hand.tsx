@@ -3,19 +3,22 @@ import * as goita from "goita-core";
 
 import Button from "material-ui/Button";
 import Badge from "material-ui/Badge";
+import KomaIcon from "./KomaIcon";
 
-import { withStyles, WithStyles } from "material-ui";
+import { withStyles, WithStyles, StyleRules } from "material-ui/styles";
 
-const styles = {
+type classKeys = "block" | "relPos" | "absPos";
+const styles: StyleRules<classKeys> = {
     block: {
         display: "block",
     },
-    abs: {
+    relPos: {
+        position: "relative",
+    },
+    absPos: {
         position: "absolute",
     },
 };
-
-type ClassNames = keyof typeof styles;
 
 interface Props {
     hand: goita.Koma[];
@@ -29,32 +32,30 @@ interface State {
     attack: goita.Koma;
 }
 
-class Hand extends React.Component<Props & WithStyles<ClassNames>, State> {
+class Hand extends React.Component<Props & WithStyles<classKeys>, State> {
     public constructor() {
         super();
         this.state = { block: null, attack: null };
     }
 
-    componentWillUpdate(nextProps: Props, nextState: State) {
-        // reset preview when player does not have own turn.
-        if (!nextProps.canPlay) {
-            this.resetPlayKoma();
-        }
-    }
-
     public render() {
         const classes = this.props.classes;
         const list = this.removeHand(this.props.hand, this.state.block, this.state.attack).map((k, i) => (
-            <Button raised disabled={!this.props.canPlay} key={k.value + i} onClick={() => this.stagePlayKoma(k)}>
-                <div className={classes.abs}>
-                    <img src={"/images/koma.png"} />
-                    <img src={"/images/koma" + k.value + ".png"} />
-                </div>
+            <Button raised disabled={!this.props.canPlay} key={k.value + i} onClick={this.stagePlayKoma(k)}>
+                <KomaIcon koma={k} />
             </Button>
         ));
 
-        const blockPreview = this.previewKoma("受", this.state.block);
-        const attackPreview = this.previewKoma("攻", this.state.attack);
+        const previewKoma = (type: string, koma: goita.Koma): JSX.Element => {
+            return (
+                <Badge badgeContent={type}>
+                    <KomaIcon koma={koma} />
+                </Badge>
+            );
+        };
+
+        const blockPreview = previewKoma("受", this.state.block);
+        const attackPreview = previewKoma("攻", this.state.attack);
 
         const disabledPlay = this.props.noPreviewAttack || !this.state.attack;
 
@@ -64,13 +65,13 @@ class Hand extends React.Component<Props & WithStyles<ClassNames>, State> {
                     {blockPreview}
                     {attackPreview}
                     {this.state.block && (
-                        <Button raised onClick={() => this.resetPlayKoma()}>
+                        <Button raised onClick={this.resetPlayKoma}>
                             リセット
                         </Button>
                     )}
                     {this.state.block &&
                         this.state.attack && (
-                            <Button raised disabled={disabledPlay} onClick={() => this.play()}>
+                            <Button raised disabled={disabledPlay} onClick={this.play}>
                                 打つ
                             </Button>
                         )}
@@ -85,7 +86,7 @@ class Hand extends React.Component<Props & WithStyles<ClassNames>, State> {
         this.resetPlayKoma();
     }
 
-    private stagePlayKoma(koma: goita.Koma) {
+    private stagePlayKoma = (koma: goita.Koma) => () => {
         if (!this.state.block) {
             this.setState({ block: koma });
         } else if (!this.state.attack) {
@@ -95,27 +96,10 @@ class Hand extends React.Component<Props & WithStyles<ClassNames>, State> {
                 this.setState({ attack: koma });
             }
         }
-    }
+    };
 
     private resetPlayKoma() {
         this.setState({ block: null, attack: null });
-    }
-
-    private previewKoma(type: string, koma: goita.Koma): JSX.Element {
-        return (
-            <Badge badgeContent={type}>
-                {koma ? (
-                    <div>
-                        <img src={"/images/koma.png"} />
-                        <img src={"/images/koma" + koma.value + ".png"} />
-                    </div>
-                ) : (
-                    <div>
-                        <img src={"/images/koma0.png"} />
-                    </div>
-                )}
-            </Badge>
-        );
     }
 
     private removeHand(hand: goita.Koma[], block: goita.Koma, attack: goita.Koma): goita.Koma[] {
@@ -132,4 +116,4 @@ class Hand extends React.Component<Props & WithStyles<ClassNames>, State> {
     }
 }
 
-export default withStyles<{} & ClassNames>(styles)<Props>(Hand);
+export default withStyles<{} & classKeys>(styles)<Props>(Hand);

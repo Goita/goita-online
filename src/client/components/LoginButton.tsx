@@ -28,8 +28,7 @@ const LoginButton = decorate<Props>(props => {
         <Button
             href={props.href}
             className={props.classes.snsBtnsText}
-            style={{ backgroundColor: props.backgroundColor, width: 200 }}
-            target="_blank">
+            style={{ backgroundColor: props.backgroundColor, width: 200 }}>
             <FontAwesome name={props.fa} size="2x" style={{ marginRight: "10px" }} />
             {props.text}
         </Button>

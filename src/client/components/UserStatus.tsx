@@ -1,15 +1,16 @@
 import * as React from "react";
-import { withStyles, WithStyles } from "material-ui";
+import { withStyles, WithStyles, StyleRulesCallback, Theme } from "material-ui/styles";
 import Grid from "material-ui/Grid";
 import Avatar from "material-ui/Avatar";
 import AccountMenu from "./AccountMenu";
 import { IUser } from "../types";
 
-const styles = {
+type classKeys = "appIcon";
+const styles: StyleRulesCallback<classKeys> = (theme: Theme) => ({
     appIcon: {
-        fill: "white",
+        fill: theme.palette.common.white,
     },
-};
+});
 
 const decorate = withStyles(styles);
 

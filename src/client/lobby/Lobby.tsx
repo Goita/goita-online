@@ -130,7 +130,7 @@ class Lobby extends React.Component<Props & WithStyles<ClassNames>, State> {
         this.setState({ open: false });
     };
 
-    selectTab = (menu: TabNames) => {
+    selectTab = (menu: TabNames) => () => {
         this.setState({ selectedTab: menu });
         this.handleRequestClose();
     };
@@ -173,8 +173,8 @@ class Lobby extends React.Component<Props & WithStyles<ClassNames>, State> {
                     open={this.state.open}
                     onRequestClose={this.handleRequestClose}
                     anchorEl={this.state.anchorEl}>
-                    <MenuItem onClick={() => this.selectTab(TabNames.room)}>部屋</MenuItem>
-                    <MenuItem onClick={() => this.selectTab(TabNames.chat)}>チャット</MenuItem>
+                    <MenuItem onClick={this.selectTab(TabNames.room)}>部屋</MenuItem>
+                    <MenuItem onClick={this.selectTab(TabNames.chat)}>チャット</MenuItem>
                 </Menu>
             </div>
         );

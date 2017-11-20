@@ -6,6 +6,5 @@
     "bracketSpacing": true,
     "semi": true,
     "useTabs": false,
-    "prettier-eslint": false,
     "jsxBracketSameLine": true
 }

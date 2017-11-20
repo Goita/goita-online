@@ -155,7 +155,7 @@ class Room extends React.Component<Props & WithStyles<Styles>, State> {
         });
     };
 
-    selectTab = (menu: TabNames) => {
+    selectTab = (menu: TabNames) => () => {
         this.setState({ selectedTab: menu });
         this.handleRequestClose();
     };
@@ -166,6 +166,22 @@ class Room extends React.Component<Props & WithStyles<Styles>, State> {
 
     handleRequestClose = () => {
         this.setState({ open: false });
+    };
+
+    handleSitOn = (no: number) => {
+        this.socket.emit("sit on", no);
+    };
+
+    handleStandUp = () => {
+        this.socket.emit("stand up");
+    };
+
+    handleSetReady = () => {
+        this.socket.emit("set ready");
+    };
+
+    handleCancelReady = () => {
+        this.socket.emit("cancel ready");
     };
 
     public render() {
@@ -196,11 +212,11 @@ class Room extends React.Component<Props & WithStyles<Styles>, State> {
                             <MenuIcon className={classes.fillWhite} />
                         </IconButton>
                         <Menu id="lobby-menu" anchorEl={this.state.anchorEl}>
-                            <MenuItem onClick={() => this.selectTab(TabNames.game)}>ゲーム</MenuItem>
-                            <MenuItem onClick={() => this.selectTab(TabNames.history)}>履歴</MenuItem>
-                            <MenuItem onClick={() => this.selectTab(TabNames.chat)}>チャット</MenuItem>
+                            <MenuItem onClick={this.selectTab(TabNames.game)}>ゲーム</MenuItem>
+                            <MenuItem onClick={this.selectTab(TabNames.history)}>履歴</MenuItem>
+                            <MenuItem onClick={this.selectTab(TabNames.chat)}>チャット</MenuItem>
                             <Divider />
-                            <MenuItem onClick={() => (location.href = "/lobby")}>ロビーに戻る</MenuItem>
+                            <MenuItem href="/lobby">ロビーに戻る</MenuItem>
                         </Menu>
                         <Typography color="inherit" type="headline" className={this.props.classes.flex}>
                             {"部屋 #" + this.props.no + " : " + this.props.value.room.description}
@@ -214,7 +230,17 @@ class Room extends React.Component<Props & WithStyles<Styles>, State> {
                     </Tabs>
                 </AppBar>
                 {this.state.selectedTab === TabNames.game && (
-                    <Game room={this.props.value.room} board={board} playerNo={playerNo} observer={observer} />
+                    <Game
+                        account={this.props.value.account}
+                        room={this.props.value.room}
+                        board={board}
+                        playerNo={playerNo}
+                        observer={observer}
+                        onSitOn={this.handleSitOn}
+                        onStandUp={this.handleStandUp}
+                        onSetReady={this.handleSetReady}
+                        onCancelReady={this.handleCancelReady}
+                    />
                 )}
                 {this.state.selectedTab === TabNames.history && (
                     <GameHistory playerNo={playerNo} current={board} histories={this.props.value.histories} />

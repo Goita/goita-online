@@ -153,13 +153,32 @@ export interface RoomState {
     goshiDecision: boolean;
 }
 
-export type RoomActions = UpdateAccountAction | UpdateRoomInfoAction | UserJoinedAction | UserLeftAction | UpdateUserAction | UpdateBoardInfoAction | UpdatePlayerInfoAction | UpdatePrivateBoardInfoAction | UpdateRoomConfigAction | UpdateGameHistoryAction | WaitGoshiAction | SolveGoshiAction | DecideGoshiAction;
+export type RoomActions =
+    | UpdateAccountAction
+    | UpdateRoomInfoAction
+    | UserJoinedAction
+    | UserLeftAction
+    | UpdateUserAction
+    | UpdateBoardInfoAction
+    | UpdatePlayerInfoAction
+    | UpdatePrivateBoardInfoAction
+    | UpdateRoomConfigAction
+    | UpdateGameHistoryAction
+    | WaitGoshiAction
+    | SolveGoshiAction
+    | DecideGoshiAction;
 
 const initialBoard = "xxxxxxxx,xxxxxxxx,xxxxxxxx,xxxxxxxx,s1";
 
 const initialState: RoomState = {
-    account: { id: null, name: null, rate: 0, icon: null, roomNo: -1, joinedTime: new Date(Date.now()) }, room: { no: 0, description: "", users: {}, players: [], opt: null },
-    users: [], board: initialBoard, privateBoard: initialBoard, histories: [], goshiDecision: false, goshiWait: false,
+    account: { id: null, name: null, rate: 0, icon: null, roomNo: -1, joinedTime: new Date(Date.now()) },
+    room: { no: 0, description: "", users: {}, players: [], opt: null },
+    users: [],
+    board: initialBoard,
+    privateBoard: initialBoard,
+    histories: [],
+    goshiDecision: false,
+    goshiWait: false,
 };
 
 export default function reducer(state: RoomState = initialState, action: RoomActions): RoomState {
@@ -175,10 +194,10 @@ export default function reducer(state: RoomState = initialState, action: RoomAct
         case ActionNames.USER_JOINED:
             return { ...state, users: [...state.users, action.user] };
         case ActionNames.USER_LEFT:
-            return { ...state, users: state.users.filter((u) => u.id !== action.userid) };
+            return { ...state, users: state.users.filter(u => u.id !== action.userid) };
         case ActionNames.UPDATE_USER:
             const newUsers = state.users.slice();
-            const i = newUsers.findIndex((u) => u.id === action.user.id);
+            const i = newUsers.findIndex(u => u.id === action.user.id);
             if (i < 0) {
                 return state;
             }
