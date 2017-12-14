@@ -12,5 +12,5 @@
     ],
 
     "sourceMaps": true,
-    "plugins": ["react-hot-loader/babel"]
+    "plugins": [["es2015", { "modules": false }], "react-hot-loader/babel"]
 }

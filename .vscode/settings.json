@@ -1,8 +1,8 @@
 {
-    "prettier.typescriptEnable": ["typescript", "typescriptreact"],
     "prettier.eslintIntegration": false, // not work now
     "tslint.autoFixOnSave": true,
     "eslint.autoFixOnSave": true,
     "editor.formatOnSave": true,
-    "typescript.tsdk": "node_modules/typescript/lib"
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "python.pythonPath": "/home/yoske/.pyenv/versions/miniconda3-latest/bin/python"
 }
