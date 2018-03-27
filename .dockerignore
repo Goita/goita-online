@@ -1,0 +1,15 @@
+# do not send to docker image
+.vscode
+.awcache
+.dockerignore
+Dockerfile
+Dockerfile.prod
+docker-compose.yml
+docker-compose.prod.yml
+.editorconfig
+*.log
+*.md
+node_modules
+.git
+db_mongo
+core

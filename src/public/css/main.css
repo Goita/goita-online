@@ -1,0 +1,12 @@
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    font-family: "Roboto", sans-serif;
+}
+
+#react > div {
+    height: 100%;
+}

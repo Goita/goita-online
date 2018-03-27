@@ -1,0 +1,7 @@
+/node_modules
+/dist
+/db_mongo
+.awcache
+*.log
+yarn.lock
+LICENSE

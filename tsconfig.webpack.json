@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "noImplicitAny": true,
+        "sourceMap": true,
+        "newLine": "LF",
+        "preserveConstEnums": true,
+        "removeComments": false,
+        "importHelpers": true,
+        "jsx": "react",
+        "baseUrl": ".",
+        "paths": {
+            "*": ["node_modules/@types/*", "src/types/*", "*"]
+        },
+        "lib": ["es6", "dom"]
+    }
+}

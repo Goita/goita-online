@@ -1,4 +1,46 @@
-node_modules/
-.c9/
-.c9/metadata/
-*.cmd
+# Directories
+node_modules
+coverage
+dist
+pids
+logs
+results
+tmp
+lib-cov
+.awcache
+
+# Debugger for Chrome cache
+.vscode/chrome
+
+# Files
+*debug.log.*
+*.log
+*.seed
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+*.swp
+core
+
+# Build
+public/css/main.css
+
+# API keys and secrets
+.env
+.env.dev
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# protect secret keys
+oAuthConfig.dev.ts
+
+# db data
+db_mongo/*.*
+WiredTiger
+
+#typed css modules
+*.css.d.ts

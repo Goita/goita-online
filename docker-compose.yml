@@ -1,0 +1,28 @@
+version: "2"
+
+services:
+  mongodb:
+    image: mongo:3.4.9
+    command: -smallfiles -nojournal
+    ports:
+      - 27017:27017
+    volumes:
+      - ./db_mongo:/data/db
+  goita-online:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      MONGODB_URI: mongodb://mongodb:27017/test
+    ports:
+      - 3000:3000 # application
+      - 9229:9229 # debug
+    depends_on:
+      - mongodb
+    volumes:
+      - .:/home/node/goita-online
+      - ./db_mongo:/home/node/goita-online/db_mongo
+    command: yarn watch:debug
+    # command: yarn test

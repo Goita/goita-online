@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "outDir": "./dist",
+        "moduleResolution": "node",
+        "noImplicitAny": true,
+        "declaration": false,
+        "sourceMap": true,
+        "newLine": "LF",
+        "preserveConstEnums": true,
+        "removeComments": false,
+        "importHelpers": true,
+        "baseUrl": ".",
+        "paths": {
+            "*": ["node_modules/@types/*", "src/types/*", "*"]
+        },
+        "types": ["webpack-env", "node"]
+    },
+    "include": ["src/server/**/*"],
+    "exclude": ["node_modules", "src/public", "**/*.spec.ts"]
+}

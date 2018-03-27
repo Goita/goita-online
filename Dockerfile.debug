@@ -1,0 +1,13 @@
+# experimenting file
+
+FROM node:8.7.0
+
+LABEL maintainer=yoskeoka<yoske.oka@gmail.com>
+ENV TZ=Asia/Tokyo
+ENV HOME=/home/node
+
+# use user 'node'(UID:1000) which is created in node docker image
+USER node
+WORKDIR $HOME/goita-online
+
+CMD ["yarn", "watch"]
