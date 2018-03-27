@@ -24,8 +24,9 @@ docker-compose -f docker-compose.prod.yml up
 開発時環境の起動
 
 ```sh
+cd goita-online
+cp .env.example .env.dev
 yarn install
-yarn run build
 docker-compose up
 ```
 
