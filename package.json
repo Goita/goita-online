@@ -12,7 +12,7 @@
         "watch:start":
             "npm run clean && concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"blue.bold,green.bold\" \"npm run watch:ts\"  \"run-s wait:compile start\"",
         "watch:debug":
-            "npm run clean && concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"blue.bold,green.bold\" \"npm run watch:ts\"  \"run-s wait:compile start:debug\"",
+            "yarn install && npm run clean && concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"blue.bold,green.bold\" \"npm run watch:ts\"  \"run-s wait:compile start:debug\"",
         "build:ts": "tsc",
         "watch:ts": "tsc -w",
         "build:webpack": "webpack --config webpack.config.prod.js",

@@ -34,7 +34,7 @@ const MongoStore = mongo(session);
 /**
  * Load environment variables from .env file into process.env.
  */
-dotenv.config({ path: ".env.dev" });
+dotenv.config({ path: ".env" });
 
 /**
  * API keys and Passport configuration.
