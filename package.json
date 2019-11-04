@@ -51,7 +51,7 @@
         "lusca": "^1.5.0",
         "material-ui": "1.0.0-beta.21",
         "material-ui-icons": "^1.0.0-beta.17",
-        "mongoose": "^4.12.1",
+        "mongoose": "^5.7.5",
         "morgan": "^1.9.0",
         "nocache": "^2.0.0",
         "passport": "0.3.2",
